@@ -1,0 +1,177 @@
+---
+/**
+ * "A day on the eleventh floor": a 24-hour dial. Sunrise and sunset are computed for the house
+ * on the client (so the dial is right today, not on the day the site was built); breakfast,
+ * check-out, check-in and the sound-and-light show sit at their hours. Drag the sun round the
+ * ring, or tap a moment, and the view photo beside it changes to that time of day. It opens at
+ * the current time in Giza.
+ */
+import { useT, digits, type Lang } from '../i18n';
+import { SITE } from '../data/site';
+import Img from './Img.astro';
+import Icon from './Icon.astro';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const { t } = useT(lang);
+const R = 150, C = 200;
+const ang = (h: number) => ((h / 24) * 360 - 90) * Math.PI / 180;
+const pt = (h: number, r = R) => ({ x: C + r * Math.cos(ang(h)), y: C + r * Math.sin(ang(h)) });
+const arc = (h1: number, h2: number, r = R) => { const a = pt(h1, r), b = pt(h2, r); const large = ((h2 - h1 + 24) % 24) > 12 ? 1 : 0; return `M${a.x} ${a.y} A${r} ${r} 0 ${large} 1 ${b.x} ${b.y}`; };
+// the moments: hour, label, which photo; the photos are the view at that hour
+const moments = [
+  { id: 'dawn', h: 6, photo: 'view-day' },
+  { id: 'breakfast', h: 8, photo: 'view-day' },
+  { id: 'checkout', h: 11, photo: 'view-panorama' },
+  { id: 'checkin', h: 14, photo: 'view-panorama' },
+  { id: 'afternoon', h: 16.5, photo: 'view-sunrise' },
+  { id: 'sunset', h: 17.5, photo: 'view-sunset' },
+  { id: 'dusk', h: 18.5, photo: 'view-dusk' },
+  { id: 'show', h: 20, photo: 'view-night' },
+  { id: 'night', h: 23.5, photo: 'view-night' },
+] as const;
+const photos = [...new Set(moments.map((m) => m.photo))];
+const labels = Object.fromEntries(moments.map((m) => [m.id, { name: t(`day.${m.id}.t`), text: t(`day.${m.id}.d`) }]));
+const hourTicks = Array.from({ length: 24 }, (_, i) => i);
+---
+<div class="dd" data-dd data-lat={SITE.geo.lat} data-lng={SITE.geo.lng} data-lang={lang} data-moments={JSON.stringify(moments.map((m) => ({ id: m.id, h: m.h, photo: m.photo })))} data-labels={JSON.stringify(labels)} data-now={t('day.now')} data-l-sunrise={t('day.sunriseAt')} data-l-sunset={t('day.sunsetAt')}>
+  <div class="dd-dial-wrap">
+    <svg class="dd-dial" viewBox="0 0 400 400" role="img" aria-label={t('day.title')} dir="ltr" data-svg>
+      <circle class="dd-ring" cx={C} cy={C} r={R} />
+      <path class="dd-day" data-dayarc d={arc(6, 18)} />
+      <path class="dd-arc dd-breakfast" d={arc(7, 9, R - 14)} />
+      <path class="dd-arc dd-show" d={arc(19.5, 21, R - 14)} />
+      {hourTicks.map((h) => { const a = pt(h, R + 6), b = pt(h, R + (h % 6 === 0 ? 16 : 11)); const l = pt(h, R + 30); return <g class="dd-tick"><line x1={a.x} y1={a.y} x2={b.x} y2={b.y} />{h % 3 === 0 && <text x={l.x} y={l.y + 4} text-anchor="middle">{digits(String(h).padStart(2, '0'), lang)}</text>}</g>; })}
+      {moments.filter((m) => !['dawn', 'sunset', 'night', 'dusk'].includes(m.id)).map((m) => { const p = pt(m.h, R); return <g class="dd-moment" data-moment={m.id} tabindex="0" role="button" aria-label={labels[m.id].name}><circle cx={p.x} cy={p.y} r="7" /></g>; })}
+      <g class="dd-sunrise" data-sunrise-mark><circle r="5" /></g>
+      <g class="dd-sunset" data-sunset-mark><circle r="5" /></g>
+      <g class="dd-sun" data-sun tabindex="0" role="slider" aria-label={t('day.title')} aria-valuemin="0" aria-valuemax="24" aria-valuenow="12">
+        <circle class="dd-sun-glow" r="22" />
+        <circle class="dd-sun-disc" r="12" />
+        <path d="M0 -19v-5M0 19v5M-19 0h-5M19 0h5M-13 -13l-3 -3M13 -13l3 -3M-13 13l-3 3M13 13l3 3" />
+      </g>
+      <text class="dd-time" x={C} y={C - 14} text-anchor="middle" data-time>—</text>
+      <text class="dd-name" x={C} y={C + 18} text-anchor="middle" data-name></text>
+      <text class="dd-sub" x={C} y={C + 40} text-anchor="middle" data-sub></text>
+    </svg>
+    <p class="dd-hint small muted">{t('day.hint')}</p>
+    <ul class="dd-chips" role="list">
+      {moments.map((m) => <li><button type="button" class="chip" data-moment={m.id}>{labels[m.id].name}</button></li>)}
+    </ul>
+  </div>
+  <div class="dd-view">
+    <div class="dd-photos frame">
+      {photos.map((id, i) => <div class:list={['dd-photo', i === 0 && 'on']} data-photo={id}><Img id={id} lang={lang} ratio="4 / 3" sizes="(min-width: 960px) 46vw, 100vw" /></div>)}
+    </div>
+    <p class="dd-text" data-text aria-live="polite"></p>
+    <p class="dd-suntimes small muted" data-suntimes></p>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-dd]').forEach((root) => {
+    const lat = Number(root.dataset.lat), lng = Number(root.dataset.lng), ar = root.dataset.lang === 'ar';
+    const moments = JSON.parse(root.dataset.moments!) as { id: string; h: number; photo: string }[];
+    const labels = JSON.parse(root.dataset.labels!) as Record<string, { name: string; text: string }>;
+    const dg = (s: string) => ar ? s.replace(/\d/g, (x) => '٠١٢٣٤٥٦٧٨٩'[Number(x)]) : s;
+    const fmt = (h: number) => { const hh = Math.floor(((h % 24) + 24) % 24), mm = Math.round((h - Math.floor(h)) * 60) % 60; return dg(`${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`); };
+    // sun times for today at the house (approximation, ±2 min), in Cairo local time
+    const now = new Date(); const y = now.getFullYear();
+    const n = Math.floor((Date.UTC(y, now.getMonth(), now.getDate()) - Date.UTC(y, 0, 0)) / 864e5);
+    const rad = Math.PI / 180, g = (360 / 365) * (n - 81) * rad;
+    const eot = 9.87 * Math.sin(2 * g) - 7.53 * Math.cos(g) - 1.5 * Math.sin(g);
+    const decl = 23.44 * rad * Math.sin(g);
+    const cosH = (Math.sin(-0.833 * rad) - Math.sin(lat * rad) * Math.sin(decl)) / (Math.cos(lat * rad) * Math.cos(decl));
+    const H = Math.acos(Math.max(-1, Math.min(1, cosH))) / rad;
+    const lastFri = (m: number) => { const d = new Date(Date.UTC(y, m + 1, 0)); while (d.getUTCDay() !== 5) d.setUTCDate(d.getUTCDate() - 1); return +d; };
+    const today = Date.UTC(y, now.getMonth(), now.getDate());
+    const off = 120 + (today >= lastFri(3) && today < lastFri(9) ? 60 : 0); // Egypt: UTC+2, +3 in summer
+    const noon = 720 - 4 * lng - eot;
+    const sunrise = (((noon - 4 * H + off) % 1440) + 1440) % 1440 / 60, sunset = (((noon + 4 * H + off) % 1440) + 1440) % 1440 / 60;
+    const cairoNow = ((now.getUTCHours() * 60 + now.getUTCMinutes() + off) % 1440) / 60;
+    // place the real sunrise/sunset on the ring and re-draw the daylight arc
+    const C = 200, R = 150;
+    const pt = (h: number, r = R) => { const a = ((h / 24) * 360 - 90) * Math.PI / 180; return { x: C + r * Math.cos(a), y: C + r * Math.sin(a) }; };
+    const arc = (h1: number, h2: number, r = R) => { const a = pt(h1, r), b = pt(h2, r); const large = ((h2 - h1 + 24) % 24) > 12 ? 1 : 0; return `M${a.x} ${a.y} A${r} ${r} 0 ${large} 1 ${b.x} ${b.y}`; };
+    root.querySelector<SVGPathElement>('[data-dayarc]')!.setAttribute('d', arc(sunrise, sunset));
+    const sr = pt(sunrise), ss = pt(sunset);
+    root.querySelector<SVGGElement>('[data-sunrise-mark]')!.setAttribute('transform', `translate(${sr.x} ${sr.y})`);
+    root.querySelector<SVGGElement>('[data-sunset-mark]')!.setAttribute('transform', `translate(${ss.x} ${ss.y})`);
+    root.querySelector<HTMLElement>('[data-suntimes]')!.textContent = `${root.dataset.lSunrise!.replace('{time}', fmt(sunrise))} · ${root.dataset.lSunset!.replace('{time}', fmt(sunset))}`;
+    // which moment a given hour belongs to
+    const momentAt = (h: number) => {
+      if (h >= sunset - 0.6 && h < sunset + 0.35) return 'sunset';
+      if (h >= sunset + 0.35 && h < 19.5) return 'dusk';
+      if (h >= 19.5 && h < 21.5) return 'show';
+      if (h >= 21.5 || h < sunrise - 0.3) return 'night';
+      if (h < sunrise + 1) return 'dawn';
+      if (h < 9.5) return 'breakfast';
+      if (h < 12.5) return 'checkout';
+      if (h < 15.5) return 'checkin';
+      return 'afternoon';
+    };
+    const sun = root.querySelector<SVGGElement>('[data-sun]')!;
+    const timeEl = root.querySelector<SVGTextElement>('[data-time]')!, nameEl = root.querySelector<SVGTextElement>('[data-name]')!, subEl = root.querySelector<SVGTextElement>('[data-sub]')!, textEl = root.querySelector<HTMLElement>('[data-text]')!;
+    let cur = cairoNow, isNow = true;
+    const render = () => {
+      const p = pt(cur); sun.setAttribute('transform', `translate(${p.x} ${p.y})`); sun.setAttribute('aria-valuenow', cur.toFixed(1));
+      const id = momentAt(cur); const m = moments.find((x) => x.id === id)!;
+      const night = cur < sunrise || cur > sunset; sun.classList.toggle('night', night);
+      timeEl.textContent = fmt(cur); nameEl.textContent = labels[id].name; subEl.textContent = isNow ? root.dataset.now! : '';
+      textEl.textContent = labels[id].text;
+      root.querySelectorAll<HTMLElement>('[data-photo]').forEach((el) => el.classList.toggle('on', el.dataset.photo === m.photo));
+      root.querySelectorAll<HTMLElement>('[data-moment]').forEach((el) => el.classList.toggle('on', el.dataset.moment === id));
+    };
+    const svg = root.querySelector<SVGSVGElement>('[data-svg]')!;
+    const hourFromEvent = (e: PointerEvent) => { const r = svg.getBoundingClientRect(); const x = ((e.clientX - r.left) / r.width) * 400 - C, y = ((e.clientY - r.top) / r.height) * 400 - C; let a = Math.atan2(y, x) * 180 / Math.PI + 90; if (a < 0) a += 360; return (a / 360) * 24; };
+    let drag = false;
+    svg.addEventListener('pointerdown', (e) => { if ((e.target as Element).closest('[data-moment]')) return; drag = true; svg.setPointerCapture(e.pointerId); cur = hourFromEvent(e); isNow = false; render(); });
+    svg.addEventListener('pointermove', (e) => { if (!drag) return; cur = hourFromEvent(e); render(); });
+    svg.addEventListener('pointerup', () => (drag = false)); svg.addEventListener('pointercancel', () => (drag = false));
+    sun.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { cur = (cur + 0.5) % 24; isNow = false; render(); e.preventDefault(); } if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { cur = (cur - 0.5 + 24) % 24; isNow = false; render(); e.preventDefault(); } });
+    root.querySelectorAll<HTMLElement>('[data-moment]').forEach((el) => {
+      const go = () => { const m = moments.find((x) => x.id === el.dataset.moment)!; cur = m.id === 'sunset' ? sunset - 0.1 : m.id === 'dawn' ? sunrise + 0.3 : m.id === 'dusk' ? sunset + 0.6 : m.h; isNow = false; render(); };
+      el.addEventListener('click', go); el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+    });
+    render();
+  });
+</script>
+
+<style>
+  .dd { display: grid; gap: 28px; }
+  .dd-dial-wrap { display: grid; gap: 12px; }
+  .dd-dial { width: 100%; max-width: 460px; height: auto; margin-inline: auto; display: block; font-family: var(--sans); touch-action: none; user-select: none; }
+  .dd-ring { fill: none; stroke: var(--line); stroke-width: 10; }
+  .dd-day { fill: none; stroke: var(--gold-light); stroke-width: 10; stroke-linecap: round; opacity: 0.8; }
+  .dd-arc { fill: none; stroke-width: 4; stroke-linecap: round; }
+  .dd-breakfast { stroke: var(--gold-text); } .dd-show { stroke: var(--night-2); }
+  .dd-tick line { stroke: var(--muted); stroke-width: 1; } .dd-tick text { font-size: 10.5px; fill: var(--muted); font-weight: 600; }
+  .dd-moment { cursor: pointer; } .dd-moment circle { fill: var(--paper); stroke: var(--gold-text); stroke-width: 1.4; transition: fill 0.25s; }
+  .dd-moment.on circle, .dd-moment:hover circle { fill: var(--gold); }
+  .dd-moment:focus-visible { outline: none; } .dd-moment:focus-visible circle { stroke-width: 3; }
+  .dd-sunrise circle, .dd-sunset circle { fill: var(--cream); stroke: var(--gold); stroke-width: 1.2; }
+  .dd-sun { cursor: grab; transition: transform 0.35s var(--ease); }
+  .dd-sun:active { cursor: grabbing; }
+  .dd-sun-glow { fill: var(--gold-light); opacity: 0.25; }
+  .dd-sun-disc { fill: var(--gold); stroke: var(--paper); stroke-width: 2; }
+  .dd-sun path { stroke: var(--gold); stroke-width: 1.4; stroke-linecap: round; transition: opacity 0.3s; }
+  .dd-sun.night .dd-sun-disc { fill: var(--night-2); } .dd-sun.night .dd-sun-glow { fill: var(--night-2); opacity: 0.15; } .dd-sun.night path { opacity: 0; }
+  .dd-sun:focus-visible { outline: none; } .dd-sun:focus-visible .dd-sun-disc { stroke: var(--ink); stroke-width: 3; }
+  .dd-time { font-family: var(--display); font-size: 44px; font-weight: 600; fill: var(--ink); }
+  .dd-name { font-family: var(--display); font-size: 19px; font-weight: 600; fill: var(--gold-text); }
+  html[lang='ar'] .dd-name { font-family: var(--sans); font-size: 17px; }
+  .dd-sub { font-size: 11px; fill: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+  html[lang='ar'] .dd-sub { letter-spacing: 0; font-size: 13px; }
+  .dd-hint { margin: 0; text-align: center; }
+  .dd-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .chip { border: 1px solid var(--line); background: var(--paper); border-radius: 999px; padding: 8px 14px; font-size: 0.9rem; font-weight: 600; color: var(--ink); cursor: pointer; }
+  .chip.on, .chip:hover { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+  .dd-view { display: grid; gap: 14px; align-content: start; }
+  .dd-photos { display: grid; }
+  .dd-photo { grid-area: 1 / 1; opacity: 0; transition: opacity 0.8s var(--ease); }
+  .dd-photo.on { opacity: 1; }
+  .dd-text { margin: 0; font-family: var(--display); font-size: 1.35rem; line-height: 1.35; color: var(--ink); min-height: 3.6em; }
+  html[lang='ar'] .dd-text { font-family: var(--sans); font-size: 1.1rem; font-weight: 500; }
+  .dd-suntimes { margin: 0; }
+  @media (min-width: 960px) { .dd { grid-template-columns: 1fr 1.15fr; gap: 56px; align-items: center; } }
+  @media (prefers-reduced-motion: reduce) { .dd-sun { transition: none; } .dd-photo { transition: none; } }
+</style>

@@ -125,7 +125,7 @@ html[lang='ar'] .eyebrow { letter-spacing: 0; font-size: 0.95rem; }
 
 /* lotus frieze divider */
 .lattice { display: flex; justify-content: center; padding-block: 8px; color: var(--gold); opacity: 0.85; }
-.lattice svg { width: min(260px, 64vw); height: 24px; }
+.lattice svg { width: min(320px, 70vw); height: 28px; }
 
 /* sticky mobile bar */
 .stick { position: fixed; inset-inline: 0; bottom: 0; z-index: 60; display: grid; grid-template-columns: 1fr auto auto; gap: 8px;

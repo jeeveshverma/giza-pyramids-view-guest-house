@@ -59,9 +59,9 @@ export type Amenity = 'view' | 'cityView' | 'balcony' | 'ac' | 'bath' | 'fridge'
  * room is read from the photos, not confirmed. Photo ids refer to src/data/photos.ts; the
  * non-view photos pair with the walk-through steps first.
  */
-export const ROOMS: { id: RoomId; photos: string[]; hero: string; amenities: Amenity[] }[] = [
-  { id: 'double-view', hero: 'room-view', photos: ['room-view', 'balcony-day', 'view-sunset', 'lounge-sunset'], amenities: ['view', 'balcony', 'ac', 'bath', 'fridge', 'wifi', 'breakfast', 'lift'] },
-  { id: 'twin-view', hero: 'room-twin', photos: ['room-twin', 'room-window', 'view-day', 'balcony-sunset'], amenities: ['view', 'ac', 'bath', 'fridge', 'wifi', 'breakfast', 'lift'] },
-  { id: 'studio', hero: 'lounge-new', photos: ['lounge-new', 'sofa-corner', 'view-dusk'], amenities: ['view', 'ac', 'bath', 'fridge', 'wifi', 'tv', 'breakfast', 'lift'] },
-  { id: 'twin-city', hero: 'corridor', photos: ['corridor', 'room-twin', 'terrace-day'], amenities: ['cityView', 'ac', 'bath', 'wifi', 'breakfast', 'lift'] },
+export const ROOMS: { id: RoomId; photos: string[]; hero: string; amenities: Amenity[]; faces: 'w' | 'e' }[] = [
+  { id: 'double-view', hero: 'room-view', photos: ['room-view', 'balcony-day', 'view-sunset', 'lounge-sunset'], amenities: ['view', 'balcony', 'ac', 'bath', 'fridge', 'wifi', 'breakfast', 'lift'] , faces: 'w' },
+  { id: 'twin-view', hero: 'room-twin', photos: ['room-twin', 'room-window', 'view-day', 'balcony-sunset'], amenities: ['view', 'ac', 'bath', 'fridge', 'wifi', 'breakfast', 'lift'] , faces: 'w' },
+  { id: 'studio', hero: 'lounge-new', photos: ['lounge-new', 'sofa-corner', 'view-dusk'], amenities: ['view', 'ac', 'bath', 'fridge', 'wifi', 'tv', 'breakfast', 'lift'] , faces: 'w' },
+  { id: 'twin-city', hero: 'corridor', photos: ['corridor', 'room-twin', 'terrace-day'], amenities: ['cityView', 'ac', 'bath', 'wifi', 'breakfast', 'lift'] , faces: 'e' },
 ];

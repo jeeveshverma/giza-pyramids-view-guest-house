@@ -23,7 +23,7 @@ const sizes: ('tall' | 'wide' | 'square')[] = ['tall', 'wide', 'tall', 'square',
         <p class="muted">{t('rooms.stay')}</p>
       </div>
       <div class="rooms-list">
-        {ROOMS.map((r, i) => <RoomCard id={r.id} hero={r.hero} lang={lang} index={i} size={sizes[i]} />)}
+        {ROOMS.map((r, i) => <RoomCard id={r.id} hero={r.hero} lang={lang} index={i} faces={r.faces} size={sizes[i]} />)}
       </div>
     </div>
   </section>

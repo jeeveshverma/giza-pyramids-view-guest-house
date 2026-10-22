@@ -15,10 +15,19 @@ Trip.com (8.6 from 66, the four room types, check-in 14:00 / check-out 11:00, br
 languages, amenities), Booking.com and Expedia (sun terrace, airport shuttle, free Wi‑Fi).
 **No prices.** Distances and bearings are computed from coordinates, never typed.
 
-**Drawn for this site:** the pyramids-and-sun mark, the lotus frieze, 17 landmark line icons, the
-self-drawing skyline (`Skyline.astro`), the "what you see from the balcony" panorama at true bearings
-with today's sunset azimuth (`Panorama.astro`), the sunset-time ribbon (`Sunset.astro`), the Giza map
-with the Nile, the plateau and Pyramids Road (`MapSection.astro`), and the starfield behind the reviews.
+**The idea the site is built on:** the house is on the eleventh floor, which puts it level with the
+base of the Great Pyramid, above the rooftops of Al Haram. Everything drawn serves that.
+
+**Drawn for this site:** the pyramids-and-sun mark; the lift panel in the hero; the self-drawing
+skyline (`Skyline.astro`); the "what you see from the balcony" panorama at true bearings with today's
+sunset azimuth (`Panorama.astro`); the height profile from the house to the plateau with the sight
+line, approximate elevations, vertical scale x2.5 (`Elevation.astro`); the 24-hour day dial with
+computed sunrise and sunset, draggable, opening at the current time in Giza, each moment with its own
+view photo (`DayDial.astro`); the sunset-time ribbon (`Sunset.astro`); the Giza map with the Nile, the
+plateau and Pyramids Road (`MapSection.astro`); a divider drawn from the balcony's own iron railing
+(`Lattice.astro`); 17 landmark line icons; the "window faces west/east" compass on each room card; and
+the starfield behind the reviews. There is deliberately no icon grid of amenities: the practical facts
+are a plain list.
 
 **Provisional until the owner confirms:**
 - The WhatsApp number is the listings' phone (+20 100 536 2094).
@@ -57,7 +66,8 @@ node scripts/og.mjs   # regenerate og-image.jpg and the icons from the mark
 
 QA without a browser: `npm run build && npx astro preview --host 127.0.0.1`, then
 `QA_BASE=http://127.0.0.1:4321/giza-pyramids-view-guest-house node scripts/qa.mjs shots / 390 out --device iphone`
-(screenshots) or `… qa.mjs audit / /rooms/ /giza/` (overflow, broken images, console errors).
+(screenshots), `… qa.mjs audit / /rooms/ /giza/` (overflow, broken images, console errors) or
+`… scripts/pageerrors.mjs / /ar/` (uncaught script errors with stacks).
 
 ## Deploy
 

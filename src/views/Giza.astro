@@ -7,6 +7,7 @@ import Icon from '../components/Icon.astro';
 import Img from '../components/Img.astro';
 import Lattice from '../components/Lattice.astro';
 import Panorama from '../components/Panorama.astro';
+import Elevation from '../components/Elevation.astro';
 import { path, useT, digits, type Lang } from '../i18n';
 import { PLACES } from '../data/places';
 import { SITE } from '../data/site';
@@ -39,6 +40,8 @@ const howto = [
     <div class="wrap">
       <div class="section-head rv"><h2>{t('view.title')}</h2><p class="lead">{t('view.text')}</p></div>
       <Panorama lang={lang} />
+      <div class="section-head rv" style="margin-top: 48px"><h2>{t('sections.elev')}</h2><p class="lead">{t('elev.text')}</p></div>
+      <Elevation lang={lang} />
     </div>
   </section>
 
