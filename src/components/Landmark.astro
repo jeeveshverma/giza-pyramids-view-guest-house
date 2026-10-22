@@ -1,0 +1,45 @@
+---
+/** Gold hairline illustrations of Giza and Cairo places, drawn on a 64-unit grid in the logo's stroke. */
+interface Props { name: keyof typeof ART; size?: number; class?: string }
+const { name, size = 64, class: cls = '' } = Astro.props;
+const ART = {
+  // the three pyramids with the sun
+  pyramids: '<path d="M4 50h56"/><path d="M8 50l9-12 9 12M22 50l13-20 13 20M38 50l10-14 10 14"/><circle cx="46" cy="18" r="5"/><path d="M46 8v2M46 26v2M36 18h2M54 18h2M39 11l1.5 1.5M53 11l-1.5 1.5"/>',
+  // the Sphinx in profile with a pyramid behind
+  sphinx: '<path d="M4 50h56"/><path d="M30 50l14-20 14 20"/><path d="M6 50v-10c0-4 3-6 8-6h12v-6c0-5 3-7 7-7s7 2 7 7v4c0 4-2 6-5 7v11"/><path d="M28 22h6M32 18v-4M26 50v-6h8v6M14 42h6" opacity=".8"/>',
+  // the Grand Egyptian Museum: a long low roof of triangles
+  museum: '<path d="M4 50h56"/><path d="M8 50V30l10-8 10 8 10-8 10 8 10-8v28"/><path d="M18 22v28M38 22v28M58 22v28" opacity=".6"/><path d="M12 42h8M32 42h8M48 42h6"/><path d="M22 50v-6h4v6" opacity=".8"/>',
+  // Djoser's Step Pyramid
+  step: '<path d="M4 54h56"/><path d="M8 54v-6h6v-7h6v-7h6v-7h6v-7h4v7h6v7h6v7h6v7h6v6"/><path d="M14 48h36M20 41h24M26 34h12" opacity=".5"/>',
+  // the Bent Pyramid of Dahshur
+  bent: '<path d="M4 54h56"/><path d="M6 54L24 28l8-14 8 14 18 26"/><path d="M24 28h16" opacity=".5"/><path d="M32 14v40" opacity=".4"/>',
+  // the fallen colossus of Ramses at Memphis
+  colossus: '<path d="M4 52h56"/><path d="M10 46c0-4 3-7 7-7h30a7 7 0 0 1 7 7v6H10z"/><circle cx="50" cy="30" r="6"/><path d="M44 36h-4a6 6 0 0 0-6 6M50 24v-6M46 20h8"/><path d="M14 46h28" opacity=".5"/>',
+  // Khan el-Khalili: a lantern under an arch
+  bazaar: '<path d="M10 56V28a22 22 0 0 1 44 0v28"/><path d="M6 56h52"/><path d="M32 14v6M28 20h8M28 20l-4 14 8 6 8-6-4-14"/><path d="M26 44v12M38 44v12" opacity=".6"/><path d="M14 40h6M44 40h6" opacity=".6"/>',
+  // Cairo Tower: a tall lattice tower with a flared top
+  tower: '<path d="M20 58h24"/><path d="M26 58V20l-6-8h24l-6 8v38"/><path d="M26 28h12M26 36h12M26 44h12M26 52h12" opacity=".5"/><path d="M32 12V6M28 8h8"/>',
+  // a felucca on the Nile
+  felucca: '<path d="M6 50c4-3 8-3 12 0s8 3 12 0 8-3 12 0 8 3 12 0"/><path d="M12 44h40l-6 6H18z"/><path d="M30 44V12M30 12c12 6 18 18 18 32" /><path d="M30 20c-8 6-10 16-10 24" opacity=".7"/>',
+  // the Egyptian Museum, Tahrir: a dome over a façade
+  oldmuseum: '<path d="M8 56V32h48v24M4 56h56"/><path d="M20 32a12 12 0 0 1 24 0"/><path d="M32 20v-5M30 15h4"/><path d="M14 56v-10h8v10M42 56v-10h8v10M28 56v-14h8v14"/><path d="M12 40h40" opacity=".5"/>',
+  // the Sphinx entrance: a gate with a pyramid behind
+  gate: '<path d="M4 54h56"/><path d="M30 54l15-22 15 22" opacity=".7"/><path d="M8 54V32h8v22M22 54V32h8v22"/><path d="M6 32h26M14 32v-6h6v6"/><path d="M16 42h4M24 42h4" opacity=".6"/>',
+  // plane (airport)
+  plane: '<path d="M8 34l20-3 8-18h5l-3 18 16 3v5l-16 3 3 16h-5l-8-16-20-3z"/>',
+  // metro train
+  metro: '<rect x="12" y="10" width="40" height="36" rx="8"/><path d="M12 30h40M22 46v6M42 46v6M18 52h28"/><path d="M18 18h28v8H18z"/><path d="M20 38h.1M44 38h.1" stroke-width="3"/>',
+  // a camel
+  camel: '<path d="M6 52h52"/><path d="M12 52V40c0-4 2-8 6-10h4c2-6 6-8 10-8 6 0 8 4 14 4 4 0 6-4 10-6v6c0 4-2 6-6 8v18"/><path d="M22 30c0-4 4-6 8-6M20 52V42M28 52V42M42 52V40M50 52v-8" opacity=".8"/><path d="M48 22l4-4" opacity=".6"/>',
+  // sun over a horizon
+  sun: '<path d="M4 46h56"/><path d="M18 46a14 14 0 0 1 28 0"/><path d="M32 20v-8M14 28l-5-5M50 28l5-5M10 40H4M60 40h-6" />',
+  // the sound and light show: beams over a pyramid
+  lightshow: '<path d="M4 54h56"/><path d="M14 54l18-26 18 26"/><path d="M32 28L20 8M32 28l12-20M32 28V6" opacity=".6"/><circle cx="52" cy="14" r="4"/>',
+  // mosque: dome and minaret
+  mosque: '<path d="M14 56V28M12 28h4M14 22l2-6 2 6M14 28v-6"/><path d="M20 56V40a12 12 0 0 1 24 0v16"/><path d="M32 28v-5M28 56v-8a4 4 0 0 1 8 0v8"/><path d="M8 56h48"/>',
+};
+---
+<svg class={`landmark ${cls}`} width={size} height={size} viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={ART[name]} />
+<style>
+  .landmark { color: var(--gold); }
+</style>

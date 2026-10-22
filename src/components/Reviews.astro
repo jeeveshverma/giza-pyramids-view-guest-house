@@ -1,0 +1,135 @@
+---
+/**
+ * The review band under a drawn night sky: the Google, Tripadvisor and Trip.com scores (from
+ * SITE.scores), then one real Tripadvisor review line at a time, auto-advancing with a brass hairline timer,
+ * swipeable, keyboard accessible, paused on hover/touch, static under reduced motion.
+ */
+import { useT, digits, type Lang } from '../i18n';
+import { REVIEWS } from '../data/reviews';
+import { SITE } from '../data/site';
+import Icon from './Icon.astro';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const { t } = useT(lang);
+// reviews in the page language first, then the others (translated quotes are marked)
+const list = [...REVIEWS].sort((a, b) => Number(b.lang === lang) - Number(a.lang === lang));
+const scores = [
+  { ...SITE.scores.google, label: t('reviews.google'), url: SITE.googleReviewsUrl },
+  { ...SITE.scores.tripadvisor, label: t('reviews.tripadvisor'), url: SITE.tripadvisorUrl },
+  { ...SITE.scores.trip, label: t('reviews.trip'), url: SITE.tripUrl },
+];
+// a fixed starfield so the sky is the same on every build
+const stars = Array.from({ length: 70 }, (_, i) => { const a = Math.sin(i * 12.9898) * 43758.5453, b = Math.sin(i * 78.233) * 12345.678; return { x: ((a - Math.floor(a)) * 1000).toFixed(1), y: ((b - Math.floor(b)) * 380).toFixed(1), r: (0.6 + ((i * 7) % 5) * 0.25).toFixed(2), d: ((i * 13) % 7).toFixed(0) }; });
+---
+<section class="section rvw" id="reviews" aria-labelledby="rvw-title">
+  <svg class="rvw-sky" viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    {stars.map((s) => <circle cx={s.x} cy={s.y} r={s.r} style={`--d:${s.d}s`} />)}
+    <path class="rvw-ridge" d="M0 400V372l120-2 60-28 110 28 70-54 120 54 130-44 110 44 90-20 100 20 90-12v42z" />
+  </svg>
+  <div class="wrap">
+    <div class="rvw-head rv">
+      <span class="num"><Icon name="starFill" size={14} /><Icon name="starFill" size={14} /><Icon name="starFill" size={14} /><Icon name="starFill" size={14} /><Icon name="starFill" size={14} /></span>
+      <h2 id="rvw-title">{t('reviews.title')}</h2>
+    </div>
+    <ul class="rvw-scores rv">
+      {scores.map((s) => (
+        <li>
+          <a href={s.url} target="_blank" rel="noopener">
+            <span class="rvw-score">{digits(s.score, lang).replace('.', lang === 'ar' ? '٫' : '.')}</span>
+            <span class="rvw-of">{t('reviews.outOf', { n: digits(s.outOf, lang) })}</span>
+            <span class="rvw-site">{s.label} · {t('reviews.count', { n: digits(s.count, lang) })} <Icon name="arrowUpRight" size={13} /></span>
+          </a>
+        </li>
+      ))}
+    </ul>
+    <div class="rvw-band rv" data-reviews tabindex="0" aria-roledescription="carousel">
+      <ul class="rvw-track">
+        {list.map((r, i) => (
+          <li class="rvw-item" aria-roledescription="slide" aria-label={`${digits(i + 1, lang)} / ${digits(list.length, lang)}`} lang={r.lang} dir={r.lang === 'ar' ? 'rtl' : 'ltr'}>
+            <blockquote>
+              <p class="rvw-quote">{r.text}</p>
+              <footer>{r.name && <span class="rvw-name">{r.name}</span>}{r.local && <span class="rvw-tag">Local Guide</span>}<span class="rvw-when">{r.when[lang]}</span></footer>
+            </blockquote>
+          </li>
+        ))}
+      </ul>
+      <div class="rvw-bar" aria-hidden="true"><i></i></div>
+      <div class="rvw-ctl">
+        <span class="num" data-count>{digits('01', lang)} / {digits(String(list.length).padStart(2, '0'), lang)}</span>
+        <a class="rvw-src" href={SITE.tripadvisorUrl} target="_blank" rel="noopener">{t('reviews.source')} <Icon name="arrowUpRight" size={14} /></a>
+        <button type="button" class="rvw-arrow" data-prev aria-label={t('reviews.prev')}><Icon name="arrowLeft" /></button>
+        <button type="button" class="rvw-arrow" data-next aria-label={t('reviews.next')}><Icon name="arrowRight" /></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-reviews]').forEach((root) => {
+    const track = root.querySelector<HTMLElement>('.rvw-track')!;
+    const items = [...root.querySelectorAll<HTMLElement>('.rvw-item')];
+    const bar = root.querySelector<HTMLElement>('.rvw-bar i')!;
+    const count = root.querySelector<HTMLElement>('[data-count]')!;
+    const ar = document.documentElement.lang.startsWith('ar');
+    const d = (n: number) => { const s = String(n).padStart(2, '0'); return ar ? s.replace(/\d/g, (x) => '٠١٢٣٤٥٦٧٨٩'[Number(x)]) : s; };
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const PERIOD = 6500; let i = 0, t0 = performance.now(), paused = false, raf = 0;
+    const show = (n: number) => { i = (n + items.length) % items.length; items.forEach((el, k) => el.classList.toggle('on', k === i)); count.textContent = `${d(i + 1)} / ${d(items.length)}`; t0 = performance.now(); };
+    const tick = (now: number) => { if (!paused && !reduce) { const p = (now - t0) / PERIOD; bar.style.transform = `scaleX(${Math.min(1, p)})`; if (p >= 1) show(i + 1); } raf = requestAnimationFrame(tick); };
+    show(0); if (!reduce) raf = requestAnimationFrame(tick); else bar.style.display = 'none';
+    root.querySelector('[data-prev]')!.addEventListener('click', () => show(i - 1));
+    root.querySelector('[data-next]')!.addEventListener('click', () => show(i + 1));
+    root.addEventListener('mouseenter', () => (paused = true)); root.addEventListener('mouseleave', () => { paused = false; t0 = performance.now(); });
+    root.addEventListener('focusin', () => (paused = true)); root.addEventListener('focusout', () => (paused = false));
+    root.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') show(i + 1); if (e.key === 'ArrowLeft') show(i - 1); });
+    let sx = 0; track.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; paused = true; }, { passive: true });
+    track.addEventListener('touchend', (e) => { const dx = e.changedTouches[0].clientX - sx; if (Math.abs(dx) > 40) show(i + (dx < 0 ? 1 : -1)); paused = false; t0 = performance.now(); }, { passive: true });
+    document.addEventListener('visibilitychange', () => { paused = document.hidden; t0 = performance.now(); });
+  });
+</script>
+
+<style>
+  .rvw { background: var(--night); color: var(--cream); position: relative; overflow: hidden; }
+  .rvw .wrap { position: relative; }
+  .rvw-sky { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .rvw-sky circle { fill: var(--cream); opacity: 0.35; animation: twinkle 5s ease-in-out infinite alternate; animation-delay: var(--d); }
+  .rvw-ridge { fill: var(--gold-light); opacity: 0.08; }
+  @keyframes twinkle { from { opacity: 0.12; } to { opacity: 0.6; } }
+  @media (prefers-reduced-motion: reduce) { .rvw-sky circle { animation: none; } }
+  .rvw-head { display: grid; gap: 10px; margin-bottom: clamp(24px, 4vw, 40px); }
+  .rvw-head h2 { color: var(--cream); }
+  .rvw-head .num { display: inline-flex; gap: 3px; color: var(--gold-light); }
+  .rvw-scores { list-style: none; margin: 0 0 clamp(32px, 6vw, 56px); padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 760px; }
+  @media (min-width: 560px) { .rvw-scores { grid-template-columns: repeat(3, 1fr); } }
+  .rvw-scores a { display: grid; gap: 2px; padding: 16px 18px; border: 1px solid rgba(210, 179, 133, 0.35); border-radius: var(--radius); text-decoration: none; color: inherit; transition: background 0.25s var(--ease), border-color 0.25s var(--ease); }
+  .rvw-scores a:hover { background: rgba(255, 255, 255, 0.05); border-color: var(--gold-light); }
+  .rvw-score { font-family: var(--display); font-size: clamp(2.6rem, 9vw, 3.6rem); line-height: 1; color: var(--cream); }
+  .rvw-of { font-size: 0.85rem; color: rgba(243, 239, 232, 0.7); }
+  .rvw-site { margin-top: 8px; font-size: 0.85rem; font-weight: 600; color: var(--gold-light); display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .rvw-band { position: relative; outline-offset: 8px; }
+  .rvw-track { list-style: none; margin: 0; padding: 0; display: grid; }
+  .rvw-item { grid-area: 1 / 1; opacity: 0; transition: opacity 0.7s var(--ease); pointer-events: none; }
+  .rvw-item.on { opacity: 1; pointer-events: auto; }
+  html.no-js .rvw-item { opacity: 1; position: static; margin-bottom: 24px; }
+  .rvw-item blockquote { margin: 0; }
+  .rvw-quote { font-family: var(--display); font-style: normal; font-size: clamp(1.5rem, 4.6vw, 2.6rem); line-height: 1.3; color: var(--cream); margin: 0 0 18px; max-width: 24em; text-wrap: pretty; }
+  .rvw-quote::before { content: '“'; color: var(--gold-light); }
+  .rvw-quote::after { content: '”'; color: var(--gold-light); }
+  .rvw-item[lang='ar'] .rvw-quote { font-family: 'Reem Kufi', serif; font-style: normal; }
+  .rvw-quote { font-style: italic; }
+  html[lang='en'] .rvw-item[lang='ar'] .rvw-quote { font-family: 'Tajawal', sans-serif; font-weight: 500; }
+  .rvw-item[lang='ar'] .rvw-quote::before { content: '«'; } .rvw-item[lang='ar'] .rvw-quote::after { content: '»'; }
+  .rvw-item footer { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; color: rgba(246, 241, 232, 0.75); font-size: 0.95rem; }
+  .rvw-name { color: var(--gold-light); font-weight: 600; }
+  .rvw-tag { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; border: 1px solid rgba(212, 181, 106, 0.5); padding: 2px 8px; border-radius: 999px; }
+  .rvw-bar { height: 1px; background: rgba(255, 255, 255, 0.14); margin-top: 28px; }
+  .rvw-bar i { display: block; height: 1px; background: var(--gold-light); transform-origin: 0 50%; transform: scaleX(0); }
+  html[dir='rtl'] .rvw-bar i { transform-origin: 100% 50%; }
+  .rvw-ctl { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+  .rvw-ctl .num { color: var(--gold-light); font-size: 1.05rem; white-space: nowrap; }
+  .rvw-src { margin-inline-start: auto; color: rgba(246, 241, 232, 0.8); text-decoration: none; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 4px; }
+  .rvw-src:hover { color: var(--gold-light); }
+  .rvw-arrow { width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(212, 181, 106, 0.6); background: transparent; color: var(--cream); display: grid; place-items: center; cursor: pointer; }
+  .rvw-arrow:hover { background: rgba(255, 255, 255, 0.08); }
+  html[dir='rtl'] .rvw-arrow :global(svg) { transform: scaleX(-1); }
+</style>

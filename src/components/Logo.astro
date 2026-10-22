@@ -1,0 +1,54 @@
+---
+/**
+ * The guest house mark: the three pyramids as seen from the balcony (Menkaure small on the
+ * left, Khafre tall in the middle, Khufu wide on the right), a sun disk dropping between
+ * them, inside a thin circle like a window — drawn for this site (the property has no
+ * published logo). `lockup` adds the wordmark as live text.
+ */
+import type { Lang } from '../i18n';
+interface Props { variant?: 'mark' | 'lockup' | 'stack'; lang?: Lang; size?: number; class?: string; title?: string }
+const { variant = 'mark', lang = 'en', size = 40, class: cls = '', title = 'Giza Pyramids View Guest House' } = Astro.props;
+---
+{variant === 'mark' && (
+  <svg class={`logo-mark ${cls}`} width={size} height={size} viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label={title}>
+    <circle cx="50" cy="50" r="46" stroke-width="1.6" />
+    <circle class="logo-sun" cx="50" cy="40" r="8" />
+    <path d="M30 40h-6M76 40h-6M50 22v-6M36 28l-4-4M64 28l4-4" stroke-width="1.6" />
+    <path d="M8 68h84" stroke-width="1.6" />
+    <path d="M14 68l12-16 12 16" />
+    <path d="M30 68l17-26 17 26" />
+    <path d="M52 68l21-22 21 22" />
+    <path d="M47 42l3 26M73 46l3 22M26 52l2 16" stroke-width="1.2" opacity=".7" />
+  </svg>
+)}
+{variant === 'lockup' && (
+  <span class={`logo-lockup ${cls}`} style={`--s:${size}px`}>
+    <Astro.self variant="mark" size={size} title={title} />
+    <span class="logo-words">
+      <span class="logo-name">{lang === 'ar' ? 'إطلالة الأهرامات' : 'Pyramids View'}</span>
+      <span class="logo-sub">{lang === 'ar' ? 'بيت ضيافة · الجيزة' : 'Guest House · Giza'}</span>
+    </span>
+  </span>
+)}
+{variant === 'stack' && (
+  <span class={`logo-stack ${cls}`}>
+    <Astro.self variant="mark" size={size} title={title} />
+    <span class="logo-name">{lang === 'ar' ? 'إطلالة الأهرامات' : 'Pyramids View'}</span>
+    <span class="logo-sub">{lang === 'ar' ? 'Giza Pyramids View Guest House' : 'Guest House · Giza'}</span>
+  </span>
+)}
+
+<style>
+  .logo-mark { color: var(--gold); flex: none; }
+  .logo-sun { fill: currentColor; fill-opacity: 0.18; }
+  .logo-lockup { display: inline-flex; align-items: center; gap: 12px; color: var(--ink); text-decoration: none; }
+  .logo-words { display: grid; line-height: 1; }
+  .logo-name { font-family: var(--display); font-weight: 600; font-size: calc(var(--s, 40px) * 0.56); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink); white-space: nowrap; }
+  html[lang='ar'] .logo-name { font-family: 'Reem Kufi', sans-serif; text-transform: none; letter-spacing: 0; font-size: calc(var(--s, 40px) * 0.6); font-weight: 500; }
+  .logo-sub { font-family: var(--sans); font-size: calc(var(--s, 40px) * 0.22); letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold-text); margin-top: 5px; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+  html[lang='ar'] .logo-sub { letter-spacing: 0.06em; font-size: calc(var(--s, 40px) * 0.28); }
+  .logo-sub::before, .logo-sub::after { content: ''; height: 1px; width: 10px; background: var(--gold); opacity: 0.7; }
+  .logo-stack { display: inline-grid; justify-items: center; gap: 10px; text-align: center; color: var(--ink); text-decoration: none; }
+  .logo-stack .logo-name { font-size: 1.8rem; }
+  .logo-stack .logo-sub { font-size: 0.72rem; }
+</style>

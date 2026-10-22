@@ -1,0 +1,51 @@
+---
+/**
+ * The plateau as a line drawing that draws itself when it scrolls into view: the three pyramids
+ * at their apparent proportions from the balcony (Menkaure, Khafre, Khufu, left to right), the
+ * rooftops of Al Haram below, and a sun that sinks to the horizon. Decorative; the real
+ * bearings are in Panorama.astro.
+ */
+interface Props { class?: string; sun?: boolean; rooftops?: boolean; id?: string }
+const { class: cls = '', sun = true, rooftops = true, id = 'skyline' } = Astro.props;
+---
+<svg class={`skyline ${cls}`} viewBox="0 0 600 140" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-skyline>
+  {sun && (
+    <g class="sk-sun">
+      <circle cx="318" cy="52" r="16" />
+      <path d="M318 26v-8M318 78v8M292 52h-8M344 52h8M300 34l-6-6M336 34l6-6M300 70l-6 6M336 70l6 6" stroke-width="1" />
+    </g>
+  )}
+  <path class="sk-ground draw" d="M0 100h600" />
+  <path class="sk-pyr draw" d="M150 100l34-26 34 26" />
+  <path class="sk-pyr draw" d="M230 100l72-58 72 58" />
+  <path class="sk-pyr draw" d="M352 100l86-54 86 54" />
+  <path class="sk-edge draw" d="M184 74l6 26M302 42l12 58M438 46l16 54" stroke-width="0.9" opacity=".55" />
+  <path class="sk-casing draw" d="M290 52l12-10 12 10" stroke-width="0.9" opacity=".6" />
+  {rooftops && (
+    <g class="sk-roofs draw" stroke-width="1" opacity=".7">
+      <path d="M0 128v-10h18v-6h14v12h10v-8h22v10h16v-14h12v8h20v-6h14v12h18v-9h12v5h22v-10h16v14h14v-8h26v6h18v-12h12v10h20v-6h24v9h16v-14h14v10h18v-6h26v12h14v-8h16v5h20v-9h18v12h12v-6h20v8h18v-11h14v9h20v-6h26v10h14v-8h16v12h12v-8h20v6h10v6" />
+      <path d="M40 112v-5h3v5M120 108v-4h3v4M250 110v-5h3v5M400 112v-4h3v4M520 110v-6h3v6" opacity=".6" />
+    </g>
+  )}
+</svg>
+
+<script>
+  document.querySelectorAll<SVGElement>('[data-skyline]').forEach((el) => {
+    const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { el.classList.add('in'); io.disconnect(); } }), { threshold: 0.3 });
+    io.observe(el);
+  });
+</script>
+
+<style>
+  .skyline { width: 100%; height: auto; display: block; color: var(--gold); overflow: visible; }
+  .draw { stroke-dasharray: 700; stroke-dashoffset: 700; }
+  .sk-sun { opacity: 0; transform: translateY(-26px); transition: opacity 1.2s var(--ease) 0.8s, transform 2.6s var(--ease) 0.8s; }
+  .sk-sun circle { fill: currentColor; fill-opacity: 0.12; }
+  .in .draw { animation: sk-draw 2.2s var(--ease) forwards; }
+  .in .sk-pyr:nth-of-type(2) { animation-delay: 0.25s; } .in .sk-pyr:nth-of-type(3) { animation-delay: 0.5s; } .in .sk-pyr:nth-of-type(4) { animation-delay: 0.75s; }
+  .in .sk-edge, .in .sk-casing { animation-delay: 1.4s; }
+  .in .sk-roofs { animation-delay: 1s; }
+  .in .sk-sun { opacity: 1; transform: none; }
+  @keyframes sk-draw { to { stroke-dashoffset: 0; } }
+  @media (prefers-reduced-motion: reduce) { .draw { stroke-dashoffset: 0; animation: none !important; } .sk-sun { opacity: 1; transform: none; transition: none; } }
+</style>

@@ -1,0 +1,110 @@
+{
+  "meta": {
+    "home": { "title": "Giza Pyramids View Guest House — all three pyramids from your balcony", "desc": "A family-run guest house on the 11th floor in Al Haram, Giza, with the three pyramids in the window, a roof terrace for breakfast and the Sphinx entrance a few minutes away. Enquire on WhatsApp." },
+    "rooms": { "title": "Rooms — Giza Pyramids View Guest House", "desc": "Double and twin rooms with the pyramids in the window, a deluxe studio and a twin with a city view, each with air conditioning and a private bathroom. See the photos and enquire on WhatsApp." },
+    "gallery": { "title": "Photos — Giza Pyramids View Guest House", "desc": "The pyramids at sunrise, noon, sunset and lit at night, the balcony, the gold lounge, the roof terrace and the rooms." },
+    "giza": { "title": "Giza from the guest house — pyramids, Sphinx, museum, Saqqara", "desc": "What is near the guest house: the Great Pyramid, the Sphinx entrance, the Grand Egyptian Museum, Saqqara, Dahshur, Khan el-Khalili and both airports, with distances and bearings." },
+    "enquire": { "title": "Enquire — Giza Pyramids View Guest House", "desc": "Send your dates and room to the guest house on WhatsApp, or call +20 100 536 2094. Al Haram, Giza." },
+    "notfound": { "title": "Page not found — Giza Pyramids View Guest House", "desc": "That page does not exist." }
+  },
+  "nav": {
+    "skip": "Skip to content",
+    "home": "Home", "rooms": "Rooms", "gallery": "Photos", "giza": "Giza", "enquire": "Enquire",
+    "menu": "Menu", "close": "Close", "lang": "العربية", "langLabel": "Switch language",
+    "whatsapp": "WhatsApp", "call": "Call"
+  },
+  "hero": {
+    "eyebrow": "Al Haram · Giza · 11th floor",
+    "title": "All three pyramids, from your balcony",
+    "lead": "A family guest house eleven floors above Al Haram, with Khufu, Khafre and Menkaure in the window, breakfast on the roof and the Sphinx entrance a few minutes away.",
+    "cta": "Enquire on WhatsApp",
+    "ctaRooms": "See the rooms",
+    "photoCaption": "Sunset over the plateau, from the balcony"
+  },
+  "facts": {
+    "view": "Pyramids in the window", "breakfast": "Breakfast on the roof", "distance": "Sphinx gate {km} km", "reply": "Replies on WhatsApp"
+  },
+  "sections": {
+    "rooms": "The rooms", "why": "What guests mention", "view": "The view", "gallery": "Photos", "reviews": "In guests' words", "giza": "Giza from here", "map": "Where we are", "enquire": "Enquire"
+  },
+  "rooms": {
+    "intro": "Four kinds of room on one floor: two with the pyramids in the window, a deluxe studio, and a twin that looks over the city. Every room has air conditioning, a private bathroom and a fridge; breakfast is served on the roof.",
+    "all": "All rooms",
+    "enquireFor": "Enquire about the {room}",
+    "stay": "By the night, for a few days or a longer stay: ask us",
+    "bathroom": "The roof terrace",
+    "bathroomText": "Breakfast is served on the open roof terrace from seven to nine, with the plateau laid out in front of you; in the evening it is where guests sit for the sound-and-light show. Tea and coffee all day.",
+    "walk": "Walk through",
+    "double-view": { "name": "Double room, pyramids view", "short": "Pyramids in the window, balcony", "desc": "A double bed and a single, a small table at the window and the three pyramids beyond the balcony railing. The room most guests write home about: wake up to Khufu, watch the sun go down between Khafre and Menkaure.", "steps": ["The pyramids from the bed", "The balcony and the railing", "Sunset from the window", "The lounge, two doors down"] },
+    "twin-view": { "name": "Twin room, pyramids view", "short": "Two beds, pyramids in the window", "desc": "Two beds with velvet headboards and a window that frames the plateau. For friends, colleagues or a parent and child, with the same view as the double.", "steps": ["Two beds under the window", "A pyramid in the frame", "Midday on the plateau", "The balcony at sunset"] },
+    "studio": { "name": "Deluxe studio", "short": "A queen bed and a sitting area", "desc": "A queen bed with room to sit: a sofa, a table and the window onto the pyramids. The largest room on the floor, for a longer stay or a couple who wants space.", "steps": ["The sitting area", "The sofa corner", "Dusk from the window"] },
+    "twin-city": { "name": "Twin room, city view", "short": "Two beds, looking over Giza", "desc": "Two single beds and a window over the rooftops of Al Haram. The simplest room, a few steps from the lounge and the roof where the view is.", "steps": ["The corridor to the room", "Two beds", "The roof terrace, upstairs"] }
+  },
+  "why": {
+    "view": { "t": "The view", "d": "“So beautiful, that it's powerful”, in one guest's words. All three pyramids, from the room, the lounge and the roof." },
+    "host": { "t": "A family who answers", "d": "Guests name the staff in review after review. Write on WhatsApp and you deal with the people who run the house." },
+    "breakfast": { "t": "Breakfast on the roof", "d": "Egyptian breakfast from seven to nine on the open terrace: ful, falafel, eggs, bread, cheese and fruit, with the pyramids." },
+    "location": { "t": "Minutes from the Sphinx", "d": "The eastern entrance to the site is a short ride away; the Grand Egyptian Museum ten minutes by car." },
+    "tours": { "t": "Tours and transfers", "d": "Airport pickup, Saqqara and Dahshur, Memphis, the museums: the house books cars and guides for a fee." },
+    "wifi": { "t": "Wi‑Fi, lift, 24-hour desk", "d": "Free Wi‑Fi, air conditioning and a private bathroom in every room; a lift to the eleventh floor and someone at the desk all night." }
+  },
+  "view": {
+    "title": "What you see from the balcony",
+    "text": "The guest house faces due west across the rooftops of Al Haram to the plateau. From left to right: Menkaure, the smallest; Khafre, which looks tallest because it stands on higher ground and still wears its casing at the top; and Khufu, the Great Pyramid. At sunset the sun drops between them.",
+    "bearing": "bearing {deg}°", "distance": "{km} km away", "height": "{m} m high",
+    "captionNight": "The sound and light show, nightly", "captionDay": "The plateau at noon"
+  },
+  "gallery": {
+    "intro": "Swipe through the view at every hour, the balcony and lounge, the roof terrace and the rooms.",
+    "all": "All", "view": "The view", "balcony": "Balcony & lounge", "terrace": "Roof terrace", "room": "Rooms", "house": "The house",
+    "counter": "{n} / {total}", "open": "Open photo", "close": "Close", "prev": "Previous photo", "next": "Next photo", "drag": "Drag"
+  },
+  "reviews": {
+    "title": "In guests' words",
+    "source": "Reviews on Tripadvisor",
+    "google": "Google", "tripadvisor": "Tripadvisor", "trip": "Trip.com", "outOf": "out of {n}", "count": "{n} reviews",
+    "prev": "Previous review", "next": "Next review", "pause": "Pause", "play": "Play"
+  },
+  "sunset": {
+    "today": "Sunset over the pyramids today at {time}, from the balcony.",
+    "show": "The sound and light show starts after dark."
+  },
+  "giza": {
+    "intro": "Giza is the pyramids, and the guest house sits right under them: the plateau is a short ride west, the Grand Egyptian Museum ten minutes north, and the metro to downtown Cairo fifteen minutes east. Saqqara, Dahshur and Memphis are a morning's trip south along the Nile.",
+    "distance": "{km} km", "fromHotel": "from the guest house", "byCar": "{min} min by car", "onFoot": "{min} min on foot",
+    "directions": "Directions", "howTo": "How to reach us",
+    "byAir": "From Cairo Airport: about an hour by car across the city; the house arranges pickup. From Sphinx Airport: 40 minutes on the desert road.", "byMetro": "Metro Line 2 to El Monib, then a short taxi ride down Al Haram road.", "byRoad": "By car: Al Haram (Pyramids) Road from the Nile, turn south at Abd Al Aziz Al Basel Street."
+  },
+  "map": {
+    "title": "Where we are",
+    "text": "Al Haram, between Pyramids Road and the plateau. Tap a place to see how far it is and in which direction.",
+    "open": "Open in Google Maps", "interactive": "Open interactive map", "bearing": "{dir} of the guest house",
+    "nile": "The Nile", "plateau": "Giza plateau", "road": "Al Haram (Pyramids) Road",
+    "n": "north", "ne": "north-east", "e": "east", "se": "south-east", "s": "south", "sw": "south-west", "w": "west", "nw": "north-west"
+  },
+  "enquire": {
+    "title": "Tell us your dates",
+    "text": "Send the details below to the guest house on WhatsApp. Replies come in English or Arabic.",
+    "note": "We are on the eleventh floor, building 4 on Abd Al Aziz Al Basel Street, off Pyramids Road. Write with your dates and how many of you there are, and we'll come back to you on WhatsApp with what's free. Tell us your flight if you'd like to be picked up.",
+    "noteSign": "Giza Pyramids View Guest House",
+    "stayType": "Stay", "daily": "Nights", "monthly": "Monthly",
+    "checkin": "Check-in", "checkout": "Check-out", "movein": "Move-in date", "duration": "How long",
+    "months": "{n} months",
+    "nights": "{n} nights", "night": "1 night",
+    "room": "Room", "roomAny": "Any — advise me",
+    "adults": "Adults", "children": "Children",
+    "pickup": "Airport pickup", "pickupYes": "Yes, please pick me up", "flight": "Flight number and arrival time",
+    "name": "Your name", "phone": "Your phone (with country code)", "reply": "Reply by", "replyWa": "WhatsApp", "replyCall": "Call", "replyEmail": "Email",
+    "email": "Your email", "message": "Anything else", "messagePh": "Arrival time, a pyramids-view room, a tour to Saqqara…",
+    "send": "Send on WhatsApp", "copy": "Copy message", "copied": "Copied", "callInstead": "or call {phone}",
+    "errDates": "Check-out must be after check-in.", "errPast": "Pick a date from today on.", "errName": "Please tell us your name.", "errPhone": "Please enter a phone number with the country code.",
+    "waIntro": "Hello Giza Pyramids View Guest House, I'd like to enquire about a stay.",
+    "waStay": "Stay", "waRoom": "Room", "waGuests": "Guests", "waPickup": "Airport pickup", "waName": "Name", "waPhone": "Phone", "waReply": "Reply by", "waNote": "Note", "waFrom": "Sent from the website"
+  },
+  "footer": {
+    "address": "4 Abd Al Aziz Al Basel Street, 11th floor, Al Haram, Giza 12511, Egypt",
+    "rights": "Giza Pyramids View Guest House", "made": "Website", "maps": "Google Maps", "checkin": "Check-in from {in} · check-out by {out}", "languages": "We speak {langs}"
+  },
+  "notfound": { "title": "This page is not here", "text": "The link may be old. The rooms, the photos and the enquiry form are one tap away.", "home": "Back to the start" },
+  "common": { "photoOf": "Photo of {what}", "section": "Section", "back": "Back" }
+}
