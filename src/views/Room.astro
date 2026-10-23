@@ -33,7 +33,7 @@ const jsonld = [
     <div class="wrap">
       <p class="rm-crumb"><a href={path(lang, 'rooms')}>{t('nav.rooms')}</a> <Icon name="arrowRight" size={14} class="rtl-flip" /> {name}</p>
       <h1>{name}</h1>
-      <p class="rm-sub"><Icon name="bed" size={18} /> {beds.join(lang === 'ar' ? ' و' : ' and ')} · {t('bk.sleepsN', { n: digits(room.sleeps, lang) })}</p>
+      <p class="rm-sub"><Icon name="bed" size={18} /> <span>{beds.join(lang === 'ar' ? ' و' : ' and ')} · <span class="nw">{t('bk.sleepsN', { n: digits(room.sleeps, lang) })}</span></span></p>
       <PhotoMosaic items={room.photos} lang={lang} id={`pm-${id}`} compact={room.photos.length < 10} />
 
       <div class="rm-body">
@@ -101,10 +101,11 @@ const jsonld = [
 <style>
   .rm { padding-top: calc(var(--header-h) + 24px); padding-bottom: clamp(32px, 6vw, 64px); }
   .rm-crumb { margin: 0 0 8px; display: flex; align-items: center; gap: 6px; font-size: 0.9rem; color: var(--muted); }
-  .rm-crumb a { color: var(--gold-text); font-weight: 600; }
+  .rm-crumb a { color: var(--gold-text); font-weight: 600; padding: 10px 4px; margin: -10px -4px; }
   .rm h1 { font-size: clamp(2rem, 6vw, 3.4rem); }
-  .rm-sub { margin: 8px 0 18px; display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--ink); }
-  .rm-sub :global(.icon) { color: var(--gold-text); }
+  .rm-sub { margin: 8px 0 18px; display: flex; align-items: flex-start; gap: 8px; line-height: 1.4; font-weight: 600; color: var(--ink); }
+  .rm-sub :global(.icon) { color: var(--gold-text); flex: none; margin-top: 0.15em; }
+  .rm-sub .nw { white-space: nowrap; }
   .rm-body { display: grid; gap: 28px; margin-top: 28px; }
   .rm-text h2 { font-size: clamp(1.4rem, 3vw, 1.8rem); margin: 24px 0 12px; }
   .rm-feat { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; }
@@ -121,7 +122,7 @@ const jsonld = [
   .rm-price strong { font-size: 1.3rem; color: var(--ink); }
   .rm-price small { color: var(--muted); }
   .rm-qty { display: grid; gap: 4px; }
-  .rm-qty select { min-height: 46px; padding: 6px 10px; border: 1px solid var(--muted); border-radius: 4px; background: var(--white); font: inherit; font-weight: 700; color: var(--ink); }
+  .rm-qty select { min-height: 48px; cursor: pointer; padding: 6px 10px; border: 1px solid var(--muted); border-radius: 4px; background: var(--white); font: inherit; font-weight: 700; color: var(--ink); }
   .rm-go { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; border-radius: 4px; background: var(--ink); color: var(--cream); font-weight: 700; font-size: 1.05rem; text-decoration: none; }
   .rm-go:hover { background: var(--night-2); }
   .rm-note { margin: 0; display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--body); }
@@ -130,10 +131,12 @@ const jsonld = [
   @media (max-width: 899px) { .rm-box { order: -1; } }
   @media (min-width: 900px) { .rm-body { grid-template-columns: 1fr 320px; gap: 48px; } .rm-box { position: sticky; top: calc(var(--header-h) + 16px); } }
   .rm-others { background: var(--paper); }
-  .rm-others h2 { margin-bottom: 20px; }
-  .rm-cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
-  .rm-cards a { display: grid; gap: 6px; text-decoration: none; color: inherit; }
-  .rm-cards strong { font-family: var(--display); font-size: 1.3rem; color: var(--ink); }
+  .rm-others h2 { font-size: clamp(1.7rem, 4vw, 2.4rem); margin-bottom: 20px; }
+  .rm-cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(220px, calc(50% - 8px)), 1fr)); gap: 24px 16px; }
+  .rm-cards a { display: grid; gap: 6px; align-content: start; text-decoration: none; color: inherit; }
+  .rm-cards a:hover strong { text-decoration: underline; text-decoration-color: var(--gold); text-underline-offset: 4px; }
+  .rm-cards strong { font-family: var(--display); font-size: 1.3rem; line-height: 1.2; color: var(--ink); margin-top: 4px; }
   html[lang='ar'] .rm-cards strong { font-family: var(--sans); font-size: 1.1rem; }
   .rm-cards span { color: var(--muted); font-size: 0.92rem; }
+  @media (max-width: 599px) { .rm-cards strong { font-size: 1.15rem; } .rm-cards span { font-size: 0.85rem; } }
 </style>

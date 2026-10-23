@@ -103,7 +103,8 @@ const hourTicks = Array.from({ length: 24 }, (_, i) => i);
       if (h >= sunset + 0.35 && h < 19.5) return 'dusk';
       if (h >= 19.5 && h < 21.5) return 'show';
       if (h >= 21.5 || h < sunrise - 0.3) return 'night';
-      if (h < sunrise + 1) return 'dawn';
+      if (h >= 7 && h < 9.5) return 'breakfast'; // breakfast is served 07:00–09:00 even when the sun is up late (winter)
+      if (h < sunrise + 1 && h < 9.5) return 'dawn';
       if (h < 9.5) return 'breakfast';
       if (h < 12.5) return 'checkout';
       if (h < 15.5) return 'checkin';
@@ -111,10 +112,10 @@ const hourTicks = Array.from({ length: 24 }, (_, i) => i);
     };
     const sun = root.querySelector<SVGGElement>('[data-sun]')!;
     const timeEl = root.querySelector<SVGTextElement>('[data-time]')!, nameEl = root.querySelector<SVGTextElement>('[data-name]')!, subEl = root.querySelector<SVGTextElement>('[data-sub]')!, textEl = root.querySelector<HTMLElement>('[data-text]')!;
-    let cur = cairoNow, isNow = true;
+    let cur = cairoNow, isNow = true, picked: string | null = null; // a tapped moment stays the moment shown
     const render = () => {
       const p = pt(cur); sun.setAttribute('transform', `translate(${p.x} ${p.y})`); sun.setAttribute('aria-valuenow', cur.toFixed(1));
-      const id = momentAt(cur); const m = moments.find((x) => x.id === id)!;
+      const id = picked ?? momentAt(cur); const m = moments.find((x) => x.id === id)!;
       const night = cur < sunrise || cur > sunset; sun.classList.toggle('night', night);
       timeEl.textContent = fmt(cur); nameEl.textContent = labels[id].name; subEl.textContent = isNow ? root.dataset.now! : '';
       textEl.textContent = labels[id].text;
@@ -124,12 +125,12 @@ const hourTicks = Array.from({ length: 24 }, (_, i) => i);
     const svg = root.querySelector<SVGSVGElement>('[data-svg]')!;
     const hourFromEvent = (e: PointerEvent) => { const r = svg.getBoundingClientRect(); const x = ((e.clientX - r.left) / r.width) * 400 - C, y = ((e.clientY - r.top) / r.height) * 400 - C; let a = Math.atan2(y, x) * 180 / Math.PI + 90; if (a < 0) a += 360; return (a / 360) * 24; };
     let drag = false;
-    svg.addEventListener('pointerdown', (e) => { if ((e.target as Element).closest('[data-moment]')) return; drag = true; svg.setPointerCapture(e.pointerId); cur = hourFromEvent(e); isNow = false; render(); });
-    svg.addEventListener('pointermove', (e) => { if (!drag) return; cur = hourFromEvent(e); render(); });
+    svg.addEventListener('pointerdown', (e) => { if ((e.target as Element).closest('[data-moment]')) return; drag = true; svg.setPointerCapture(e.pointerId); cur = hourFromEvent(e); isNow = false; picked = null; render(); });
+    svg.addEventListener('pointermove', (e) => { if (!drag) return; cur = hourFromEvent(e); picked = null; render(); });
     svg.addEventListener('pointerup', () => (drag = false)); svg.addEventListener('pointercancel', () => (drag = false));
-    sun.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { cur = (cur + 0.5) % 24; isNow = false; render(); e.preventDefault(); } if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { cur = (cur - 0.5 + 24) % 24; isNow = false; render(); e.preventDefault(); } });
+    sun.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { cur = (cur + 0.5) % 24; isNow = false; picked = null; render(); e.preventDefault(); } if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { cur = (cur - 0.5 + 24) % 24; isNow = false; picked = null; render(); e.preventDefault(); } });
     root.querySelectorAll<HTMLElement>('[data-moment]').forEach((el) => {
-      const go = () => { const m = moments.find((x) => x.id === el.dataset.moment)!; cur = m.id === 'sunset' ? sunset - 0.1 : m.id === 'dawn' ? sunrise + 0.3 : m.id === 'dusk' ? sunset + 0.6 : m.h; isNow = false; render(); };
+      const go = () => { const m = moments.find((x) => x.id === el.dataset.moment)!; cur = m.id === 'sunset' ? sunset - 0.1 : m.id === 'dawn' ? sunrise + 0.3 : m.id === 'dusk' ? sunset + 0.6 : m.h; isNow = false; picked = m.id; render(); };
       el.addEventListener('click', go); el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
     });
     render();
@@ -144,7 +145,8 @@ const hourTicks = Array.from({ length: 24 }, (_, i) => i);
   .dd-day { fill: none; stroke: var(--gold-light); stroke-width: 10; stroke-linecap: round; opacity: 0.8; }
   .dd-arc { fill: none; stroke-width: 4; stroke-linecap: round; }
   .dd-breakfast { stroke: var(--gold-text); } .dd-show { stroke: var(--night-2); }
-  .dd-tick line { stroke: var(--muted); stroke-width: 1; } .dd-tick text { font-size: 10.5px; fill: var(--muted); font-weight: 600; }
+  .dd-tick line { stroke: var(--muted); stroke-width: 1; } .dd-tick text { font-size: 12px; fill: var(--muted); font-weight: 600; }
+  html[lang='ar'] .dd-tick text { font-size: 15px; }
   .dd-moment { cursor: pointer; } .dd-moment circle { fill: var(--paper); stroke: var(--gold-text); stroke-width: 1.4; transition: fill 0.25s; }
   .dd-moment.on circle, .dd-moment:hover circle { fill: var(--gold); }
   .dd-moment:focus-visible { outline: none; } .dd-moment:focus-visible circle { stroke-width: 3; }

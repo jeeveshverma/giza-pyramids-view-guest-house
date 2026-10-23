@@ -22,10 +22,16 @@ const W = 640, H = 460, CX = 240, CY = 250;
 const cosLat = Math.cos((SITE.geo.lat * Math.PI) / 180);
 const xy = (lat: number, lng: number) => ({ x: CX + (lng - SITE.geo.lng) * 111.32 * cosLat * K, y: CY - (lat - SITE.geo.lat) * 110.57 * K });
 const INSET = 34;
+const kmU = lang === 'ar' ? 'كم' : 'km';
+// both drawings keep east on the right in either language; Arabic labels are set right-to-left, so their start/end
+// anchors are swapped to keep each label on the same side of its point
+const rtl = lang === 'ar';
+const anc = (a: string) => (!rtl || a === 'middle' ? a : a === 'start' ? 'end' : 'start');
+const card = rtl ? { n: 'ش', e: 'ق', s: 'ج', w: 'غ' } : { n: 'N', e: 'E', s: 'S', w: 'W' };
 const places = PLACES.map((p, i) => {
   const g = fromHotel(p.at);
   const pos = xy(p.at.lat, p.at.lng);
-  const mins = g.mode === 'foot' ? t('giza.onFoot', { min: g.min }) : t('giza.byCar', { min: g.min });
+  const mins = g.mode === 'foot' ? t('giza.onFoot', { min: digits(g.min, lang) }) : t('giza.byCar', { min: digits(g.min, lang) });
   const dirWord = t(`map.${g.dir}`);
   const dirs = `https://www.google.com/maps/dir/?api=1&origin=${SITE.geo.lat},${SITE.geo.lng}&destination=${p.at.lat},${p.at.lng}`;
   const r = g.km < 1 ? 44 * g.km : 44 + (126 * Math.log10(g.km)) / Math.log10(60);
@@ -40,24 +46,56 @@ const places = PLACES.map((p, i) => {
     edge = { x: CX + dx * s, y: CY + dy * s };
     side = sx < sy ? (dx > 0 ? 'r' : 'l') : (dy > 0 ? 'b' : 't');
   }
-  const lblSide: 'l' | 'r' | 'u' | 'd' = p.lbl ?? (g.km < 1.2 ? 'u' : pos.x < 150 ? 'r' : pos.x > W - 150 ? 'l' : pos.x >= CX ? 'r' : 'l');
+  const lblSide: 'l' | 'r' | 'u' | 'd' | 'ur' = p.lbl ?? (g.km < 1.2 ? 'u' : pos.x < 150 ? 'r' : pos.x > W - 150 ? 'l' : pos.x >= CX ? 'r' : 'l');
   const n = i + 1;
-  return { ...p, ...g, n, nText: digits(n, lang), pos, inMap, edge, side, lblSide, dial, mins, dirWord, dirs, kmText: fmtKm(g.km, lang), short: p.name[lang].replace(/ \(.*\)/, '') };
+  const dy = p.lblDy ?? 0;
+  const lbl = lblSide === 'ur' ? { x: pos.x - 10, y: pos.y - 14 + dy, a: 'start' } : { x: pos.x + (lblSide === 'r' ? 14 : lblSide === 'l' ? -14 : 0), y: pos.y + dy + (lblSide === 'u' ? -14 : lblSide === 'd' ? 23 : 4), a: lblSide === 'r' ? 'start' : lblSide === 'l' ? 'end' : 'middle' };
+  return { ...p, ...g, n, nText: digits(n, lang), pos, inMap, edge, side, lblSide, lbl, dial, mins, dirWord, dirs, kmText: fmtKm(g.km, lang), short: p.name[lang].replace(/ \(.*\)/, '') };
 });
-const near = places.filter((p) => p.inMap);
-// far places that leave by the same edge close together get their labels stacked, 13 px apart
-const far = places.filter((p) => !p.inMap).map((p) => ({ ...p, lift: 0 }));
-for (const side of ['t', 'b', 'l', 'r'] as const) {
-  const group = far.filter((p) => p.side === side).sort((a, b) => (side === 't' || side === 'b' ? a.edge.x - b.edge.x : a.edge.y - b.edge.y));
-  for (let i = 1; i < group.length; i++) {
-    const prev = group[i - 1], cur = group[i];
-    const gap = side === 't' || side === 'b' ? cur.edge.x - prev.edge.x : cur.edge.y - prev.edge.y;
-    if (gap < (side === 't' || side === 'b' ? 150 : 16)) cur.lift = prev.lift + 13;
+// the compass dial: places that land on top of each other (the three by the plateau, the four in central Cairo)
+// are eased apart until their markers just clear, so every number can be read and tapped
+for (let k = 0; k < 80; k++) {
+  for (let i = 0; i < places.length; i++) for (let j = i + 1; j < places.length; j++) {
+    const a = places[i].dial, b = places[j].dial;
+    const dx = b.x - a.x, dy = b.y - a.y, dd = Math.hypot(dx, dy) || 0.01, need = 22;
+    if (dd >= need) continue;
+    const push = (need - dd) / 2, ux = dx / dd, uy = dy / dd;
+    a.x -= ux * push; a.y -= uy * push; b.x += ux * push; b.y += uy * push;
   }
+}
+const near = places.filter((p) => p.inMap);
+// the panel under the dial starts with just the instruction (the second sentence of the lead), not the lead again
+const tapHint = t('map.text').split(/(?<=\.)\s+/).slice(1).join(' ') || t('map.text');
+// far places: an arrow at the map edge pointing at the place, with its number beside it; the list below the map
+// names them (names here only stacked into an unreadable block). Numbers along the top and bottom edges are spread
+// to at least GAP apart, each run of crowded ones centred on its arrows, so they never touch.
+const GAP = 25;
+const far = places.filter((p) => !p.inMap).map((p) => {
+  const s = p.side;
+  const num = s === 'l' ? { x: 15, y: 4, a: 'start' } : s === 'r' ? { x: -15, y: 4, a: 'end' } : s === 't' ? { x: 0, y: 26, a: 'middle' } : { x: 0, y: -15, a: 'middle' };
+  return { ...p, num };
+});
+for (const side of ['t', 'b'] as const) {
+  const group = far.filter((p) => p.side === side).sort((a, b) => a.edge.x - b.edge.x);
+  // merge into blocks: a block of n numbers is laid out GAP apart, centred on the mean of its arrows
+  const blocks: { items: typeof group; start: number }[] = [];
+  for (const p of group) {
+    blocks.push({ items: [p], start: p.edge.x });
+    while (blocks.length > 1) {
+      const b = blocks[blocks.length - 1], a = blocks[blocks.length - 2];
+      if (a.start + (a.items.length - 1) * GAP + GAP <= b.start) break;
+      const items = [...a.items, ...b.items];
+      const mean = items.reduce((t, q, i) => t + q.edge.x - i * GAP, 0) / items.length;
+      blocks.splice(-2, 2, { items, start: mean });
+    }
+  }
+  for (const b of blocks) b.items.forEach((p, i) => { p.num = { ...p.num, x: b.start + i * GAP - p.edge.x }; });
 }
 // geography: the Nile (its west bank at Giza), Pyramids Road from Giza Square to Mena House, the plateau edge
 const nile = [xy(30.06, 31.228), xy(30.02, 31.222), xy(29.98, 31.232), xy(29.94, 31.24), xy(29.90, 31.236)];
 const nilePath = `M${nile[0].x} ${nile[0].y} C ${nile[0].x - 4} ${(nile[0].y + nile[1].y) / 2}, ${nile[1].x} ${nile[1].y - 20}, ${nile[1].x} ${nile[1].y} S ${nile[2].x + 6} ${nile[2].y - 10}, ${nile[2].x} ${nile[2].y} S ${nile[3].x} ${nile[3].y - 10}, ${nile[3].x} ${nile[3].y} S ${nile[4].x - 6} ${nile[4].y - 10}, ${nile[4].x} ${nile[4].y}`;
+// the Nile only clips the map's top-right corner: its name runs along that stretch of the river
+const nileLbl = (() => { const a = xy(30.03, 31.2225), b = xy(29.995, 31.2275), m = xy(30.0, 31.2245); return { x: Math.min(m.x, W - 22), y: Math.max(48, Math.min(m.y, 90)), deg: (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI }; })();
 const roadA = xy(30.011, 31.212), roadB = xy(29.985, 31.136);
 const faisalA = xy(30.001, 31.206), faisalB = xy(29.981, 31.147);
 const plateau = [xy(30.005, 31.125), xy(29.995, 31.142), xy(29.975, 31.146), xy(29.955, 31.14), xy(29.95, 31.12)];
@@ -66,13 +104,13 @@ const pyr = PYRAMIDS.map((p) => ({ ...p, pos: xy(p.at.lat, p.at.lng), s: p.id ==
 <section class:list={['section mapsec', compact && 'mapsec-compact']} id="map" data-map>
   <div class="wrap">
     <div class="section-head rv">
-      <span class="num"><Icon name="compass" size={16} /> {digits(SITE.geo.lat.toFixed(4), lang)}, {digits(SITE.geo.lng.toFixed(4), lang)}</span>
+      <span class="num"><Icon name="compass" size={16} /> {digits(SITE.geo.lat.toFixed(4), lang)}{lang === 'ar' ? '،' : ','} {digits(SITE.geo.lng.toFixed(4), lang)}</span>
       <h2>{t('map.title')}</h2>
       <p class="lead">{t('map.text')}</p>
     </div>
     <div class="map-grid">
       <figure class="citymap rv" aria-label={t('map.title')}>
-        <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t('map.title')} dir="ltr">
+        <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t('map.title')} direction={rtl ? 'rtl' : 'ltr'}>
           <defs>
             <linearGradient id="desert" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d9b56a" stop-opacity=".28" /><stop offset="1" stop-color="#d9b56a" stop-opacity="0" /></linearGradient>
             <pattern id="dunes" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r=".8" fill="#b8862e" fill-opacity=".35" /><circle cx="9" cy="9" r=".8" fill="#b8862e" fill-opacity=".35" /></pattern>
@@ -86,45 +124,46 @@ const pyr = PYRAMIDS.map((p) => ({ ...p, pos: xy(p.at.lat, p.at.lng), s: p.id ==
           <path class="road road-2 draw" d={`M${faisalB.x} ${faisalB.y} L ${faisalA.x} ${faisalA.y}`} />
           <path class="road road-2 draw" d={`M${CX} ${CY} L ${CX + 8} ${CY - 54}`} />
           <text class="road-label" transform={`translate(${roadB.x + (roadA.x - roadB.x) * 0.36} ${roadB.y + (roadA.y - roadB.y) * 0.36 + 14}) rotate(${(Math.atan2(roadA.y - roadB.y, roadA.x - roadB.x) * 180) / Math.PI})`} text-anchor="middle">{t('map.road')}</text>
-          <text class="sea-label" x={nile[2].x + 14} y={nile[2].y + 60}>{t('map.nile')}</text>
-          <text class="sea-label" x={16} y={H - 90}>{t('map.plateau')}</text>
+          <text class="sea-label nile-label" transform={`translate(${nileLbl.x} ${nileLbl.y}) rotate(${nileLbl.deg})`} text-anchor="middle">{t('map.nile')}</text>
+          <text class="sea-label" x={16} y={H - 90} text-anchor={anc('start')}>{t('map.plateau')}</text>
           <g class="map-pyr">
             {pyr.map((p) => <path d={`M${p.pos.x - p.s} ${p.pos.y + p.s * 0.7} L${p.pos.x} ${p.pos.y - p.s} L${p.pos.x + p.s} ${p.pos.y + p.s * 0.7} Z`} />)}
           </g>
           {near.map((p, i) => <line class="ray draw" style={`--i:${i}`} x1={CX} y1={CY} x2={p.pos.x} y2={p.pos.y} />)}
           {near.map((p, i) => (
-            <g class="poi" style={`--i:${i}`} data-poi={p.id} tabindex="0" role="button" aria-label={`${p.name[lang]}: ${p.kmText} km`}>
+            <g class="poi" style={`--i:${i}`} data-poi={p.id} tabindex="0" role="button" aria-label={`${p.name[lang]}: ${p.kmText} ${kmU}`}>
               <circle cx={p.pos.x} cy={p.pos.y} r="9" />
               <text class="n" x={p.pos.x} y={p.pos.y + 3.5} text-anchor="middle">{p.nText}</text>
-              <text class="lbl" x={p.pos.x + (p.lblSide === 'r' ? 14 : p.lblSide === 'l' ? -14 : 0)} y={p.pos.y + (p.lblSide === 'u' ? -14 : p.lblSide === 'd' ? 23 : 4)} text-anchor={p.lblSide === 'r' ? 'start' : p.lblSide === 'l' ? 'end' : 'middle'}>{p.short} <tspan class="km">{p.kmText} km</tspan></text>
+              <text class="lbl" x={p.lbl.x} y={p.lbl.y} text-anchor={anc(p.lbl.a)}>{p.short} <tspan class="km">{p.kmText} {kmU}</tspan></text>
             </g>
           ))}
           {far.map((p, i) => (
-            <g class="far poi" style={`--i:${near.length + i}`} data-poi={p.id} tabindex="0" role="button" aria-label={`${p.name[lang]}: ${p.kmText} km`} transform={`translate(${p.edge.x} ${p.edge.y})`}>
+            <g class="far poi" style={`--i:${near.length + i}`} data-poi={p.id} tabindex="0" role="button" aria-label={`${p.name[lang]}: ${p.kmText} ${kmU}`} transform={`translate(${p.edge.x} ${p.edge.y})`}>
+              <title>{p.name[lang]}: {p.kmText} {kmU}</title>
+              <circle class="hit" r="16" />
               <g transform={`rotate(${p.deg})`}><path d="M0 -13 L5 -3 H-5 Z" /></g>
-              <text class="lbl" x={p.side === 'l' ? 12 : p.side === 'r' ? -12 : p.edge.x < 150 ? -6 : p.edge.x > W - 150 ? 6 : 0} y={(p.side === 't' ? 24 : p.side === 'b' ? -14 : 4) + (p.side === 't' ? p.lift : p.side === 'b' ? -p.lift : p.lift)} text-anchor={p.side === 'l' ? 'start' : p.side === 'r' ? 'end' : p.edge.x < 150 ? 'start' : p.edge.x > W - 150 ? 'end' : 'middle'}>{p.nText} · {p.short} · {p.kmText} km</text>
-              <text class="n-only" x="0" y={p.side === 't' ? 24 : p.side === 'b' ? -10 : 4} text-anchor="middle">{p.nText}</text>
+              <text class="n-only" x={p.num.x} y={p.num.y} text-anchor={anc(p.num.a)}>{p.nText}</text>
             </g>
           ))}
           <g class="hotel">
             <circle class="pulse" cx={CX} cy={CY} r="14" />
             <path class="pin" d={`M${CX} ${CY} c-9 -11 -9 -22 0 -24 c9 2 9 13 0 24 z`} />
             <circle cx={CX} cy={CY - 15} r="3" fill="#f6f1e8" stroke="none" />
-            <text class="hotel-label" x={CX + 12} y={CY + 24} text-anchor="start">{SITE.shortName[lang]}</text>
+            <text class="hotel-label" x={CX + 12} y={CY + 24} text-anchor={anc('start')}>{SITE.shortName[lang]}</text>
           </g>
-          <g class="north" transform="translate(28 30)"><path d="M0 -12 L6 6 L0 2 L-6 6 Z" /><text y="22" text-anchor="middle">N</text></g>
-          <g class="scale" transform={`translate(${W - 24 - K} ${H - 40})`}><path d={`M0 0 H ${K}`} /><path d="M0 -4 V4" /><path d={`M${K} -4 V4`} /><text x={K / 2} y="14" text-anchor="middle">1 km</text></g>
+          <g class="north" transform="translate(28 30)"><path d="M0 -12 L6 6 L0 2 L-6 6 Z" /><text y="22" text-anchor="middle">{card.n}</text></g>
+          <g class="scale" transform={`translate(${W - 24 - K} ${H - 40})`}><path d={`M0 0 H ${K}`} /><path d="M0 -4 V4" /><path d={`M${K} -4 V4`} /><text x={K / 2} y="14" text-anchor="middle">{digits(1, lang)} {kmU}</text></g>
         </svg>
       </figure>
 
       <div class="dial-wrap rv rv-d1">
-        <svg class="dial" viewBox="0 0 400 400" role="img" aria-label={t('map.title')} dir="ltr">
+        <svg class="dial" viewBox="0 0 400 400" role="img" aria-label={t('map.title')} direction={rtl ? 'rtl' : 'ltr'}>
           {[44, 86, 128, 170].map((r) => <circle class="ring" cx="200" cy="200" r={r} />)}
-          <text class="ring-label" x="206" y="160">1 km</text><text class="ring-label" x="206" y="118">5 km</text><text class="ring-label" x="206" y="76">20 km</text><text class="ring-label" x="206" y="34">60 km</text>
+          {[[1, 160], [5, 118], [20, 76], [60, 34]].map(([k, yy]) => <text class="ring-label" x="206" y={yy} text-anchor={anc('start')}>{digits(k, lang)} {kmU}</text>)}
           <path class="cross" d="M200 20 V380 M20 200 H380" />
-          <text class="card" x="200" y="14" text-anchor="middle">N</text><text class="card" x="391" y="204" text-anchor="middle">E</text><text class="card" x="200" y="395" text-anchor="middle">S</text><text class="card" x="9" y="204" text-anchor="middle">W</text>
+          <text class="card" x="200" y="14" text-anchor="middle">{card.n}</text><text class="card" x="391" y="204" text-anchor="middle">{card.e}</text><text class="card" x="200" y="395" text-anchor="middle">{card.s}</text><text class="card" x="9" y="204" text-anchor="middle">{card.w}</text>
           {places.map((p, i) => (
-            <g class="dpoi" style={`--i:${i}`} data-poi={p.id} tabindex="0" role="button" aria-label={`${p.name[lang]}: ${p.kmText} km, ${p.dirWord}`}>
+            <g class="dpoi" style={`--i:${i}`} data-poi={p.id} tabindex="0" role="button" aria-label={`${p.name[lang]}: ${p.kmText} ${kmU}, ${p.dirWord}`}>
               <line class="dray" x1="200" y1="200" x2={p.dial.x} y2={p.dial.y} />
               <circle cx={p.dial.x} cy={p.dial.y} r="10" />
               <text x={p.dial.x} y={p.dial.y + 4} text-anchor="middle">{p.nText}</text>
@@ -133,7 +172,7 @@ const pyr = PYRAMIDS.map((p) => ({ ...p, pos: xy(p.at.lat, p.at.lng), s: p.id ==
           <circle class="dhotel" cx="200" cy="200" r="7" />
         </svg>
         <div class="dial-info" data-info aria-live="polite">
-          <p class="dial-hint">{t('map.text')}</p>
+          <p class="dial-hint">{tapHint}</p>
         </div>
       </div>
     </div>
@@ -143,7 +182,7 @@ const pyr = PYRAMIDS.map((p) => ({ ...p, pos: xy(p.at.lat, p.at.lng), s: p.id ==
         <li class="plist-item" data-poi={p.id}>
           <span class="plist-n">{p.nText}</span>
           <div class="plist-body">
-            <div class="plist-head"><strong>{p.name[lang]}</strong><span class="num">{p.kmText} km</span></div>
+            <div class="plist-head"><strong>{p.name[lang]}</strong><span class="num">{p.kmText} {kmU}</span></div>
             {!compact && <p class="small muted">{t('map.bearing', { dir: p.dirWord })} · {p.mins}</p>}
             {!compact && <a class="plist-dir" href={p.dirs} target="_blank" rel="noopener">{t('giza.directions')} <Icon name="arrowUpRight" size={14} /></a>}
           </div>
@@ -152,7 +191,7 @@ const pyr = PYRAMIDS.map((p) => ({ ...p, pos: xy(p.at.lat, p.at.lng), s: p.id ==
     </ol>
     <p class="map-open"><a class="btn btn-gold" href={SITE.mapsUrl} target="_blank" rel="noopener"><Icon name="pin" size={18} /> {t('map.open')}</a></p>
   </div>
-  <script type="application/json" data-places set:html={JSON.stringify(Object.fromEntries(places.map((p) => [p.id, { name: p.name[lang], km: p.kmText, dir: t('map.bearing', { dir: p.dirWord }), mins: p.mins, url: p.dirs, blurb: p.blurb[lang], n: p.nText }])))} />
+  <script type="application/json" data-places set:html={JSON.stringify(Object.fromEntries(places.map((p) => [p.id, { name: p.name[lang], km: `${p.kmText} ${kmU}`, dir: t('map.bearing', { dir: p.dirWord }), mins: p.mins, url: p.dirs, blurb: p.blurb[lang], n: p.nText }])))} />
   <span class="sr-only" data-dirlabel>{t('giza.directions')}</span>
 </section>
 
@@ -167,7 +206,7 @@ const pyr = PYRAMIDS.map((p) => ({ ...p, pos: xy(p.at.lat, p.at.lng), s: p.id ==
     const select = (id: string) => {
       const d = data[id]; if (!d) return;
       root.querySelectorAll('[data-poi]').forEach((el) => el.classList.toggle('sel', (el as HTMLElement).dataset.poi === id));
-      info.innerHTML = `<p class="dial-name"><span class="dial-n">${esc(d.n)}</span> ${esc(d.name)}</p><p class="dial-facts">${esc(d.km)} km · ${esc(d.dir)} · ${esc(d.mins)}</p><p class="dial-blurb">${esc(d.blurb)}</p><a class="dial-dir" href="${esc(d.url)}" target="_blank" rel="noopener">${esc(dirLabel)} ↗</a>`;
+      info.innerHTML = `<p class="dial-name"><span class="dial-n">${esc(d.n)}</span> ${esc(d.name)}</p><p class="dial-facts">${esc(d.km)} · ${esc(d.dir)} · ${esc(d.mins)}</p><p class="dial-blurb">${esc(d.blurb)}</p><a class="dial-dir" href="${esc(d.url)}" target="_blank" rel="noopener">${esc(dirLabel)} ↗</a>`;
     };
     root.querySelectorAll<HTMLElement>('[data-poi]').forEach((el) => {
       el.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('a')) return; select(el.dataset.poi!); });
@@ -200,20 +239,25 @@ const pyr = PYRAMIDS.map((p) => ({ ...p, pos: xy(p.at.lat, p.at.lng), s: p.id ==
   .poi.sel .n { fill: var(--ink); }
   .poi:focus-visible { outline: none; } .poi:focus-visible circle { stroke-width: 3; }
   .far path { fill: var(--gold); }
-  .far .lbl { font-size: 10.5px; fill: var(--muted); }
-  .far .n-only { display: none; font-size: 10px; font-weight: 700; fill: var(--gold-text); }
+  .far .hit { fill: transparent; stroke: none; }
+  .far .n-only { font-size: 11.5px; font-weight: 700; fill: var(--gold-text); paint-order: stroke; stroke: var(--paper); stroke-width: 3.5px; stroke-linejoin: round; }
+  .far.sel .n-only, .far:hover .n-only { text-decoration: underline; }
+  .far:focus-visible { outline: none; } .far:focus-visible path { stroke: var(--ink); stroke-width: 1.5; }
   .hotel .pin { fill: var(--ink); stroke: none; }
   .hotel .pulse { fill: var(--gold); opacity: 0; }
   .hotel-label { font-size: 12px; fill: var(--ink); font-weight: 700; }
   .north path { fill: var(--gold); } .north text, .scale text { font-size: 10px; fill: var(--muted); }
   .scale path { stroke: var(--muted); stroke-width: 1; }
   @media (max-width: 720px) {
+    /* the map is drawn at about half size on a phone: names go (the numbered list below carries them), numbers grow */
     .poi .lbl { display: none; }
-    .far .n-only { display: block; }
-    .poi circle { r: 12; }
-    .poi .n { font-size: 13px; }
-    .road-label, .sea-label, .north text, .scale text { font-size: 13px; }
-    .hotel-label { font-size: 15px; }
+    .poi circle { r: 12.5; }
+    .poi .n { font-size: 15px; }
+    .poi .n { transform: translateY(1.5px); }
+    .far .n-only { font-size: 16px; }
+    .road-label, .sea-label, .north text, .scale text { font-size: 15px; }
+    html[lang='ar'] .road-label, html[lang='ar'] .sea-label { font-size: 17px; }
+    .hotel-label { font-size: 17px; }
   }
   .draw { stroke-dasharray: 1400; stroke-dashoffset: 1400; }
   .poi, .far, .hotel, .map-pyr { opacity: 0; }
@@ -233,13 +277,13 @@ const pyr = PYRAMIDS.map((p) => ({ ...p, pos: xy(p.at.lat, p.at.lng), s: p.id ==
   .dial { width: 100%; max-width: 440px; height: auto; margin-inline: auto; display: block; font-family: var(--sans); }
   .ring { fill: none; stroke: var(--line); }
   .ring:first-of-type { stroke: var(--gold); opacity: 0.6; }
-  .ring-label { font-size: 9px; fill: var(--muted); }
+  .ring-label { font-size: 10px; fill: var(--muted); }
   .cross { stroke: var(--line); stroke-dasharray: 2 4; }
   .card { font-size: 11px; fill: var(--gold-text); font-weight: 700; }
   .dray { stroke: var(--gold); stroke-width: 0.8; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
   .dpoi { cursor: pointer; }
   .dpoi circle { fill: var(--cream); stroke: var(--gold); stroke-width: 1.4; transition: fill 0.3s; }
-  .dpoi text { font-size: 10.5px; font-weight: 700; fill: var(--ink); pointer-events: none; }
+  .dpoi text { font-size: 11px; font-weight: 700; fill: var(--ink); pointer-events: none; }
   .dpoi.sel circle, .dpoi:hover circle { fill: var(--gold-pale); }
   .dpoi.sel .dray { opacity: 1; }
   .dpoi:focus-visible { outline: none; } .dpoi:focus-visible circle { stroke-width: 3; }
@@ -267,6 +311,7 @@ const pyr = PYRAMIDS.map((p) => ({ ...p, pos: xy(p.at.lat, p.at.lng), s: p.id ==
   .plist-compact .plist-item { padding-top: 6px; border-top: 0; align-items: center; }
   .plist-compact .plist-head strong { font-family: var(--sans); font-size: 0.95rem; font-weight: 500; }
   .plist-compact .plist-head .num { font-size: 0.85rem; }
+  .plist-head .num { white-space: nowrap; flex: none; }
   @media (min-width: 720px) { .plist { grid-template-columns: 1fr 1fr; gap: 12px 40px; } .plist-compact { grid-template-columns: repeat(3, 1fr); } }
   @media (min-width: 1100px) { .plist { grid-template-columns: repeat(3, 1fr); } .plist-compact { grid-template-columns: repeat(4, 1fr); } }
   .map-open { margin-top: 28px; }

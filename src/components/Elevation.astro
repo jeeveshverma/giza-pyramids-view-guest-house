@@ -11,7 +11,7 @@ import { distanceKm } from '../lib/geo';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const { t } = useT(lang);
-const W = 960, H = 250, GROUND = 198, KM = 230, M = 0.58; // px per km, px per metre
+const W = 960, H = 262, GROUND = 198, KM = 230, M = 0.58; // px per km, px per metre
 const HX = 640; // the house
 const x = (kmWest: number) => HX - kmWest * KM;
 const y = (mASL: number) => GROUND - mASL * M;
@@ -24,9 +24,14 @@ const floors = 11, floorH = (E.floor11 - E.street) / (floors - 1);
 const sight = { x1: HX, y1: y(E.floor11 + 1.5), x2: x(khufu.km), y2: y(E.khufuBase + khufu.height) };
 const d = (n: number) => digits(String(Math.round(n)), lang);
 const km = (n: number) => digits(n.toFixed(1), lang);
+const kmUnit = lang === 'ar' ? 'كم' : 'km';
+// the drawing is laid out left to right in both languages; Arabic labels are set right-to-left (so a full stop lands
+// at the end of the sentence) with their start/end anchors swapped to keep each label on the same side
+const rtl = lang === 'ar';
+const anchor = (a: 'start' | 'end' | 'middle') => (!rtl || a === 'middle' ? a : a === 'start' ? 'end' : 'start');
 ---
 <figure class="elev rv" dir="ltr" aria-label={t('elev.title')}>
-  <div class="elev-scroll"><svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t('elev.title')}>
+  <div class="elev-scroll"><svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t('elev.title')} direction={rtl ? 'rtl' : 'ltr'}>
     <defs><linearGradient id="elev-ground" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--gold)" stop-opacity=".18" /><stop offset="1" stop-color="var(--gold)" stop-opacity=".02" /></linearGradient></defs>
     <!-- ground profile: plateau on the left stepping down to the street, then the Nile valley off to the right -->
     <path class="ground" d={`M0 ${y(72)} H${x(2.6)} C ${x(2.3)} ${y(70)}, ${x(2.1)} ${y(70)} ${x(1.95)} ${y(E.khufuBase)} L${x(1.35)} ${y(E.sphinx)} C ${x(1.1)} ${y(28)}, ${x(0.6)} ${y(E.street)} ${HX} ${y(E.street)} H${W - 70} C ${W - 60} ${y(E.street)}, ${W - 50} ${y(E.nile)} ${W - 40} ${y(E.nile)} H${W} V${H} H0 Z`} fill="url(#elev-ground)" />
@@ -49,8 +54,8 @@ const km = (n: number) => digits(n.toFixed(1), lang);
       {Array.from({ length: floors }, (_, i) => <line x1={HX - 14} x2={HX + 14} y1={y(E.street + i * floorH)} y2={y(E.street + i * floorH)} />)}
       <rect class="floor11" x={HX - 14} y={y(E.floor11 + floorH * 0.9)} width="28" height={floorH * 0.9 * M} />
       <path class="terrace" d={`M${HX - 18} ${y(E.roof)} h36`} />
-      <text class="lbl-floor" x={HX + 22} y={y(E.floor11) + 4}>{t('elev.floor', { n: digits('11', lang) })}</text>
-      <text class="lbl-small" x={HX + 22} y={y(E.floor11) + 18}>{t('elev.asl', { m: d(E.floor11) })}</text>
+      <text class="lbl-floor" x={HX + 22} y={y(E.floor11) + 4} text-anchor={anchor('start')}>{t('elev.floor', { n: digits('11', lang) })}</text>
+      <text class="lbl-small" x={HX + 22} y={y(E.floor11) + 18} text-anchor={anchor('start')}>{t('elev.asl', { m: d(E.floor11) })}</text>
     </g>
     <!-- the sight line -->
     <line class="sight draw" x1={sight.x1} y1={sight.y1} x2={sight.x2} y2={sight.y2} />
@@ -60,13 +65,13 @@ const km = (n: number) => digits(n.toFixed(1), lang);
     <text class="lbl-small" x={x(khufu.km) + 10} y={y(E.khufuBase) + 16} text-anchor="middle">{t('elev.base', { m: d(E.khufuBase) })}</text>
     <text class="lbl-small" x={x(1.42) + 5} y={y(E.sphinx) + 16} text-anchor="middle">{t('elev.sphinx')}</text>
     <text class="lbl-small" x={x(1.0)} y={y(E.street + 52) - 6} text-anchor="middle">{t('elev.roofs', { m: d(E.roofs) })}</text>
-    <text class="lbl-small" x={W - 12} y={y(E.nile) + 22} text-anchor="end">{t('elev.nile')}</text>
+    <text class="lbl-small" x={W - 12} y={y(E.nile) + 22} text-anchor={anchor('end')}>{t('elev.nile')}</text>
     <!-- distance scale along the ground -->
     <g class="scale">
-      {[0, 0.5, 1, 1.5, 2].map((k) => <g transform={`translate(${x(k)} ${GROUND + 18})`}><line y1="-6" y2="0" /><text y="14" text-anchor="middle">{k === 0 ? t('elev.here') : `${km(k)} km`}</text></g>)}
+      {[0, 0.5, 1, 1.5, 2].map((k) => <g transform={`translate(${x(k)} ${GROUND + 18})`}><line y1="-6" y2="0" /><text y="14" text-anchor="middle">{k === 0 ? t('elev.here') : `${km(k)} ${kmUnit}`}</text></g>)}
       <line x1={x(2)} x2={HX} y1={GROUND + 18} y2={GROUND + 18} />
     </g>
-    <text class="lbl-note" x={12} y={H - 8} text-anchor="start">{t('elev.note')}</text>
+    <text class="lbl-note" x={12} y={H - 8} text-anchor={anchor('start')}>{t('elev.note')}</text>
   </svg></div>
   <p class="elev-hint" aria-hidden="true">⟵ ⟶</p>
   <figcaption>{t('elev.caption', { floor: d(E.floor11), base: d(E.khufuBase) })}</figcaption>
@@ -109,5 +114,14 @@ const km = (n: number) => digits(n.toFixed(1), lang);
   .elev figcaption { padding: 12px 16px; border-top: 1px solid var(--line); font-family: var(--display); font-size: 1.1rem; color: var(--ink); }
   html[lang='ar'] .elev figcaption { font-family: var(--sans); font-size: 1rem; direction: rtl; }
   .lbl-small, .scale text { font-size: 11.5px; }
+  html[lang='ar'] .lbl, html[lang='ar'] .lbl-floor { font-family: var(--sans); font-weight: 700; }
+  html[lang='ar'] .lbl-small, html[lang='ar'] .scale text { font-size: 13px; }
+  html[lang='ar'] .lbl-note { font-style: normal; font-size: 11px; }
+  @media (max-width: 760px) {
+    /* the drawing scrolls at 720 px wide on a phone, so its words are set larger to stay readable */
+    .lbl { font-size: 20px; } .lbl-floor { font-size: 19px; }
+    .lbl-small, .scale text, html[lang='ar'] .lbl-small, html[lang='ar'] .scale text { font-size: 14.5px; }
+    .lbl-note, html[lang='ar'] .lbl-note { font-size: 13px; }
+  }
   @media (prefers-reduced-motion: reduce) { .draw { stroke-dashoffset: 0; animation: none !important; } .sight { opacity: 1 !important; animation: none !important; } .sight-wedge { opacity: 0.1; } }
 </style>

@@ -58,6 +58,11 @@ const dict = { adultsN: t('bk.adultsN'), childrenN: t('bk.childrenN'), noChildre
       q<HTMLElement>('[data-v=party]').textContent = party(s);
       q<HTMLOutputElement>('[data-o=adults]').value = d(s.adults);
       q<HTMLOutputElement>('[data-o=children]').value = d(s.children);
+      // the same bounds writeStay clamps to (src/lib/stay.ts): adults 1-12, children 0-10
+      q<HTMLButtonElement>('[data-step="adults:-1"]').disabled = s.adults <= 1;
+      q<HTMLButtonElement>('[data-step="adults:1"]').disabled = s.adults >= 12;
+      q<HTMLButtonElement>('[data-step="children:-1"]').disabled = s.children <= 0;
+      q<HTMLButtonElement>('[data-step="children:1"]').disabled = s.children >= 10;
     };
     const set = (patch: Partial<Stay>) => { s = writeStay({ ...s, ...patch }, form.id); render(); };
     inp.addEventListener('change', () => { if (!inp.value) return render(); const o = parse(inp.value); o.setDate(o.getDate() + 1); set({ in: inp.value, out: out.value > inp.value ? out.value : iso(o) }); });
@@ -104,12 +109,15 @@ const dict = { adultsN: t('bk.adultsN'), childrenN: t('bk.childrenN'), noChildre
   .sb-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-weight: 600; color: var(--ink); }
   .sb-row small { display: block; font-weight: 400; font-size: 0.8rem; color: var(--muted); }
   .sb-step { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 4px; }
-  .sb-step button { width: 40px; height: 40px; border: 0; background: none; color: var(--gold-text); font-size: 1.3rem; cursor: pointer; }
-  .sb-step button:hover { background: var(--gold-pale); }
+  .sb-step button { width: 44px; height: 44px; border: 0; background: none; color: var(--gold-text); font-size: 1.3rem; cursor: pointer; }
+  .sb-step button:hover:not(:disabled) { background: var(--gold-pale); }
+  .sb-step button:disabled { color: var(--line); cursor: default; }
   .sb-step output { min-width: 32px; text-align: center; font-weight: 700; }
   .sb-done { min-height: 44px; border: 1px solid var(--ink); border-radius: 4px; background: var(--white); color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; }
   .sb-done:hover { background: var(--cream); }
   [hidden] { display: none !important; }
-  @media (min-width: 560px) { .sb { grid-template-columns: 1fr 1fr; } .sb-guests, .sb-go { grid-column: 1 / -1; } }
-  @media (min-width: 900px) { .sb { grid-template-columns: 1fr 1fr 1.2fr auto; } .sb-guests, .sb-go { grid-column: auto; } }
+  /* phone: the popover is the width of the bar; two-up from 560 (dates, then guests beside Search); one row from 900 */
+  @media (max-width: 559px) { .sb-pop { inset-inline: 0; width: auto; } }
+  @media (min-width: 560px) { .sb { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 900px) { .sb { grid-template-columns: 1fr 1fr 1.2fr auto; } }
 </style>

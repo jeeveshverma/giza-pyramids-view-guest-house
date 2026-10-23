@@ -138,7 +138,8 @@
     "prev": "Previous review",
     "next": "Next review",
     "pause": "Pause",
-    "play": "Play"
+    "play": "Play",
+    "localGuide": "Local Guide"
   },
   "sunset": {
     "today": "Sunset over the pyramids today at {time}, from the balcony.",
@@ -234,7 +235,7 @@
   },
   "notfound": {
     "title": "This page is not here",
-    "text": "The link may be old. The rooms, the photos and the enquiry form are one tap away.",
+    "text": "The link may be old. The rooms and the photos are one tap away.",
     "home": "Back to the start"
   },
   "common": {
@@ -323,7 +324,7 @@
         "English, Arabic, French, German, Dutch, Portuguese, Russian."
       ],
       [
-        "Payment",
+        "House rules",
         "Cash is accepted; no pets."
       ]
     ]
@@ -473,6 +474,7 @@
       "bedsTitle": "Beds",
       "reserveThis": "Reserve this room",
       "others": "Other rooms"
-    }
+    },
+    "endLead": "Choose your dates and rooms, add your details, and the request goes to the guest house on WhatsApp. Nothing is charged on this website; the house replies with availability and the rate."
   }
 }

@@ -35,7 +35,7 @@ const maxes = Object.fromEntries(ROOMS.map((r) => [r.id, r.max]));
   </ol>
 
   <div class="co-grid">
-    <p class="co-mini"><span data-mini></span> <a href="#co-book">{t('bk.change')}</a></p>
+    <p class="co-mini"><span data-mini></span> <a href="#co-book">{t('bk.change')}</a><span class="co-mini-warn" data-mini-warn hidden></span></p>
     <aside class="co-side">
       <div class="co-card co-prop">
         <Img id="terrace-sunset" lang={lang} ratio="16 / 9" sizes="(min-width: 960px) 340px, 100vw" widths={[360, 540, 720]} />
@@ -66,6 +66,7 @@ const maxes = Object.fromEntries(ROOMS.map((r) => [r.id, r.max]));
         </div>
         <div class="co-rooms">
           <span class="co-k">{t('bk.youSelected')} <b data-v="rooms"></b></span>
+          <p class="co-warn" data-warn hidden role="alert"></p>
           <ul>
             {ROOMS.map((r) => (
               <li data-rrow={r.id}>
@@ -74,7 +75,6 @@ const maxes = Object.fromEntries(ROOMS.map((r) => [r.id, r.max]));
               </li>
             ))}
           </ul>
-          <p class="co-warn" data-warn hidden role="alert"></p>
           <a class="co-change" href={path(lang, 'rooms')} data-back-rooms>{t('bk.change')}</a>
         </div>
       </div>
@@ -82,14 +82,15 @@ const maxes = Object.fromEntries(ROOMS.map((r) => [r.id, r.max]));
 
     <div class="co-main">
       <form class="co-card co-step2" data-step="2" novalidate>
-        <h2>{t('bk.detailsTitle')}</h2>
+        <h1>{t('bk.detailsTitle')}</h1>
         <p class="co-lead">{t('bk.detailsLead')}</p>
+        <div class="co-err" data-err hidden role="alert"></div>
         <div class="co-fields">
           <label class="co-f"><span>{t('bk.first')} <i aria-hidden="true">*</i></span><input name="first" autocomplete="given-name" required /></label>
           <label class="co-f"><span>{t('bk.last')} <i aria-hidden="true">*</i></span><input name="last" autocomplete="family-name" required /></label>
-          <label class="co-f co-wide"><span>{t('bk.phone')} <i aria-hidden="true">*</i></span><input name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+" required /><small>{t('bk.phoneHint')}</small></label>
-          <label class="co-f co-wide"><span>{t('bk.email')} <em>({t('bk.optional')})</em></span><input name="email" type="email" inputmode="email" autocomplete="email" /></label>
-          <p class="co-err co-wide" data-err hidden role="alert"></p>
+          <p class="co-fe co-wide" data-fe="name" hidden>{t('bk.errName')}</p>
+          <label class="co-f co-wide"><span>{t('bk.phone')} <i aria-hidden="true">*</i></span><input name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+" required /><span class="co-fe" data-fe="phone" hidden>{t('bk.errPhone')}</span><small>{t('bk.phoneHint')}</small></label>
+          <label class="co-f co-wide"><span>{t('bk.email')} <em>({t('bk.optional')})</em></span><input name="email" type="email" inputmode="email" autocomplete="email" /><span class="co-fe" data-fe="email" hidden>{t('bk.errEmail')}</span></label>
         </div>
         <fieldset class="co-fs">
           <legend>{t('bk.arrival')}</legend>
@@ -114,16 +115,16 @@ const maxes = Object.fromEntries(ROOMS.map((r) => [r.id, r.max]));
       </form>
 
       <section class="co-card co-step3" data-step="3" hidden aria-labelledby="co-final">
-        <h2 id="co-final" tabindex="-1">{t('bk.finalTitle')}</h2>
+        <h1 id="co-final" tabindex="-1">{t('bk.finalTitle')}</h1>
         <p class="co-lead">{t('bk.finalLead')}</p>
         <div class="co-wa">
-          <div class="co-wa-top"><Icon name="whatsapp" size={18} /> <bdi dir="ltr">{SITE.whatsappDisplay}</bdi> · {SITE.shortName[lang]}</div>
+          <div class="co-wa-top"><span class="co-wa-av" aria-hidden="true"><Icon name="pyramid" size={18} /></span><span class="co-wa-who"><b>{SITE.shortName[lang]}</b><bdi dir="ltr">{SITE.whatsappDisplay}</bdi></span><Icon name="whatsapp" size={20} class="co-wa-ic" /></div>
           <div class="co-bubble"><pre data-msg></pre><span class="co-tick" aria-hidden="true">✓✓</span></div>
         </div>
         <div class="co-actions co-final-actions">
+          <button type="button" class="co-ghost co-backbtn" data-back><Icon name="arrowLeft" size={17} class="rtl-flip" /> {t('bk.back')}</button>
+          <button type="button" class="co-ghost co-copy" data-copy><Icon name="copy" size={17} /> <span>{t('bk.copy')}</span></button>
           <a class="co-send" href="#" target="_blank" rel="noopener" data-send><Icon name="whatsapp" size={20} /> {t('bk.send')}</a>
-          <button type="button" class="co-ghost" data-copy><Icon name="copy" size={17} /> <span>{t('bk.copy')}</span></button>
-          <button type="button" class="co-ghost" data-back><Icon name="arrowLeft" size={17} class="rtl-flip" /> {t('bk.back')}</button>
         </div>
         <p class="co-call">{t('bk.or', { phone: '' })} <a href={`tel:${SITE.phone}`}><bdi dir="ltr">{SITE.phoneDisplay}</bdi></a></p>
       </section>
@@ -159,15 +160,16 @@ const maxes = Object.fromEntries(ROOMS.map((r) => [r.id, r.max]));
       q<HTMLOutputElement>('[data-o=children]').value = d(s.children);
       const n = roomCount(s);
       q<HTMLElement>('[data-v=rooms]').textContent = n ? plural(D.roomsN, n, lang) : '';
-      q<HTMLElement>('[data-mini]').textContent = `${fmtDate(s.in, lang, true)} – ${fmtDate(s.out, lang, true)} · ${plural(D.nightsN, nights(s), lang)} · ${n ? plural(D.roomsN, n, lang) : '—'} · ${party(s)}`;
+      q<HTMLElement>('[data-mini]').textContent = [`${fmtDate(s.in, lang, true)} – ${fmtDate(s.out, lang, true)}`, plural(D.nightsN, nights(s), lang), n ? plural(D.roomsN, n, lang) : '', party(s)].filter(Boolean).join(' · ');
       root.querySelectorAll<HTMLElement>('[data-rrow]').forEach((li) => { const k = s.rooms[li.dataset.rrow!] || 0; li.classList.toggle('on', k > 0); q<HTMLOutputElement>(`[data-ro="${li.dataset.rrow}"]`).value = d(k); });
       const warn = q<HTMLElement>('[data-warn]'); const cap = capacity(s), need = s.adults + s.children;
       if (!n) { warn.hidden = false; warn.textContent = D.errRooms; }
       else if (cap < need) { warn.hidden = false; warn.textContent = D.capacity.replace('{n}', plural(D.guestsN, cap, lang)).replace('{m}', plural(D.guestsN, need, lang)); }
       else warn.hidden = true;
+      const mw = q<HTMLElement>('[data-mini-warn]'); mw.hidden = warn.hidden; mw.textContent = warn.textContent;
       root.querySelectorAll<HTMLAnchorElement>('[data-back-rooms]').forEach((a) => (a.href = `${root.dataset.roomsUrl}?${toQuery(s)}#availability`));
     };
-    const set = (patch: Partial<Stay>) => { s = writeStay({ ...s, ...patch }, 'co'); renderStay(); if (!final.hidden) renderFinal(); };
+    const set = (patch: Partial<Stay>) => { s = writeStay({ ...s, ...patch }, 'co'); renderStay(); if (!final.hidden) renderFinal(); if (tried && !err.hidden) validate(false); };
     cin.addEventListener('change', () => { if (!cin.value) return renderStay(); const o = new Date(cin.value + 'T00:00:00'); o.setDate(o.getDate() + 1); const oi = `${o.getFullYear()}-${String(o.getMonth() + 1).padStart(2, '0')}-${String(o.getDate()).padStart(2, '0')}`; set({ in: cin.value, out: cout.value > cin.value ? cout.value : oi }); });
     cout.addEventListener('change', () => { if (cout.value) set({ out: cout.value }); else renderStay(); });
     root.querySelectorAll<HTMLButtonElement>('[data-p]').forEach((b) => b.addEventListener('click', () => { const [k, by] = b.dataset.p!.split(':') as ['adults' | 'children', string]; set({ [k]: s[k] + Number(by) } as Partial<Stay>); }));
@@ -179,10 +181,12 @@ const maxes = Object.fromEntries(ROOMS.map((r) => [r.id, r.max]));
     try { const g = JSON.parse(sessionStorage.getItem(GKEY) || '{}'); fields.forEach((f) => { if (g[f]) el(f).value = g[f]; }); if (g.pickup) el('pickup').checked = true; } catch {}
     const saveGuest = () => { try { const g: Record<string, unknown> = Object.fromEntries(fields.map((f) => [f, el(f).value])); g.pickup = el('pickup').checked; sessionStorage.setItem(GKEY, JSON.stringify(g)); } catch {} };
     const syncPickup = () => { q<HTMLElement>('.co-flight').hidden = !el('pickup').checked; };
-    form.addEventListener('input', saveGuest); form.addEventListener('change', () => { saveGuest(); syncPickup(); }); syncPickup();
+    form.addEventListener('input', () => { saveGuest(); if (tried && !err.hidden) validate(false); }); form.addEventListener('change', () => { saveGuest(); syncPickup(); }); syncPickup();
 
     const err = q<HTMLElement>('[data-err]');
-    const validate = () => {
+    let tried = false;
+    const validate = (focus = true) => {
+      tried = true;
       const problems: [string, string][] = [];
       if (!roomCount(s)) problems.push(['', D.errRooms]);
       if (!el('first').value.trim() || !el('last').value.trim()) problems.push([!el('first').value.trim() ? 'first' : 'last', D.errName]);
@@ -190,11 +194,20 @@ const maxes = Object.fromEntries(ROOMS.map((r) => [r.id, r.max]));
       if (el('email').value.trim() && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(el('email').value.trim())) problems.push(['email', D.errEmail]);
       fields.forEach((f) => el(f).removeAttribute('aria-invalid'));
       problems.forEach(([f]) => f && el(f).setAttribute('aria-invalid', 'true'));
-      err.hidden = !problems.length; err.textContent = problems.map(([, m]) => m).join(' ');
-      if (problems.length) { const first = problems.find(([f]) => f)?.[0]; if (first) el(first).focus(); else q<HTMLElement>('.co-rooms').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+      // each message under its own field, and the lot in a summary above the form
+      const bad = new Set(problems.map(([f]) => (f === 'first' || f === 'last' ? 'name' : f)));
+      root.querySelectorAll<HTMLElement>('[data-fe]').forEach((x) => (x.hidden = !bad.has(x.dataset.fe!)));
+      if (bad.has('name')) (['first', 'last'] as const).forEach((f) => !el(f).value.trim() && el(f).setAttribute('aria-invalid', 'true'));
+      err.hidden = !problems.length;
+      if (problems.length > 1) { const ul = document.createElement('ul'); problems.forEach(([, m]) => ul.appendChild(Object.assign(document.createElement('li'), { textContent: m }))); err.replaceChildren(ul); }
+      else err.textContent = problems[0]?.[1] || '';
+      if (problems.length && focus) { const first = problems.find(([f]) => f)?.[0]; if (first) el(first).focus(); else q<HTMLElement>('.co-rooms').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
       return !problems.length;
     };
 
+    // what the guest typed may run the other way from the language around it (a Latin name or
+    // number in an Arabic line): isolate it, or WhatsApp lays "+20 100 123 4567" out back to front
+    const iso = (v: string, ltr = false) => (lang === 'ar' && v ? `${ltr ? '\u2066' : '\u2068'}${v}\u2069` : v);
     const message = () => {
       const arrival = el('arrival').value === 'late' ? q<HTMLOptionElement>('[name=arrival] option[value=late]').textContent! : el('arrival').value ? d(el('arrival').value) : D.arrivalUnknown;
       const rooms = Object.entries(s.rooms).filter(([, n]) => n > 0).map(([id, n]) => `${d(n)} × ${NAMES[id]}`).join('\n   ');
@@ -205,13 +218,13 @@ const maxes = Object.fromEntries(ROOMS.map((r) => [r.id, r.max]));
         `${D.waStay}: ${plural(D.nightsN, nights(s), lang)}`,
         `${D.waGuests}: ${party(s)}`,
         `${D.waRooms}:\n   ${rooms}`, '',
-        `${D.waName}: ${el('first').value.trim()} ${el('last').value.trim()}`,
-        `${D.waPhone}: ${el('phone').value.trim()}`,
+        `${D.waName}: ${iso(`${el('first').value.trim()} ${el('last').value.trim()}`)}`,
+        `${D.waPhone}: ${iso(el('phone').value.trim(), true)}`,
       ];
-      if (el('email').value.trim()) L.push(`${D.waEmail}: ${el('email').value.trim()}`);
+      if (el('email').value.trim()) L.push(`${D.waEmail}: ${iso(el('email').value.trim(), true)}`);
       L.push(`${D.waArrival}: ${arrival}`);
-      if (el('pickup').checked) L.push(`${D.waPickup}: ${el('flight').value.trim() || '✓'}`);
-      if (el('req').value.trim()) L.push(`${D.waReq}: ${el('req').value.trim()}`);
+      if (el('pickup').checked) L.push(`${D.waPickup}: ${iso(el('flight').value.trim()) || '✓'}`);
+      if (el('req').value.trim()) L.push(`${D.waReq}: ${iso(el('req').value.trim())}`);
       L.push('', `— ${D.waFrom}`);
       return L.join('\n');
     };
@@ -252,7 +265,8 @@ const maxes = Object.fromEntries(ROOMS.map((r) => [r.id, r.max]));
 
   .co-grid { display: grid; gap: 20px; align-items: start; }
   .co-mini { margin: 0; padding: 12px 14px; border-radius: 6px; background: var(--gold-pale); color: var(--ink); font-weight: 600; font-size: 0.92rem; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
-  .co-mini a { color: var(--gold-text); font-weight: 700; }
+  .co-mini a { color: var(--gold-text); font-weight: 700; display: inline-flex; align-items: center; min-height: 32px; }
+  .co-mini-warn { flex-basis: 100%; color: var(--danger); font-weight: 600; font-size: 0.86rem; }
   @media (min-width: 960px) { .co-mini { display: none; } }
   .co-card { background: var(--white); border: 1px solid var(--line); border-radius: 6px; }
   .co-card h3 { font-family: var(--display); font-size: 1.3rem; font-weight: 700; }
@@ -273,9 +287,10 @@ const maxes = Object.fromEntries(ROOMS.map((r) => [r.id, r.max]));
   .co-book { padding: 16px; display: grid; gap: 14px; }
   .co-k { display: block; font-size: 0.8rem; font-weight: 600; color: var(--muted); }
   .co-dates { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 4px; }
-  .co-date { position: relative; display: grid; gap: 2px; padding: 10px 12px; cursor: pointer; }
+  .co-date { position: relative; display: grid; grid-template-rows: auto 1fr auto; gap: 2px; padding: 10px 12px; cursor: pointer; }
   .co-date + .co-date { border-inline-start: 1px solid var(--line); }
-  .co-date b { color: var(--ink); font-size: 0.98rem; }
+  .co-date b { color: var(--ink); font-size: 0.98rem; line-height: 1.35; }
+  @media (min-width: 960px) { .co-date { padding: 10px; } .co-date b { font-size: 0.93rem; } }
   .co-date small { color: var(--muted); font-size: 0.8rem; }
   .co-date input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: 0; }
   .co-date input::-webkit-calendar-picker-indicator { position: absolute; inset: 0; width: 100%; height: 100%; cursor: pointer; }
@@ -283,9 +298,10 @@ const maxes = Object.fromEntries(ROOMS.map((r) => [r.id, r.max]));
   .co-len { margin: 0; } .co-len b { color: var(--ink); }
   .co-party { display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 12px; }
   .co-pr { display: flex; justify-content: space-between; align-items: center; color: var(--ink); font-weight: 600; font-size: 0.95rem; }
-  .co-step { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 4px; flex: none; }
-  .co-step button { width: 42px; height: 42px; border: 0; background: none; color: var(--gold-text); font-size: 1.2rem; cursor: pointer; }
-  .co-step button:hover { background: var(--gold-pale); }
+  .co-step { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 4px; flex: none; background: var(--white); overflow: hidden; }
+  .co-step button { width: 44px; height: 44px; border: 0; background: none; color: var(--gold-text); font-size: 1.2rem; cursor: pointer; }
+  @media (hover: hover) { .co-step button:hover { background: var(--gold-pale); } }
+  .co-step button:active { background: var(--gold-pale); }
   .co-step output { min-width: 26px; text-align: center; font-weight: 700; color: var(--ink); }
   .co-rooms { border-top: 1px solid var(--line); padding-top: 12px; }
   .co-rooms > .co-k b { color: var(--ink); }
@@ -295,11 +311,11 @@ const maxes = Object.fromEntries(ROOMS.map((r) => [r.id, r.max]));
   .co-rn { font-size: 0.92rem; font-weight: 600; color: var(--muted); line-height: 1.3; }
   .co-rooms li.on .co-rn { color: var(--ink); }
   .co-rn small { display: block; font-weight: 400; font-size: 0.78rem; color: var(--muted); }
-  .co-warn { margin: 10px 0 0; padding: 8px 10px; border-radius: 4px; background: #fbeee5; color: var(--danger); font-size: 0.86rem; }
-  .co-change { display: inline-block; margin-top: 10px; font-weight: 700; color: var(--gold-text); font-size: 0.92rem; }
+  .co-warn { margin: 8px 0 0; padding: 8px 10px; border-radius: 4px; background: #fbeee5; color: var(--danger); font-size: 0.86rem; }
+  .co-change { display: inline-flex; align-items: center; min-height: 44px; margin-top: 4px; font-weight: 700; color: var(--gold-text); font-size: 0.92rem; }
 
   .co-main .co-card { padding: clamp(16px, 3vw, 28px); display: grid; gap: 18px; }
-  .co-main h2 { font-size: clamp(1.7rem, 4vw, 2.3rem); }
+  .co-main h1 { font-size: clamp(1.7rem, 4vw, 2.3rem); }
   .co-lead { margin: -6px 0 0; color: var(--body); }
   .co-fields { display: grid; gap: 14px; }
   .co-f { display: grid; gap: 5px; }
@@ -311,11 +327,14 @@ const maxes = Object.fromEntries(ROOMS.map((r) => [r.id, r.max]));
   .co-main textarea { min-height: 90px; resize: vertical; }
   .co-main input:focus, .co-main select:focus, .co-main textarea:focus { outline: 2px solid var(--gold); outline-offset: 0; border-color: var(--gold); }
   .co-main [aria-invalid=true] { border-color: var(--danger); box-shadow: inset 0 0 0 1px var(--danger); }
-  .co-err { margin: 0; padding: 10px 12px; border-radius: 4px; background: #fbeee5; color: var(--danger); font-size: 0.9rem; }
+  .co-err { margin: 0; padding: 12px 14px; border-radius: 4px; border-inline-start: 3px solid var(--danger); background: #fbeee5; color: var(--danger); font-size: 0.9rem; font-weight: 600; }
+  .co-err ul { margin: 0; padding-inline-start: 18px; display: grid; gap: 2px; }
+  .co-fe, .co-f > .co-fe { margin: 0; color: var(--danger); font-size: 0.84rem; font-weight: 600; }
+  p.co-fe { margin-top: -8px; }
   .co-fs { border: 0; border-top: 1px solid var(--line); margin: 0; padding: 16px 0 0; display: grid; gap: 8px; }
   .co-fs legend { padding: 0; float: left; width: 100%; margin-bottom: 4px; }
   html[dir='rtl'] .co-fs legend { float: right; }
-  .co-check { display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--body); }
+  .co-check { display: flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; color: var(--body); }
   .co-check input { width: 20px; height: 20px; accent-color: var(--gold); margin: 0; flex: none; }
   .co-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: flex-end; border-top: 1px solid var(--line); padding-top: 16px; }
   .co-next, .co-send { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 24px; border: 0; border-radius: 4px; background: var(--ink); color: var(--cream); font: inherit; font-weight: 700; font-size: 1.02rem; cursor: pointer; text-decoration: none; }
@@ -323,21 +342,50 @@ const maxes = Object.fromEntries(ROOMS.map((r) => [r.id, r.max]));
   .co-send { background: var(--wa); color: var(--white); } .co-send:hover { background: var(--wa-dark); }
   .co-ghost { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 16px; border: 1px solid var(--line); border-radius: 4px; background: var(--white); color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; }
   .co-ghost:hover { background: var(--cream); }
-  .co-final-actions { justify-content: flex-start; }
+  .co-final-actions .co-backbtn { margin-inline-end: auto; }
+  /* final step: when Back, Copy and Send don't fit on one line, Send gets its own row on top */
+  .co-main { container-type: inline-size; min-width: 0; }
+  @container (max-width: 660px) {
+    .co-final-actions { display: grid; grid-template-columns: auto auto; justify-content: space-between; }
+    .co-final-actions .co-send { order: -1; grid-column: 1 / -1; }
+  }
+  @container (max-width: 440px) {
+    .co-final-actions { grid-template-columns: 1fr; justify-content: stretch; gap: 8px; }
+    .co-final-actions .co-copy { order: -1; } .co-final-actions .co-send { order: -2; }
+    .co-final-actions .co-ghost { justify-content: center; margin: 0; }
+  }
   .co-call { margin: 0; color: var(--muted); font-size: 0.9rem; } .co-call a { color: var(--ink); font-weight: 700; text-decoration: none; }
 
   /* the request as the WhatsApp chat it becomes */
-  .co-wa { border-radius: 8px; overflow: hidden; border: 1px solid var(--line); background: #efe7dd url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M20 6l6 10H14zM8 26l4 7H4zM32 28l4 7h-8z' fill='none' stroke='%23d9c9b0' stroke-width='1'/%3E%3C/svg%3E"); }
-  .co-wa-top { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #075e54; color: #fff; font-size: 0.9rem; font-weight: 600; }
-  .co-bubble { position: relative; margin: 16px; margin-inline-start: auto; max-width: min(520px, 92%); padding: 10px 12px 18px; background: #dcf8c6; border-radius: 8px 0 8px 8px; box-shadow: 0 1px 1px rgba(0, 0, 0, 0.12); }
+  .co-wa { border-radius: 8px; overflow: hidden; border: 1px solid var(--line); background: #efe7dd url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M24 8l6 10H18zM8 30l4 7H4zM38 32l4 7h-8z' fill='none' stroke='%23e2d6c4' stroke-width='1'/%3E%3C/svg%3E"); }
+  .co-wa-top { display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: #075e54; color: #fff; }
+  .co-wa-av { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; flex: none; background: var(--cream); color: var(--gold-text); }
+  .co-wa-who { display: grid; min-width: 0; line-height: 1.25; }
+  .co-wa-who b { font-size: 0.95rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .co-wa-who bdi { font-size: 0.78rem; opacity: 0.8; text-align: start; }
+  .co-wa-top :global(.co-wa-ic) { margin-inline-start: auto; opacity: 0.85; flex: none; }
+  .co-bubble { position: relative; margin: 16px 18px 18px; margin-inline-start: auto; max-width: min(520px, 88%); width: fit-content; padding: 8px 12px 20px; background: #dcf8c6; border-radius: 8px 0 8px 8px; box-shadow: 0 1px 1px rgba(0, 0, 0, 0.13); }
+  .co-bubble::after { content: ''; position: absolute; top: 0; inset-inline-end: -8px; border-top: 10px solid #dcf8c6; border-inline-end: 8px solid transparent; }
   html[dir='rtl'] .co-bubble { border-radius: 0 8px 8px 8px; }
-  .co-bubble pre { margin: 0; white-space: pre-wrap; word-break: break-word; font-family: var(--sans); font-size: 0.9rem; line-height: 1.5; color: #111; }
+  .co-bubble pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; unicode-bidi: plaintext; text-align: start; font-family: var(--sans); font-size: 0.92rem; line-height: 1.5; color: #111; }
   .co-tick { position: absolute; inset-inline-end: 8px; bottom: 3px; font-size: 0.7rem; color: #34b7f1; letter-spacing: -2px; }
 
+  @media (max-width: 639px) {
+    /* phones: full-width buttons, Send first */
+    .co-next { width: 100%; }
+    .co-bubble { margin-inline: 10px 14px; max-width: calc(100% - 24px); }
+    .co-wa { margin-inline: -4px; }
+  }
+  @media (min-width: 640px) and (max-width: 959px) {
+    /* tablets: dates and guests beside the room list, so the steppers sit near their labels */
+    .co-book { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto 1fr; grid-template-areas: 'h h' 'd r' 'l r' 'p r'; column-gap: 28px; align-items: start; padding: 20px; }
+    .co-book h3 { grid-area: h; } .co-dates { grid-area: d; } .co-len { grid-area: l; } .co-party { grid-area: p; }
+    .co-rooms { grid-area: r; border-top: 0; padding-top: 0; }
+  }
   @media (min-width: 640px) { .co-fields { grid-template-columns: 1fr 1fr; } .co-wide { grid-column: 1 / -1; } }
   @media (min-width: 960px) { .co-grid { grid-template-columns: 340px 1fr; gap: 28px; } .co-side { position: sticky; top: calc(var(--header-h) + 16px); display: grid; gap: 16px; } }
   @media (max-width: 959px) {
-    /* phones: booking details first, then the form, the property card last */
+    /* phones and tablets: the summary line, then the form, the booking details, the property card last */
     .co-side { display: contents; }
     .co-mini { order: 0; } .co-main { order: 1; } .co-book { order: 2; } .co-prop { order: 3; }
     .co-prop { display: grid; grid-template-columns: 110px 1fr; } .co-prop :global(.photo) { height: 100%; aspect-ratio: auto !important; } .co-hl, .co-stars { display: none; }

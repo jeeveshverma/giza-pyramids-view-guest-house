@@ -37,7 +37,8 @@ const stars = Array.from({ length: 70 }, (_, i) => { const a = Math.sin(i * 12.9
           <a href={s.url} target="_blank" rel="noopener">
             <span class="rvw-score">{digits(s.score, lang).replace('.', lang === 'ar' ? '٫' : '.')}</span>
             <span class="rvw-of">{t('reviews.outOf', { n: digits(s.outOf, lang) })}</span>
-            <span class="rvw-site">{s.label} · {t('reviews.count', { n: digits(s.count, lang) })} <Icon name="arrowUpRight" size={13} /></span>
+            <span class="rvw-site">{s.label} <Icon name="arrowUpRight" size={13} /></span>
+            <span class="rvw-n">{t('reviews.count', { n: digits(s.count, lang) })}</span>
           </a>
         </li>
       ))}
@@ -48,7 +49,7 @@ const stars = Array.from({ length: 70 }, (_, i) => { const a = Math.sin(i * 12.9
           <li class="rvw-item" aria-roledescription="slide" aria-label={`${digits(i + 1, lang)} / ${digits(list.length, lang)}`} lang={r.lang} dir={r.lang === 'ar' ? 'rtl' : 'ltr'}>
             <blockquote>
               <p class="rvw-quote">{r.text}</p>
-              <footer>{r.name && <span class="rvw-name">{r.name}</span>}{r.local && <span class="rvw-tag">Local Guide</span>}<span class="rvw-when">{r.when[lang]}</span></footer>
+              <footer>{r.name && <span class="rvw-name">{r.name}</span>}{r.local && <span class="rvw-tag" lang={lang}>{t('reviews.localGuide')}</span>}<span class="rvw-when" lang={lang} dir={lang === 'ar' ? 'rtl' : 'ltr'}>{r.when[lang]}</span></footer>
             </blockquote>
           </li>
         ))}
@@ -81,9 +82,11 @@ const stars = Array.from({ length: 70 }, (_, i) => { const a = Math.sin(i * 12.9
     root.querySelector('[data-next]')!.addEventListener('click', () => show(i + 1));
     root.addEventListener('mouseenter', () => (paused = true)); root.addEventListener('mouseleave', () => { paused = false; t0 = performance.now(); });
     root.addEventListener('focusin', () => (paused = true)); root.addEventListener('focusout', () => (paused = false));
-    root.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') show(i + 1); if (e.key === 'ArrowLeft') show(i - 1); });
+    // in Arabic the band reads right to left: the left arrow key and a swipe to the right move forward
+    const fwd = ar ? -1 : 1;
+    root.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') show(i + fwd); if (e.key === 'ArrowLeft') show(i - fwd); });
     let sx = 0; track.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; paused = true; }, { passive: true });
-    track.addEventListener('touchend', (e) => { const dx = e.changedTouches[0].clientX - sx; if (Math.abs(dx) > 40) show(i + (dx < 0 ? 1 : -1)); paused = false; t0 = performance.now(); }, { passive: true });
+    track.addEventListener('touchend', (e) => { const dx = e.changedTouches[0].clientX - sx; if (Math.abs(dx) > 40) show(i + (dx < 0 ? fwd : -fwd)); paused = false; t0 = performance.now(); }, { passive: true });
     document.addEventListener('visibilitychange', () => { paused = document.hidden; t0 = performance.now(); });
   });
 </script>
@@ -93,7 +96,7 @@ const stars = Array.from({ length: 70 }, (_, i) => { const a = Math.sin(i * 12.9
   .rvw .wrap { position: relative; }
   .rvw-sky { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
   .rvw-sky circle { fill: var(--cream); opacity: 0.35; animation: twinkle 5s ease-in-out infinite alternate; animation-delay: var(--d); }
-  .rvw-ridge { fill: var(--gold-light); opacity: 0.08; }
+  .rvw-ridge { fill: var(--gold-light); opacity: 0.05; }
   @keyframes twinkle { from { opacity: 0.12; } to { opacity: 0.6; } }
   @media (prefers-reduced-motion: reduce) { .rvw-sky circle { animation: none; } }
   .rvw-head { display: grid; gap: 10px; margin-bottom: clamp(24px, 4vw, 40px); }
@@ -101,12 +104,15 @@ const stars = Array.from({ length: 70 }, (_, i) => { const a = Math.sin(i * 12.9
   .rvw-head .num { display: inline-flex; gap: 3px; color: var(--gold-light); }
   .rvw-scores { list-style: none; margin: 0 0 clamp(32px, 6vw, 56px); padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 760px; }
   .rvw-scores { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  @media (max-width: 559px) { .rvw-scores a { padding: 12px 10px; } .rvw-score { font-size: 2.1rem; } .rvw-site { font-size: 0.75rem; } .rvw-site :global(svg) { display: none; } }
   .rvw-scores a { display: grid; gap: 2px; padding: 16px 18px; border: 1px solid rgba(210, 179, 133, 0.35); border-radius: var(--radius); text-decoration: none; color: inherit; transition: background 0.25s var(--ease), border-color 0.25s var(--ease); }
   .rvw-scores a:hover { background: rgba(255, 255, 255, 0.05); border-color: var(--gold-light); }
-  .rvw-score { font-family: var(--display); font-size: clamp(2.6rem, 9vw, 3.6rem); line-height: 1; color: var(--cream); }
+  .rvw-score { font-family: var(--display); font-size: clamp(2.6rem, 9vw, 3.6rem); line-height: 1; color: var(--cream); font-variant-numeric: lining-nums; }
   .rvw-of { font-size: 0.85rem; color: rgba(243, 239, 232, 0.7); }
-  .rvw-site { margin-top: 8px; font-size: 0.85rem; font-weight: 600; color: var(--gold-light); display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .rvw-site { margin-top: 8px; font-size: 0.85rem; font-weight: 600; color: var(--gold-light); display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .rvw-n { font-size: 0.85rem; color: rgba(243, 239, 232, 0.7); white-space: nowrap; }
+  .rvw-scores li { display: grid; }
+  /* phones: three cards in a row, so the platform and the count each get one short line */
+  @media (max-width: 559px) { .rvw-scores a { padding: 12px 10px; } .rvw-score { font-size: 2.1rem; } .rvw-site, .rvw-n { font-size: 0.78rem; } .rvw-site :global(svg) { display: none; } }
   .rvw-band { position: relative; outline-offset: 8px; }
   .rvw-track { list-style: none; margin: 0; padding: 0; display: grid; }
   .rvw-item { grid-area: 1 / 1; opacity: 0; transition: opacity 0.7s var(--ease); pointer-events: none; }
@@ -119,6 +125,10 @@ const stars = Array.from({ length: 70 }, (_, i) => { const a = Math.sin(i * 12.9
   .rvw-item[lang='ar'] .rvw-quote { font-family: 'Reem Kufi', serif; font-style: normal; }
   .rvw-quote { font-style: italic; }
   html[lang='en'] .rvw-item[lang='ar'] .rvw-quote { font-family: 'Tajawal', sans-serif; font-weight: 500; }
+  /* an English review on the Arabic page keeps the English serif, not a slanted Kufi */
+  html[lang='ar'] .rvw-item[lang='en'] .rvw-quote { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; line-height: 1.25; }
+  html[lang='ar'] .rvw-item[lang='en'] footer { font-family: 'Manrope Variable', 'Manrope', system-ui, sans-serif; }
+  html[lang='ar'] .rvw-item[lang='en'] footer :lang(ar) { font-family: var(--sans); }
   .rvw-item[lang='ar'] .rvw-quote::before { content: '«'; } .rvw-item[lang='ar'] .rvw-quote::after { content: '»'; }
   .rvw-item footer { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; color: rgba(246, 241, 232, 0.75); font-size: 0.95rem; }
   .rvw-name { color: var(--gold-light); font-weight: 600; }
@@ -127,9 +137,15 @@ const stars = Array.from({ length: 70 }, (_, i) => { const a = Math.sin(i * 12.9
   .rvw-bar i { display: block; height: 1px; background: var(--gold-light); transform-origin: 0 50%; transform: scaleX(0); }
   html[dir='rtl'] .rvw-bar i { transform-origin: 100% 50%; }
   .rvw-ctl { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
-  .rvw-ctl .num { color: var(--gold-light); font-size: 1.05rem; white-space: nowrap; }
+  .rvw-ctl .num { color: var(--gold-light); font-size: 1.05rem; white-space: nowrap; letter-spacing: 0.06em; }
   .rvw-src { margin-inline-start: auto; color: rgba(246, 241, 232, 0.8); text-decoration: none; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 4px; }
   .rvw-src:hover { color: var(--gold-light); }
+  /* phones: the source link drops under the counter and the arrows so nothing wraps mid-phrase */
+  @media (max-width: 479px) {
+    .rvw-ctl { flex-wrap: wrap; row-gap: 14px; }
+    .rvw-src { order: 3; flex-basis: 100%; margin-inline-start: 0; }
+    .rvw-arrow[data-prev] { margin-inline-start: auto; }
+  }
   .rvw-arrow { width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(212, 181, 106, 0.6); background: transparent; color: var(--cream); display: grid; place-items: center; cursor: pointer; }
   .rvw-arrow:hover { background: rgba(255, 255, 255, 0.08); }
   html[dir='rtl'] .rvw-arrow :global(svg) { transform: scaleX(-1); }

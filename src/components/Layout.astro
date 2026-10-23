@@ -8,7 +8,7 @@ import '@fontsource/tajawal/500.css';
 import '@fontsource/tajawal/700.css';
 import '@fontsource/reem-kufi/arabic-500.css';
 import '../styles/global.css';
-import { LANGS, PAGES, path, switchLang, useT, dirOf, digits, type Lang, type PageKey } from '../i18n';
+import { LANGS, path, switchLang, useT, dirOf, digits, type Lang, type PageKey } from '../i18n';
 import { SITE } from '../data/site';
 import { waUrl, telUrl } from '../lib/wa';
 import Logo from './Logo.astro';
@@ -35,7 +35,7 @@ const hotel = {
   url: `${SITE.url}/`,
   image: [ogUrl],
   telephone: SITE.phone,
-  address: { '@type': 'PostalAddress', streetAddress: SITE.street.en, addressLocality: SITE.city.en, addressRegion: SITE.region.en, postalCode: SITE.postal, addressCountry: 'OM' },
+  address: { '@type': 'PostalAddress', streetAddress: SITE.street.en, addressLocality: SITE.city.en, addressRegion: SITE.region.en, postalCode: SITE.postal, addressCountry: 'EG' },
   geo: { '@type': 'GeoCoordinates', latitude: SITE.geo.lat, longitude: SITE.geo.lng },
   hasMap: SITE.mapsUrl,
   sameAs: [SITE.mapsUrl, SITE.tripadvisorUrl, SITE.tripUrl, SITE.bookingUrl],
@@ -99,7 +99,7 @@ const hotel = {
       <div class="hdr-actions">
         <a class="hdr-lang" href={switchLang(lang, page, sub)} lang={other.hreflang} hreflang={other.hreflang} title={t('nav.langLabel')}>{t('nav.lang')}</a>
         <a class="btn btn-wa hdr-wa" href={wa} target="_blank" rel="noopener"><Icon name="whatsapp" /><span>{t('nav.whatsapp')}</span></a>
-        <button class="hdr-burger" id="burger" aria-expanded="false" aria-controls="nav" aria-label={t('nav.menu')}>
+        <button class="hdr-burger" id="burger" aria-expanded="false" aria-controls="nav" aria-label={t('nav.menu')} data-open-label={t('nav.menu')} data-close-label={t('nav.close')}>
           <Icon name="menu" class="i-open" size={24} /><Icon name="close" class="i-close" size={24} />
         </button>
       </div>
@@ -124,9 +124,9 @@ const hotel = {
       <div class="ftr-col">
         <p class="eyebrow">{t('nav.contact')}</p>
         <p><a href={wa} target="_blank" rel="noopener"><Icon name="whatsapp" size={16} /> {t('nav.whatsapp')}</a></p>
-        <p><a href={telUrl}><Icon name="phone" size={16} /> <bdi dir="ltr">{SITE.phoneDisplay}</bdi></a></p>
-        <p class="small muted">{t('footer.checkin', { in: digits(SITE.checkIn, lang), out: digits(SITE.checkOut, lang) })}</p>
-        <p class="small muted">{t('footer.languages', { langs: SITE.languages[lang] })}</p>
+        <p><a href={telUrl}><Icon name="phone" size={16} /> <bdi dir="ltr" class="nowrap">{SITE.phoneDisplay}</bdi></a></p>
+        <p class="ftr-note">{t('footer.checkin', { in: digits(SITE.checkIn, lang), out: digits(SITE.checkOut, lang) })}</p>
+        <p class="ftr-note">{t('footer.languages', { langs: SITE.languages[lang] })}</p>
       </div>
       <div class="ftr-col">
         <p class="eyebrow">{t('nav.menu')}</p>
@@ -137,8 +137,8 @@ const hotel = {
       </div>
     </div>
     <div class="wrap ftr-base">
-      <span>© {new Date().getFullYear()} {t('footer.rights')}</span>
-      <span class="muted small">{SITE.city[lang]} · {SITE.country[lang]}</span>
+      <span>© {digits(new Date().getFullYear(), lang)} {t('footer.rights')}</span>
+      <span class="ftr-place">{SITE.city[lang]} · {SITE.country[lang]}</span>
     </div>
   </footer>
 
@@ -158,7 +158,9 @@ const hotel = {
     // the availability list has its own reserve bar; the sticky bar steps aside while it is on screen
     let availInView = false;
     const avail = document.getElementById('availability');
-    if (avail && stick) new IntersectionObserver((es) => { availInView = es[0].isIntersecting; onScroll(); }, { rootMargin: '0px 0px -40% 0px' }).observe(avail);
+    // so does the reserve box on a room page
+    const watch = avail || document.querySelector('[data-rmbox]');
+    if (watch && stick) new IntersectionObserver((es) => { availInView = es[0].isIntersecting; onScroll(); }, { rootMargin: avail ? '0px 0px -40% 0px' : '0px' }).observe(watch);
     const bar = document.querySelector('.progress i') as HTMLElement;
     const over = document.body.classList.contains('over-hero');
     const onScroll = () => {
@@ -171,13 +173,19 @@ const hotel = {
     };
     onScroll();
     addEventListener('scroll', onScroll, { passive: true });
-    burger.addEventListener('click', () => {
-      const open = burger.getAttribute('aria-expanded') !== 'true';
+    const setMenu = (open: boolean) => {
       burger.setAttribute('aria-expanded', String(open));
+      burger.setAttribute('aria-label', (open ? burger.dataset.closeLabel : burger.dataset.openLabel) || '');
       document.body.classList.toggle('menu-open', open);
+      document.documentElement.classList.toggle('menu-open', open);
       nav.classList.toggle('open', open);
-    });
-    nav.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => { burger.setAttribute('aria-expanded', 'false'); document.body.classList.remove('menu-open'); nav.classList.remove('open'); }));
+    };
+    const menuOpen = () => burger.getAttribute('aria-expanded') === 'true';
+    burger.addEventListener('click', () => setMenu(!menuOpen()));
+    nav.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setMenu(false)));
+    addEventListener('keydown', (e) => { if (e.key === 'Escape' && menuOpen()) { setMenu(false); burger.focus(); } });
+    // the panel only exists below the desktop breakpoint: rotating or widening the window closes it, so the page never stays scroll-locked
+    matchMedia('(min-width: 960px)').addEventListener('change', (e) => { if (e.matches && menuOpen()) setMenu(false); });
     // reveal on scroll
     const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
     document.querySelectorAll('.rv').forEach((el) => io.observe(el));
@@ -200,11 +208,12 @@ const hotel = {
   .hdr-in { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
   .hdr-logo { text-decoration: none; display: inline-flex; }
   .hdr-actions { display: flex; align-items: center; gap: 8px; }
-  .hdr-lang { font-weight: 600; text-decoration: none; padding: 8px 10px; font-size: 0.95rem; min-height: 40px; display: inline-flex; align-items: center; }
+  .hdr-lang { font-weight: 600; text-decoration: none; padding: 8px 10px; font-size: 0.95rem; min-height: 40px; display: inline-flex; align-items: center; line-height: 1; }
+  .hdr-lang:lang(ar) { padding-top: 11px; }
   @media (max-width: 379px) { .hdr-in { gap: 8px; } .hdr-actions { gap: 4px; } .hdr-logo .logo-name { font-size: 0.86rem !important; letter-spacing: 0.06em; } .hdr-logo .logo-mark { width: 30px; height: 30px; } .hdr-lang { padding: 8px 4px; font-size: 0.9rem; } .hdr-burger { width: 40px; } }
   .hdr-wa { min-height: 42px; padding-inline: 14px; font-size: 0.92rem; }
   .hdr-wa span { display: none; }
-  @media (min-width: 480px) { .hdr-wa span { display: inline; } }
+  @media (min-width: 560px) { .hdr-wa span { display: inline; } }
   /* phones: the lockup drops its second line so the language link, WhatsApp and the menu button all fit */
   @media (max-width: 479px) { .hdr-logo .logo-sub { display: none; } .hdr-logo .logo-name { font-size: 1rem; } html[lang='ar'] .hdr-logo .logo-name { font-size: 1.15rem; } .hdr-lang { padding: 8px 6px; } .hdr-wa { min-height: 40px; padding-inline: 11px; } }
   .hdr-burger { width: 44px; height: 44px; display: grid; place-items: center; background: none; border: 0; cursor: pointer; color: inherit; }
@@ -219,14 +228,17 @@ const hotel = {
   html[lang='ar'] .hdr-nav li a { font-family: var(--sans); font-weight: 500; font-size: 1.8rem; }
   .hdr-nav li a[aria-current='page'] { color: var(--gold-text); }
   .nav-foot { display: grid; gap: 10px; margin-top: 24px; }
-  body.menu-open { overflow: hidden; }
-  body.menu-open .hdr { background: var(--cream); color: var(--ink); }
+  html.menu-open, body.menu-open { overflow: hidden; overscroll-behavior: none; }
+  body.menu-open .hdr { background: var(--cream); color: var(--ink); box-shadow: 0 1px 0 var(--line); backdrop-filter: none; -webkit-backdrop-filter: none; }
   body.menu-open .hdr .logo-name { color: var(--ink); }
+  body.menu-open .hdr .logo-sub { color: var(--gold-text); }
+  body.menu-open .hdr .logo-mark { color: var(--gold); }
+  body.menu-open .stick { visibility: hidden; }
   @media (min-width: 960px) {
     .hdr-burger, .nav-foot, .nav-lang { display: none; }
     .hdr-nav { position: static; display: block; background: none; padding: 0; overflow: visible; margin-inline: 48px auto; }
     .hdr-nav ul { display: flex; gap: 28px; }
-    .hdr-nav li a { font-family: var(--sans); font-size: 0.98rem; font-weight: 600; padding: 6px 0; border: 0; color: inherit; position: relative; }
+    .hdr-nav li a { font-family: var(--sans); font-size: 0.98rem; font-weight: 600; padding: 12px 0; border: 0; color: inherit; position: relative; }
     html[lang='ar'] .hdr-nav li a { font-size: 1.05rem; }
     .hdr-nav li a::after { content: ''; position: absolute; inset-inline: 0; bottom: 0; height: 1px; background: var(--gold); transform: scaleX(0); transition: transform 0.3s var(--ease); transform-origin: 0 50%; }
     .hdr-nav li a:hover::after, .hdr-nav li a[aria-current='page']::after { transform: none; }
@@ -238,15 +250,29 @@ const hotel = {
   }
 
   .ftr { background: var(--night); color: #cfc5b8; padding-block: 24px 28px; margin-top: 0; position: relative; z-index: 1; }
-  .ftr-sky { margin-bottom: 24px; opacity: 0.55; }
-  .ftr-sky :global(.skyline) { color: var(--gold-light); }
+  /* the skyline is drawn in a 600x140 box; without the sun and the rooftops only the band 42-100 holds lines, so trim the empty rows */
+  .ftr-sky { margin-bottom: 32px; opacity: 0.55; overflow: hidden; }
+  .ftr-sky .skyline { color: var(--gold-light); max-width: 760px; margin-block: -6.4% -6%; }
+  @media (min-width: 760px) { .ftr-sky .skyline { margin-block: -48px -45px; } }
   .ftr .logo-stack .logo-name { color: var(--cream); } .ftr .logo-stack .logo-sub { color: var(--gold-light); }
   .ftr-in { display: grid; gap: 32px; }
   .ftr-col p { margin: 0 0 8px; }
   .ftr-col a { color: var(--cream); text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
   .ftr-col a:hover { color: var(--gold-light); }
   .ftr .eyebrow { color: var(--gold-light); margin-bottom: 12px; }
+  .ftr-note { font-size: 0.9em; color: rgba(244, 236, 221, 0.62); }
+  .ftr .nowrap { white-space: nowrap; }
+  .ftr-place { font-size: 0.85rem; color: rgba(244, 236, 221, 0.55); }
   .ftr-nav { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
   .ftr-base { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); font-size: 0.9rem; }
-  @media (min-width: 720px) { .ftr-in { grid-template-columns: 1.2fr 1fr 1fr 0.8fr; gap: 40px; } }
+  /* phones: the brand sits on the same left edge as the columns under it */
+  .ftr .ftr-brand .logo-stack { justify-items: start; text-align: start; }
+  .ftr-brand .logo-stack .logo-sub::before, .ftr-brand .logo-stack .logo-sub::after { display: none; }
+  @media (min-width: 720px) { .ftr-in { grid-template-columns: repeat(3, 1fr); gap: 40px 32px; } .ftr-brand { grid-column: 1 / -1; } }
+  @media (min-width: 1024px) {
+    .ftr-in { grid-template-columns: 1.2fr 1fr 1fr 0.8fr; gap: 40px; }
+    .ftr-brand { grid-column: auto; }
+    .ftr .ftr-brand .logo-stack { justify-items: center; text-align: center; }
+    .ftr-brand .logo-stack .logo-sub::before, .ftr-brand .logo-stack .logo-sub::after { display: block; }
+  }
 </style>

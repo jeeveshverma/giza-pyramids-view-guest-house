@@ -39,8 +39,9 @@ const mosaic = ['tv-room5', 'studio-kitchenette', 'view-show', 'tv-kettle', 'db-
 <style>
   .gal-head { padding-top: calc(var(--header-h) + 40px); padding-bottom: 24px; }
   .gal-head .section-head { margin-bottom: 0; }
-  .mosaic { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
-  .mosaic li:nth-child(3n+2) { margin-top: 40px; }
-  .gal-cta { margin-top: 48px; display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
-  @media (min-width: 960px) { .mosaic { grid-template-columns: repeat(3, 1fr); gap: 24px; } .mosaic li:nth-child(3n+2) { margin-top: 80px; } .mosaic li:nth-child(3n) { margin-top: 24px; } }
+  /* a masonry of mixed ratios: CSS columns pack them without the holes a row grid leaves */
+  .mosaic { list-style: none; margin: 0; padding: 0; columns: 2; column-gap: 14px; }
+  .mosaic li { break-inside: avoid; margin-bottom: 14px; }
+  .gal-cta { margin-top: 34px; display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+  @media (min-width: 960px) { .mosaic { columns: 3; column-gap: 24px; } .mosaic li { margin-bottom: 24px; } }
 </style>

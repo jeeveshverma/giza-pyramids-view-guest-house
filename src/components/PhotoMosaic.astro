@@ -16,7 +16,7 @@ const list = items.map((i) => photo(i));
 const big = list[0], side = list.slice(1, 5), strip = compact ? [] : list.slice(5, 10);
 const more = list.length - (compact ? 5 : 10);
 ---
-<div class:list={['pm', compact && 'pm-compact']} id={id} data-pm>
+<div class:list={['pm', compact && 'pm-compact', list.length <= 3 && 'pm-three']} id={id} data-pm>
   <div class="pm-grid">
     <button type="button" class="pm-tile pm-big" data-open="0" aria-label={`${t('gallery.open')}: ${big.alt[lang]}`}>
       <Img id={big.id} lang={lang} sizes="(min-width: 900px) 50vw, 100vw" widths={[480, 720, 960, 1280]} priority />
@@ -55,7 +55,7 @@ const more = list.length - (compact ? 5 : 10);
       ))}
       <button type="button" class="pm-lb-arrow pm-next" data-next aria-label={t('gallery.next')}><Icon name="arrowRight" size={26} /></button>
     </div>
-    <div class="pm-lb-rail" data-rail dir="ltr">
+    <div class="pm-lb-rail" data-rail>
       {list.map((p, i) => <button type="button" data-go={i} aria-label={`${digits(i + 1, lang)}`}><Img id={p.id} lang={lang} sizes="96px" widths={[160]} loading="lazy" /></button>)}
     </div>
   </div>
@@ -73,6 +73,8 @@ const more = list.length - (compact ? 5 : 10);
     const show = (n: number) => {
       i = (n + items.length) % items.length;
       items.forEach((el, k) => (el.hidden = k !== i));
+      // fetch this photo and its neighbours now, so a tap or swipe never lands on an empty stage
+      [i, i + 1, i - 1].forEach((k) => items[(k + items.length) % items.length].querySelector('img')?.setAttribute('loading', 'eager'));
       rail.forEach((b, k) => b.classList.toggle('on', k === i));
       rail[i].scrollIntoView({ block: 'nearest', inline: 'center' });
       count.textContent = `${d(i + 1)} / ${d(items.length)}`;
@@ -118,9 +120,11 @@ const more = list.length - (compact ? 5 : 10);
     .pm-side:nth-of-type(5) { display: block; }
     .pm-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 6px; height: clamp(90px, 9vw, 130px); }
     .pm-compact .pm-grid { height: clamp(300px, 30vw, 420px); }
+    /* three photos: one large, two stacked beside it */
+    .pm-three .pm-grid { grid-template-columns: 2fr 1fr; }
   }
   /* the viewer */
-  .pm-lb { position: fixed; inset: 0; z-index: 100; display: grid; grid-template-rows: auto 1fr auto; background: rgba(12, 15, 22, 0.97); color: var(--cream); }
+  .pm-lb { position: fixed; inset: 0; z-index: 100; display: grid; grid-template-rows: auto 1fr auto; background: #0c0f16; color: var(--cream); }
   .pm-lb-top { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; }
   .pm-lb-count { font-weight: 700; font-size: 0.95rem; }
   .pm-lb-x { width: 48px; height: 48px; display: grid; place-items: center; border: 0; background: none; color: var(--cream); cursor: pointer; }
@@ -137,6 +141,6 @@ const more = list.length - (compact ? 5 : 10);
   .pm-lb-rail button { flex: none; width: 84px; height: 60px; padding: 0; border: 2px solid transparent; border-radius: 3px; overflow: hidden; background: #222; cursor: pointer; opacity: 0.55; }
   .pm-lb-rail button.on { border-color: var(--gold-light); opacity: 1; }
   .pm-lb-rail :global(.photo), .pm-lb-rail :global(img) { width: 100%; height: 100%; object-fit: cover; }
-  @media (max-width: 640px) { .pm-lb-arrow { width: 42px; height: 42px; } .pm-lb-rail button { width: 64px; height: 46px; } }
+  @media (max-width: 640px) { .pm-lb-arrow { width: 44px; height: 44px; background: rgba(12, 15, 22, 0.45); } .pm-lb-rail button { width: 64px; height: 46px; } }
   [hidden] { display: none !important; }
 </style>

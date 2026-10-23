@@ -4,8 +4,9 @@
  * photo, beds, features, who it sleeps, the price column ("on request": the site has no rates),
  * what is included, and a room-count picker; beside it a reserve panel that sums the selection,
  * warns when the rooms sleep fewer than the party, and goes on to the checkout with everything in
- * the URL. Selection lives in the shared stay (src/lib/stay.ts). On phones each row becomes a
- * card and the reserve panel sticks to the bottom of the list.
+ * the URL. Selection lives in the shared stay (src/lib/stay.ts). Below 1200px each row becomes a
+ * card (the five-column table needs the width); below 900px the reserve panel becomes a bar stuck
+ * to the bottom of the list.
  */
 import { path, useT, digits, type Lang } from '../i18n';
 import { ROOMS, type Feature } from '../data/site';
@@ -153,7 +154,7 @@ const sleeps = Object.fromEntries(ROOMS.map((r) => [r.id, r.sleeps]));
   .av-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 8px 24px; margin-bottom: 20px; }
   .av-head h2 { font-size: clamp(2rem, 5vw, 3rem); }
   .av-sum { margin: 6px 0 0; font-weight: 600; color: var(--ink); }
-  .av-change { font-weight: 700; color: var(--gold-text); }
+  .av-change { display: inline-block; padding-block: 10px; margin-block: -10px; font-weight: 700; color: var(--gold-text); }
   .av-grid { display: grid; gap: 20px; align-items: start; }
 
   .av-table { display: grid; gap: 16px; }
@@ -161,7 +162,7 @@ const sleeps = Object.fromEntries(ROOMS.map((r) => [r.id, r.sleeps]));
   .av-tr { display: grid; gap: 14px; background: var(--white); border: 1px solid var(--line); border-radius: 6px; padding: 14px; transition: box-shadow 0.2s, border-color 0.2s; }
   .av-tr.on { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold); }
   .av-room { display: grid; gap: 12px; }
-  .av-photo { position: relative; display: block; border-radius: 4px; overflow: hidden; }
+  .av-photo { position: relative; display: block; align-self: start; border-radius: 4px; overflow: hidden; }
   .av-photo :global(.photo) { border-radius: 4px; }
   .av-photo :global(img) { transition: transform 0.8s var(--ease); }
   .av-photo:hover :global(img) { transform: scale(1.04); }
@@ -177,26 +178,29 @@ const sleeps = Object.fromEntries(ROOMS.map((r) => [r.id, r.sleeps]));
   .av-chips li.lead { border-color: var(--gold); background: var(--gold-pale); color: var(--ink); font-weight: 700; }
   .av-chips li.lead :global(.icon) { color: var(--gold-text); }
   .av-desc { margin: 0; font-size: 0.9rem; color: var(--muted); }
-  .av-desc a { color: var(--gold-text); font-weight: 600; }
+  .av-desc a { color: var(--gold-text); font-weight: 600; white-space: nowrap; }
   .av-m { display: block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
   html[lang='ar'] .av-m { letter-spacing: 0; font-size: 0.85rem; }
-  .av-sleeps, .av-price, .av-select { border-top: 1px solid var(--line); padding-top: 10px; }
-  /* phones: the room, then sleeps · price · rooms in one row, then what's included */
-  @media (max-width: 899px) {
-    .av-tr { grid-template-columns: auto 1fr auto; grid-template-areas: 'room room room' 'sleeps price select' 'choices choices choices'; column-gap: 14px; row-gap: 12px; }
+  /* phones and tablets: the room, then sleeps · price · rooms in one row, then what's included */
+  @media (max-width: 1199px) {
+    .av-tr { grid-template-columns: 76px minmax(0, 1fr) auto; grid-template-areas: 'room room room' 'sleeps price select' 'choices choices choices'; column-gap: 20px; row-gap: 12px; }
+    .av-room { padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+    .av-sleeps, .av-price, .av-select { align-self: start; }
     .av-room { grid-area: room; } .av-sleeps { grid-area: sleeps; } .av-price { grid-area: price; } .av-select { grid-area: select; } .av-choices { grid-area: choices; }
     .av-photo :global(.photo) { aspect-ratio: 16 / 9 !important; }
     .av-tr .av-price small { display: none; }
     .av-choices { grid-template-columns: 1fr; padding-top: 10px; }
     .av-choices li:not(:first-child) { display: none; }
     .av-people :global(svg) { width: 16px; height: 16px; }
+    .av-people { padding-top: 4px; }
   }
   /* tablets: photo beside the room details */
-  @media (min-width: 600px) and (max-width: 899px) {
-    .av-room { grid-template-columns: 240px minmax(0, 1fr); gap: 18px; }
+  @media (min-width: 600px) and (max-width: 1199px) {
+    .av-room { grid-template-columns: clamp(200px, 32%, 240px) minmax(0, 1fr); gap: 18px; }
     .av-photo :global(.photo) { aspect-ratio: 4 / 3 !important; }
   }
-  .av-people { display: inline-flex; gap: 0; color: var(--ink); }
+  .av-people { display: flex; flex-wrap: wrap; gap: 2px 0; color: var(--ink); }
+  .av-people :global(svg) { flex: none; }
   .av-price strong { display: block; font-size: 1.05rem; color: var(--ink); white-space: nowrap; }
   .av-price small { display: block; color: var(--muted); font-size: 0.8rem; }
   .av-choices { list-style: none; margin: 0; padding: 10px 0 0; border-top: 1px solid var(--line); display: grid; gap: 6px; align-content: start; font-size: 0.84rem; line-height: 1.35; color: var(--body); }
@@ -208,36 +212,43 @@ const sleeps = Object.fromEntries(ROOMS.map((r) => [r.id, r.sleeps]));
 
   /* the reserve panel: a bar stuck to the bottom of the list on phones, a side panel on desktop */
   .av-reserve { position: sticky; bottom: 0; z-index: 5; display: grid; grid-template-columns: 1fr auto; gap: 2px 14px; align-items: center; padding: 12px 14px calc(12px + env(safe-area-inset-bottom)); margin-inline: calc(var(--gutter) * -1); background: var(--white); border-top: 1px solid var(--line); box-shadow: 0 -12px 30px -18px rgba(20, 26, 38, 0.35); }
-  .av-sel { margin: 0; font-weight: 700; color: var(--ink); grid-column: 1; }
+  .av-sel { margin: 0; font-weight: 700; color: var(--ink); grid-column: 1; line-height: 1.3; }
   .av-party { margin: 0; font-size: 0.85rem; color: var(--muted); grid-column: 1; }
   .av-warn { grid-column: 1 / -1; margin: 6px 0 0; padding: 8px 10px; border-radius: 4px; background: #fbeee5; color: var(--danger); font-size: 0.86rem; }
   .av-go { grid-column: 2; grid-row: 1 / span 2; display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 22px; border-radius: 4px; background: var(--ink); color: var(--cream); font-weight: 700; text-decoration: none; white-space: nowrap; }
   .av-go:hover { background: var(--night-2); }
-  .av-go.off { background: var(--muted); }
+  .av-go.off { background: var(--ink); opacity: 0.5; }
+  .av-go.off:hover { background: var(--ink); }
   .av-promise { display: none; }
-  :global(body.av-selecting) :global(.stick) { transform: translateY(110%) !important; }
+  @media (max-width: 899px) {
+    .av-sel { font-size: 0.95rem; }
+    .av-go { padding: 0 18px; }
+    :global(body.av-selecting) :global(.stick) { transform: translateY(110%) !important; }
+  }
 
   @media (min-width: 900px) {
-    .av-grid { grid-template-columns: minmax(0, 1fr) 240px; }
+    .av-grid { grid-template-columns: minmax(0, 1fr) 250px; }
+    .av-reserve { position: sticky; top: calc(var(--header-h) + 16px); bottom: auto; margin: 0; grid-template-columns: 1fr; gap: 8px; padding: 18px; border: 1px solid var(--line); border-radius: 6px; box-shadow: var(--shadow); }
+    .av-go { grid-column: 1; grid-row: auto; min-height: 52px; font-size: 1.05rem; }
+    .av-promise { display: grid; gap: 4px; list-style: none; margin: 4px 0 0; padding: 0; font-size: 0.82rem; color: var(--body); }
+    .av-promise li { display: flex; align-items: flex-start; gap: 6px; } .av-promise :global(.icon) { color: var(--wa); flex: none; margin-top: 3px; }
+  }
+  /* the full table */
+  @media (min-width: 1200px) {
     .av-table { gap: 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--white); }
     .av-tr { grid-template-columns: minmax(0, 1fr) 72px 136px 160px 84px; gap: 0; border: 0; border-radius: 0; padding: 0; border-top: 1px solid var(--line); align-items: stretch; }
     .av-tr.on { box-shadow: inset 4px 0 0 var(--gold); border-color: var(--line); }
     html[dir='rtl'] .av-tr.on { box-shadow: inset -4px 0 0 var(--gold); }
-    .av-tr > * { padding: 16px 14px; border-inline-start: 1px solid var(--line); border-top: 0; }
+    .av-tr > * { padding: 16px 14px; border-inline-start: 1px solid var(--line); }
     .av-tr > :first-child { border-inline-start: 0; }
     .av-tr.av-th { display: grid; border-top: 0; background: var(--night); color: var(--cream); font-size: 0.85rem; font-weight: 700; }
-    .av-th > span { padding: 12px 14px; border-color: rgba(255, 255, 255, 0.12); }
+    .av-th > span { display: flex; align-items: flex-end; padding: 12px 14px; border-color: rgba(255, 255, 255, 0.12); line-height: 1.3; }
+    .av-people { max-width: 40px; }
     .av-room { grid-template-columns: 128px minmax(0, 1fr); gap: 14px; align-content: start; }
-    .av-photo { align-self: start; }
     .av-name { font-size: 1.3rem; }
     .av-select select { min-width: 0; width: 100%; }
     .av-m { display: none; }
-    .av-choices { padding-top: 16px; }
-    .av-reserve { position: sticky; top: calc(var(--header-h) + 16px); bottom: auto; margin: 0; grid-template-columns: 1fr; gap: 8px; padding: 18px; border: 1px solid var(--line); border-radius: 6px; box-shadow: var(--shadow); }
-    .av-go { grid-column: 1; grid-row: auto; min-height: 52px; font-size: 1.05rem; }
-    .av-promise { display: grid; gap: 4px; list-style: none; margin: 4px 0 0; padding: 0; font-size: 0.82rem; color: var(--body); }
-    .av-promise li { display: flex; gap: 6px; } .av-promise :global(.icon) { color: var(--wa); flex: none; margin-top: 2px; }
-    :global(body.av-selecting) :global(.stick) { transform: none; }
+    .av-choices { padding-top: 16px; border-top: 0; }
   }
   [hidden] { display: none !important; }
 </style>

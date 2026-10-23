@@ -18,8 +18,9 @@ const { t: ta } = useT('ar');
         <p class="nf-ar" lang="ar" dir="rtl">{ta('notfound.title')} — {ta('notfound.text')}</p>
         <div class="nf-links">
           <a class="btn" href={path('en', 'home')}>{t('notfound.home')} <Icon name="arrowRight" size={18} /></a>
-          <a class="btn btn-gold" href={path('ar', 'home')} lang="ar">{ta('notfound.home')}</a>
-          <a class="btn btn-ghost" href={path('en', 'enquire')}>{t('nav.enquire')}</a>
+          <a class="btn btn-gold" href={path('ar', 'home')} lang="ar" dir="rtl">{ta('notfound.home')}</a>
+          <a class="btn btn-ghost" href={path('en', 'rooms')}>{t('nav.rooms')}</a>
+          <a class="btn btn-ghost" href={path('en', 'gallery')}>{t('nav.gallery')}</a>
         </div>
       </div>
       <div class="frame nf-photo"><Img id="view-dusk" lang="en" ratio="3 / 4" sizes="(min-width: 960px) 30vw, 60vw" /></div>
@@ -30,9 +31,13 @@ const { t: ta } = useT('ar');
   .nf { padding-top: calc(var(--header-h) + 48px); min-height: 70vh; }
   .nf-in { display: grid; gap: 32px; }
   .nf-text { display: grid; gap: 12px; align-content: center; }
+  .nf-text h1 { font-size: clamp(2.5rem, 7vw, 4.4rem); text-wrap: balance; }
+  .nf-text .lead { margin-bottom: 0; }
   .nf-sky { max-width: 420px; }
-  .nf-ar { font-family: 'Tajawal', sans-serif; color: var(--muted); }
-  .nf-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+  .nf-ar { font-family: 'Tajawal', sans-serif; font-size: 1.05rem; line-height: 1.8; color: var(--muted); max-width: 36em; }
+  .nf-links { display: flex; flex-wrap: wrap; gap: 10px 6px; margin-top: 8px; }
+  .nf-links .btn { padding-inline: 20px; }
+  .nf-links .btn-ghost { padding-inline: 10px; }
   .nf-photo { width: 70%; }
   @media (min-width: 960px) { .nf-in { grid-template-columns: 1.3fr 1fr; gap: 64px; align-items: center; } .nf-photo { width: 100%; } }
 </style>

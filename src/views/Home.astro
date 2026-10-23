@@ -33,7 +33,7 @@ const liftFloors = ['11', '10', '9', '8', '7', '6', '5', '4', '3', '2', '1'];
 // the gallery: the strongest ten first (big, four beside, five below), then every other photo
 const lead = ['terrace-sunset', 'tv-room5', 'studio-bed', 'view-show', 'tv-sunset', 'db-room8', 'terrace-day', 'tw-beds', 'studio-kitchenette', 'tr-beds'];
 const mosaic = [...lead, ...PHOTOS.map((p) => p.id).filter((id) => !lead.includes(id))];
-const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find((p) => p.id === id)!).map((p) => { const g = fromHotel(p.at); return { ...p, kmText: fmtKm(g.km, lang), mins: g.mode === 'foot' ? t('giza.onFoot', { min: g.min }) : t('giza.byCar', { min: g.min }) }; });
+const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find((p) => p.id === id)!).map((p) => { const g = fromHotel(p.at); return { ...p, kmText: fmtKm(g.km, lang), mins: g.mode === 'foot' ? t('giza.onFoot', { min: digits(g.min, lang) }) : t('giza.byCar', { min: digits(g.min, lang) }) }; });
 ---
 <Layout lang={lang} page="home" title={t('meta.home.title')} desc={t('meta.home.desc')} overHero preload={{ href: heroImg.src, srcset: heroImg.srcSet.attribute, sizes: HERO_SIZES }}>
   <!-- Hero: the sunset photo, the title over the rooftops, the lift panel -->
@@ -80,8 +80,8 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
       </div>
       <Panorama lang={lang} />
       <div class="view-photos">
-        <div class="frame rv"><Img id="view-show" lang={lang} ratio="4 / 3" sizes="(min-width: 960px) 46vw, 100vw" /><p class="caption">{photo('view-show').caption![lang]}</p></div>
-        <div class="frame rv rv-d2"><Img id="tv-window" lang={lang} ratio="4 / 3" sizes="(min-width: 960px) 46vw, 100vw" /><p class="caption">{photo('tv-window').caption![lang]}</p></div>
+        <div class="rv"><div class="frame"><Img id="view-show" lang={lang} ratio="4 / 3" sizes="(min-width: 960px) 46vw, 100vw" /></div><p class="caption">{photo('view-show').caption![lang]}</p></div>
+        <div class="rv rv-d2"><div class="frame"><Img id="tv-window" lang={lang} ratio="4 / 3" sizes="(min-width: 960px) 46vw, 100vw" /></div><p class="caption">{photo('tv-window').caption![lang]}</p></div>
       </div>
     </div>
   </section>
@@ -163,7 +163,7 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
   <section class="section endcta">
     <div class="wrap endcta-in">
       <h2>{t('bk.checkAvail')}</h2>
-      <p class="lead">{t('bk.finalLead')}</p>
+      <p class="lead">{t('bk.endLead')}</p>
       <p><a class="btn btn-lg" href="#search">{t('bk.search')} <Icon name="arrowRight" size={18} class="rtl-flip" /></a> <a class="btn btn-ghost" href={wa} target="_blank" rel="noopener"><Icon name="whatsapp" /> {t('hero.cta')}</a></p>
     </div>
   </section>
@@ -182,18 +182,20 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
   .hero-eyebrow { color: var(--gold-pale); text-shadow: 0 1px 8px rgba(0,0,0,.7); }
   .hero-title { color: var(--cream); font-size: clamp(2.6rem, 10.5vw, 5.4rem); max-width: 11em; text-wrap: balance; text-shadow: 0 2px 10px rgba(0,0,0,.35); }
   html[lang='ar'] .hero-title { font-size: clamp(2.2rem, 9vw, 4.4rem); max-width: 14em; }
-  .hero-ar { font-family: 'Tajawal', 'Noto Sans Arabic', sans-serif; font-weight: 500; font-size: 1.2rem; color: var(--gold-light); margin: 0; opacity: 0.95; }
+  .hero-ar { justify-self: start; font-family: 'Tajawal', 'Noto Sans Arabic', sans-serif; font-weight: 500; font-size: 1.2rem; color: var(--gold-light); margin: 0; opacity: 0.95; }
   html[lang='ar'] .hero-ar { font-family: var(--display); letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.95rem; text-align: right; }
   .hero-cta { display: grid; gap: 8px; margin-top: 8px; }
   .hero-book { background: var(--gold-light); border-color: var(--gold-light); color: var(--night); }
   .hero-book:hover { background: var(--gold-pale); }
-  .hero-wa { color: var(--cream); text-decoration-color: var(--gold-light); justify-content: start; }
+  .hero-wa { color: var(--cream); text-decoration-color: var(--gold-light); justify-content: start; justify-self: start; padding-inline: 0; }
+  /* the arrows point the way the page reads */
+  :global(html[dir='rtl']) .hero-cta :global(.rtl-flip), :global(html[dir='rtl']) .sal :global(.rtl-flip), :global(html[dir='rtl']) .endcta :global(.rtl-flip) { transform: scaleX(-1); }
+  @media (min-width: 560px) { .hero-cta { grid-auto-flow: column; justify-content: start; align-items: center; gap: 24px; } }
   @media (prefers-reduced-motion: reduce) { .hero-photo :global(img) { animation: none; } }
   @media (min-width: 960px) {
     .hero { min-height: 86vh; }
     .hero-in { padding-bottom: 128px; max-width: var(--container); }
     .hero-title { font-size: clamp(3.6rem, 6vw, 6.2rem); }
-    .hero-cta { grid-auto-flow: column; justify-content: start; align-items: center; gap: 18px; }
   }
   .sb-wrap { margin-top: -52px; position: relative; z-index: 4; }
 
@@ -209,7 +211,8 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
 
   .viewsec { background: var(--cream); }
   .view-photos { display: grid; gap: 28px; margin-top: 40px; }
-  .view-photos .caption { margin-top: 10px; }
+  .view-photos { align-items: start; }
+  .view-photos .caption { margin: 14px 0 0; }
   @media (min-width: 960px) { .view-photos { grid-template-columns: 1fr 1fr; gap: 40px; } .view-photos > :nth-child(2) { margin-top: 56px; } }
 
   .elevsec { background: var(--paper); }
@@ -225,10 +228,11 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
   @media (min-width: 960px) { .pract-in { grid-template-columns: 1fr 2fr; gap: 64px; align-items: start; } .pract-in .section-head { margin: 0; } }
 
   .sal-list { list-style: none; margin: 0 0 24px; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  .sal-list li { display: grid; gap: 8px; }
-  .sal-list strong { font-family: var(--display); font-size: 1.35rem; color: var(--ink); font-weight: 600; display: block; }
+  .sal-list li { display: grid; gap: 8px; align-content: start; }
+  .sal-list strong { font-family: var(--display); font-size: 1.35rem; line-height: 1.2; color: var(--ink); font-weight: 600; display: block; }
   html[lang='ar'] .sal-list strong { font-family: var(--sans); font-weight: 600; font-size: 1.1rem; }
   .sal-list p { margin: 2px 0 0; }
+  .sal .btn-ghost { padding-inline: 0; }
   @media (min-width: 720px) { .sal-list { grid-template-columns: repeat(4, 1fr); gap: 32px; } }
 
   .reno { background: var(--cream); }
@@ -237,6 +241,14 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
   .reno-a { width: 70%; }
   .reno-b { width: 88%; margin-inline-start: auto; }
   .reno-text { display: grid; gap: 12px; max-width: 34em; }
+  .reno-text .num { display: flex; align-items: center; gap: 12px; }
+  .reno-text .num::after { content: ''; height: 1px; width: 48px; background: var(--gold); opacity: 0.7; }
+  .reno-text :global(svg) { margin-top: 4px; }
+  @media (min-width: 640px) and (max-width: 959px) {
+    .reno-in { grid-template-columns: 5fr 6fr; gap: 32px 40px; align-items: center; }
+    .reno-a { width: 100%; }
+    .reno-b { grid-column: 1 / -1; width: 72%; }
+  }
   @media (min-width: 960px) {
     .reno-in { grid-template-columns: repeat(12, 1fr); align-items: center; }
     .reno-a { grid-column: 1 / 5; width: 100%; }
@@ -245,10 +257,11 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
   }
 
   .endcta { background: var(--night); color: var(--cream); }
-  .endcta-in { display: grid; gap: 14px; justify-items: start; max-width: 760px; }
+  .endcta-in { display: grid; gap: 14px; justify-items: start; }
+  .endcta-in > * { max-width: 40rem; }
   .endcta h2 { color: var(--cream); }
   .endcta .lead { color: rgba(244, 236, 221, 0.85); }
-  .endcta p:last-child { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 0; }
+  .endcta p:last-child { display: flex; flex-wrap: wrap; gap: 12px 28px; align-items: center; margin: 8px 0 0; }
   .endcta .btn:not(.btn-ghost) { background: var(--gold-light); border-color: var(--gold-light); color: var(--night); }
-  .endcta .btn-ghost { color: var(--cream); }
+  .endcta .btn-ghost { color: var(--cream); padding-inline: 0; text-decoration-color: var(--gold-light); }
 </style>

@@ -9,8 +9,8 @@ const { t } = useT(lang);
 ---
 <div class="sunset" data-sunset data-lat={SITE.geo.lat} data-lng={SITE.geo.lng} data-today={t('sunset.today')} data-lang={lang}>
   <div class="wrap sunset-in">
-    <Landmark name="sun" size={36} />
-    <p><span data-text>{t('sunset.today', { time: '…' })}</span> <span class="muted">{t('sunset.show')}</span></p>
+    <Landmark name="sun" size={44} class="sunset-ic" />
+    <p><span data-text>{t('sunset.today', { time: '…' })}</span> <span class="muted sunset-show">{t('sunset.show')}</span></p>
   </div>
 </div>
 <script>
@@ -35,7 +35,10 @@ const { t } = useT(lang);
 </script>
 <style>
   .sunset { background: var(--paper); border-block: 1px solid var(--line); }
-  .sunset-in { display: flex; align-items: center; gap: 14px; padding-block: 10px; }
+  .sunset-in { display: flex; align-items: center; gap: 14px; padding-block: 12px; }
+  .sunset-in :global(.sunset-ic) { flex: none; margin-block: -6px; }
+  /* on a phone the show line gets its own line rather than trailing half a sentence */
+  @media (max-width: 719px) { .sunset-in { align-items: flex-start; } .sunset-in :global(.sunset-ic) { margin-block: -8px 0; } .sunset-show { display: block; margin-top: 2px; } }
   .sunset p { margin: 0; font-family: var(--display); font-size: 1.15rem; color: var(--ink); font-weight: 500; }
   .sunset p .muted { font-family: var(--sans); font-size: 0.9rem; font-weight: 400; }
   html[lang='ar'] .sunset p { font-family: var(--sans); font-size: 1rem; font-weight: 500; }

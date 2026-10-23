@@ -7,13 +7,17 @@ import type { LatLng } from '../lib/geo';
 
 export type Art = 'pyramids' | 'sphinx' | 'museum' | 'step' | 'bent' | 'colossus' | 'bazaar' | 'tower' | 'felucca' | 'oldmuseum' | 'gate' | 'plane' | 'metro' | 'camel' | 'sun' | 'lightshow' | 'mosque';
 
-/** `lbl` pins the city-map label to a side where the computed default would collide. */
-export interface Place { id: string; name: { en: string; ar: string }; blurb: { en: string; ar: string }; art: Art; at: LatLng; kind: 'city' | 'far'; transport?: boolean; lbl?: 'l' | 'r' | 'u' | 'd' }
+/**
+ * `lbl` pins the city-map label to a side where the computed default would collide: left, right, up, down, or
+ * up-right ('ur', the label starts just left of the marker and runs right above it); `lblDy` nudges it down (+) or up (-)
+ * in map units. Only the desktop map shows these labels; on a phone the markers carry numbers only.
+ */
+export interface Place { id: string; name: { en: string; ar: string }; blurb: { en: string; ar: string }; art: Art; at: LatLng; kind: 'city' | 'far'; transport?: boolean; lbl?: 'l' | 'r' | 'u' | 'd' | 'ur'; lblDy?: number }
 
 export const PLACES: Place[] = [
-  { id: 'pyramids', kind: 'city', art: 'pyramids', lbl: 'u', at: { lat: 29.97916, lng: 31.13424 }, name: { en: 'The Great Pyramid', ar: 'الهرم الأكبر' }, blurb: { en: 'Khufu, Khafre and Menkaure on the plateau. Tickets at the gate; a taxi from the door takes minutes.', ar: 'خوفو وخفرع ومنكاورع على الهضبة. التذاكر عند البوابة، وسيارة الأجرة من الباب دقائق.' } },
-  { id: 'sphinx', kind: 'city', art: 'sphinx', lbl: 'l', at: { lat: 29.97528, lng: 31.13765 }, name: { en: 'The Great Sphinx', ar: 'أبو الهول' }, blurb: { en: 'At the foot of the plateau, by the eastern entrance and the sound-and-light seats.', ar: 'عند سفح الهضبة، بجوار المدخل الشرقي ومقاعد عرض الصوت والضوء.' } },
-  { id: 'gate', kind: 'city', art: 'gate', lbl: 'd', at: { lat: 29.97595, lng: 31.14255 }, name: { en: 'Sphinx entrance (eastern gate)', ar: 'مدخل أبو الهول (البوابة الشرقية)' }, blurb: { en: 'The nearest entrance to the site, at the end of Abu Al Hool Street.', ar: 'أقرب مدخل للموقع، في نهاية شارع أبو الهول.' } },
+  { id: 'pyramids', kind: 'city', art: 'pyramids', lbl: 'u', lblDy: -3, at: { lat: 29.97916, lng: 31.13424 }, name: { en: 'The Great Pyramid', ar: 'الهرم الأكبر' }, blurb: { en: 'Khufu, Khafre and Menkaure on the plateau. Tickets at the gate; a taxi from the door takes minutes.', ar: 'خوفو وخفرع ومنكاورع على الهضبة. التذاكر عند البوابة، وسيارة الأجرة من الباب دقائق.' } },
+  { id: 'sphinx', kind: 'city', art: 'sphinx', lbl: 'd', lblDy: 9, at: { lat: 29.97528, lng: 31.13765 }, name: { en: 'The Great Sphinx', ar: 'أبو الهول' }, blurb: { en: 'At the foot of the plateau, by the eastern entrance and the sound-and-light seats.', ar: 'عند سفح الهضبة، بجوار المدخل الشرقي ومقاعد عرض الصوت والضوء.' } },
+  { id: 'gate', kind: 'city', art: 'gate', lbl: 'ur', lblDy: -6, at: { lat: 29.97595, lng: 31.14255 }, name: { en: 'Sphinx entrance (eastern gate)', ar: 'مدخل أبو الهول (البوابة الشرقية)' }, blurb: { en: 'The nearest entrance to the site, at the end of Abu Al Hool Street.', ar: 'أقرب مدخل للموقع، في نهاية شارع أبو الهول.' } },
   { id: 'gem', kind: 'city', art: 'museum', lbl: 'r', at: { lat: 29.99389, lng: 31.11972 }, name: { en: 'Grand Egyptian Museum', ar: 'المتحف المصري الكبير' }, blurb: { en: 'Tutankhamun\'s whole collection under one roof, at the edge of the plateau.', ar: 'مجموعة توت عنخ آمون كاملة تحت سقف واحد، على حافة الهضبة.' } },
   { id: 'monib', kind: 'city', transport: true, art: 'metro', lbl: 'l', at: { lat: 29.98123, lng: 31.21236 }, name: { en: 'El Monib metro', ar: 'مترو المنيب' }, blurb: { en: 'End of Line 2: downtown Cairo and the Egyptian Museum in half an hour.', ar: 'نهاية الخط الثاني: وسط القاهرة والمتحف المصري في نصف ساعة.' } },
   { id: 'zoo', kind: 'city', art: 'felucca', lbl: 'r', at: { lat: 30.02395, lng: 31.21440 }, name: { en: 'The Nile at Giza', ar: 'النيل عند الجيزة' }, blurb: { en: 'Feluccas from the corniche at sunset; Giza Zoo and Cairo University on the way.', ar: 'الفلايك من الكورنيش عند الغروب، وحديقة الحيوان وجامعة القاهرة في الطريق.' } },
