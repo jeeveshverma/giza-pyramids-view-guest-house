@@ -16,6 +16,7 @@ import en from '../i18n/en.json';
 import ar from '../i18n/ar.json';
 import Landmark from '../components/Landmark.astro';
 import EnquiryForm from '../components/EnquiryForm.astro';
+import BookingBar from '../components/BookingBar.astro';
 import { PLACES } from '../data/places';
 import { fromHotel, fmtKm } from '../lib/geo';
 import { getImage } from 'astro:assets';
@@ -61,6 +62,9 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
       <li><span>{t('hero.liftG')}</span></li>
     </ol>
   </section>
+
+  <!-- the booking bar, straddling the bottom of the hero -->
+  <div class="wrap book-wrap"><BookingBar lang={lang} /></div>
 
   <!-- the drawn skyline and the facts strip -->
   <div class="wrap">
@@ -219,7 +223,7 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
   @keyframes pan { from { transform: scale(1.1); } to { transform: scale(1); } }
   .hero-veil { position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(20, 26, 38, 0.5) 0%, rgba(20, 26, 38, 0.06) 28%, rgba(20, 26, 38, 0.42) 52%, rgba(20, 26, 38, 0.92) 100%); }
   .hero-eyebrow { text-shadow: 0 1px 6px rgba(0,0,0,.5); }
-  .hero-in { padding-top: calc(var(--header-h) + 24px); padding-bottom: 28px; display: grid; gap: 12px; }
+  .hero-in { padding-top: calc(var(--header-h) + 24px); padding-bottom: 64px; display: grid; gap: 12px; }
   .hero-eyebrow { color: var(--gold-light); }
   .hero-title { color: var(--cream); font-size: clamp(2.7rem, 11vw, 5.6rem); max-width: 11em; text-wrap: balance; text-shadow: 0 2px 10px rgba(0,0,0,.35); }
   html[lang='ar'] .hero-title { font-size: clamp(2.3rem, 9vw, 4.4rem); max-width: 14em; }
@@ -232,12 +236,14 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
   @media (prefers-reduced-motion: reduce) { .hero-photo :global(img) { animation: none; } }
   @media (min-width: 960px) {
     .hero { min-height: 100vh; }
-    .hero-in { padding-bottom: 72px; max-width: var(--container); }
+    .hero-in { padding-bottom: 104px; max-width: var(--container); }
     .hero-title { font-size: clamp(3.6rem, 6vw, 6.4rem); }
     .hero-lead { font-size: 1.18rem; }
     .hero-cta { grid-auto-flow: column; justify-content: start; align-items: center; gap: 18px; }
   }
 
+  .book-wrap { margin-top: -34px; position: relative; z-index: 3; }
+  @media (min-width: 960px) { .book-wrap { margin-top: -44px; } }
   .sky-band { padding-top: 28px; max-width: 760px; margin-inline: auto; }
   .facts { list-style: none; margin: 0; padding: 18px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; border-bottom: 1px solid var(--line); }
   .facts li { font-size: 0.85rem; letter-spacing: 0.04em; color: var(--body); display: flex; align-items: center; gap: 10px; }

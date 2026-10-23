@@ -149,6 +149,11 @@ const roomNames = Object.fromEntries(ROOMS.map((r) => [r.id, t(`rooms.${r.id}.na
     const load = () => { try { const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (!o) return; for (const [k, v] of Object.entries(o)) { const el = form.querySelector<HTMLInputElement>(`[name=${k}]`); if (!el) continue; if (el.type === 'radio') { const r = form.querySelector<HTMLInputElement>(`[name=${k}][value="${v}"]`); if (r) r.checked = true; } else if (el.type === 'checkbox') el.checked = true; else el.value = String(v); } } catch {} };
     load();
     const pre = new URLSearchParams(location.search).get('room') || form.dataset.room; if (pre && ROOMS[pre]) q<HTMLSelectElement>('[name=room]').value = pre;
+    // the booking bar hands over dates and party in the query string; they win over the saved draft
+    const sp = new URLSearchParams(location.search);
+    if (sp.get('in')) { inp.value = sp.get('in')!; if (sp.get('out')) out.value = sp.get('out')!; q<HTMLInputElement>('[name=stay][value=daily]').checked = true; }
+    for (const k of ['adults', 'children'] as const) if (sp.get(k)) q<HTMLInputElement>(`[name=${k}]`).value = sp.get(k)!;
+    if (sp.get('in')) setTimeout(() => form.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
     form.addEventListener('input', update); form.addEventListener('change', () => { mode(); });
     inp.addEventListener('change', () => { if (stay() === 'daily' && inp.value && (!out.value || nights() < 1)) { const d = new Date(inp.value); d.setDate(d.getDate() + 1); out.value = iso(d); } update(); });
     mode();

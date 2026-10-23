@@ -345,5 +345,23 @@
         "Cash is accepted; no pets."
       ]
     ]
+  },
+  "book": {
+    "guests": "Guests",
+    "checkin": "Check-in",
+    "checkout": "Check-out",
+    "adults": "Adults",
+    "children": "Children",
+    "done": "Done",
+    "cta": "Request availability",
+    "adult1": "1 adult",
+    "adult2": "2 adults",
+    "adultsN": "{n} adults",
+    "child0": "0 children",
+    "child1": "1 child",
+    "child2": "2 children",
+    "childrenN": "{n} children",
+    "night": "1 night",
+    "nights": "{n} nights"
   }
 }

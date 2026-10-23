@@ -1,0 +1,117 @@
+---
+/**
+ * The booking bar: Guests · Check-in · Check-out · a button. There is no booking engine behind
+ * the site, so the button carries the dates and party to the enquiry form (prefilled), where
+ * one tap sends them to the house on WhatsApp. Dates default to today and tomorrow, the party
+ * to two adults; the guests cell opens a small popover with steppers. Formatted on the client
+ * in the page language ("Fri, Oct 23, 2026").
+ */
+import { path, useT, type Lang } from '../i18n';
+import Icon from './Icon.astro';
+interface Props { lang: Lang; class?: string }
+const { lang, class: cls = '' } = Astro.props;
+const { t } = useT(lang);
+const keys = ['adults', 'children', 'adult1', 'adult2', 'adultsN', 'child0', 'child1', 'child2', 'childrenN', 'night', 'nights'] as const;
+const dict = Object.fromEntries(keys.map((k) => [k, t(`book.${k}`)]));
+---
+<form class={`book ${cls}`} data-book data-lang={lang} data-dict={JSON.stringify(dict)} action={path(lang, 'enquire')} method="get">
+  <div class="book-cell book-guests">
+    <button type="button" class="book-btn" data-guests-btn aria-expanded="false" aria-haspopup="dialog">
+      <Icon name="users" size={30} stroke={1.2} />
+      <span class="book-txt"><span class="book-lbl">{t('book.guests')}</span><span class="book-val" data-guests-val></span></span>
+    </button>
+    <div class="book-pop" data-pop hidden role="dialog" aria-label={t('book.guests')}>
+      <div class="book-row"><span>{t('book.adults')}</span><span class="book-step"><button type="button" data-dec="adults" aria-label="−">−</button><output data-out="adults">2</output><button type="button" data-inc="adults" aria-label="+">+</button></span></div>
+      <div class="book-row"><span>{t('book.children')}</span><span class="book-step"><button type="button" data-dec="children" aria-label="−">−</button><output data-out="children">0</output><button type="button" data-inc="children" aria-label="+">+</button></span></div>
+      <button type="button" class="btn btn-gold book-done" data-done>{t('book.done')}</button>
+    </div>
+    <input type="hidden" name="adults" value="2" /><input type="hidden" name="children" value="0" />
+  </div>
+  <label class="book-cell">
+    <Icon name="calendar" size={30} stroke={1.2} />
+    <span class="book-txt"><span class="book-lbl">{t('book.checkin')}</span><span class="book-val" data-in-val></span></span>
+    <input type="date" name="in" class="book-date" aria-label={t('book.checkin')} />
+  </label>
+  <label class="book-cell">
+    <Icon name="calendar" size={30} stroke={1.2} />
+    <span class="book-txt"><span class="book-lbl">{t('book.checkout')}</span><span class="book-val" data-out-val></span><span class="book-nights" data-nights></span></span>
+    <input type="date" name="out" class="book-date" aria-label={t('book.checkout')} />
+  </label>
+  <input type="hidden" name="stay" value="daily" />
+  <button type="submit" class="btn book-cta">{t('book.cta')} <Icon name="arrowRight" size={18} class="rtl-flip" /></button>
+</form>
+
+<script>
+  document.querySelectorAll<HTMLFormElement>('[data-book]').forEach((form) => {
+    const D = JSON.parse(form.dataset.dict!) as Record<string, string>;
+    const ar = form.dataset.lang === 'ar';
+    const q = <T extends Element>(s: string) => form.querySelector<T>(s)!;
+    const inp = q<HTMLInputElement>('[name=in]'), out = q<HTMLInputElement>('[name=out]');
+    const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+    inp.min = iso(today); out.min = iso(tomorrow);
+    if (!inp.value) inp.value = iso(today); if (!out.value) out.value = iso(tomorrow);
+    const fmt = (s: string) => new Date(s + 'T00:00:00').toLocaleDateString(ar ? 'ar-EG' : 'en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+    const dg = (n: number) => ar ? String(n).replace(/\d/g, (x) => '٠١٢٣٤٥٦٧٨٩'[Number(x)]) : String(n);
+    const party = { adults: 2, children: 0 };
+    const guestText = () => {
+      const a = party.adults === 1 ? D.adult1 : party.adults === 2 ? D.adult2 : D.adultsN.replace('{n}', dg(party.adults));
+      const c = party.children === 0 ? D.child0 : party.children === 1 ? D.child1 : party.children === 2 ? D.child2 : D.childrenN.replace('{n}', dg(party.children));
+      return `${a}${ar ? "، " : ", "}${c}`;
+    };
+    const render = () => {
+      q<HTMLElement>('[data-guests-val]').textContent = guestText();
+      q<HTMLOutputElement>('[data-out=adults]').value = dg(party.adults); q<HTMLOutputElement>('[data-out=children]').value = dg(party.children);
+      q<HTMLInputElement>('[name=adults]').value = String(party.adults); q<HTMLInputElement>('[name=children]').value = String(party.children);
+      q<HTMLElement>('[data-in-val]').textContent = fmt(inp.value); q<HTMLElement>('[data-out-val]').textContent = fmt(out.value);
+      const n = Math.round((+new Date(out.value) - +new Date(inp.value)) / 864e5);
+      q<HTMLElement>('[data-nights]').textContent = n > 0 ? (n === 1 ? D.night : D.nights.replace('{n}', dg(n))) : '';
+    };
+    inp.addEventListener('change', () => { if (!inp.value) inp.value = iso(today); const d = new Date(inp.value + 'T00:00:00'); d.setDate(d.getDate() + 1); out.min = iso(d); if (!out.value || out.value <= inp.value) out.value = iso(d); render(); });
+    out.addEventListener('change', () => { if (!out.value || out.value <= inp.value) { const d = new Date(inp.value + 'T00:00:00'); d.setDate(d.getDate() + 1); out.value = iso(d); } render(); });
+    const pop = q<HTMLElement>('[data-pop]'), btn = q<HTMLButtonElement>('[data-guests-btn]');
+    const open = (o: boolean) => { pop.hidden = !o; btn.setAttribute('aria-expanded', String(o)); };
+    btn.addEventListener('click', () => open(pop.hidden));
+    q<HTMLButtonElement>('[data-done]').addEventListener('click', () => open(false));
+    document.addEventListener('click', (e) => { if (!form.contains(e.target as Node)) open(false); });
+    form.addEventListener('keydown', (e) => { if (e.key === 'Escape') open(false); });
+    form.querySelectorAll<HTMLButtonElement>('[data-inc],[data-dec]').forEach((b) => b.addEventListener('click', () => {
+      const k = (b.dataset.inc || b.dataset.dec) as 'adults' | 'children'; const d = b.dataset.inc ? 1 : -1;
+      const min = k === 'adults' ? 1 : 0, max = k === 'adults' ? 12 : 10;
+      party[k] = Math.max(min, Math.min(max, party[k] + d)); render();
+    }));
+    render();
+  });
+</script>
+
+<style>
+  .book { display: grid; background: var(--paper); border: 1px solid var(--line); box-shadow: var(--shadow); position: relative; z-index: 3; }
+  .book-cell { display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-bottom: 1px solid var(--line); position: relative; cursor: pointer; color: var(--ink); }
+  .book-cell :global(.icon) { color: var(--muted); flex: none; }
+  .book-btn { all: unset; display: flex; align-items: center; gap: 14px; width: 100%; cursor: pointer; }
+  .book-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
+  .book-txt { display: grid; line-height: 1.25; min-width: 0; }
+  .book-lbl { font-family: var(--display); font-weight: 600; font-size: 1.25rem; color: var(--ink); }
+  html[lang='ar'] .book-lbl { font-family: var(--sans); font-size: 1.1rem; }
+  .book-val { color: var(--body); font-size: 1rem; white-space: nowrap; }
+  .book-nights { font-size: 0.8rem; color: var(--gold-text); font-weight: 600; }
+  /* the native date input sits over the whole cell, invisible, so a tap anywhere opens the picker */
+  .book-date { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; font: inherit; }
+  .book-date::-webkit-calendar-picker-indicator { position: absolute; inset: 0; width: 100%; height: 100%; cursor: pointer; }
+  .book-cell:focus-within { background: var(--gold-pale); }
+  .book-cta { margin: 14px 18px 18px; min-height: 54px; }
+  .book-pop { position: absolute; top: calc(100% + 6px); inset-inline-start: 12px; z-index: 5; background: var(--white); border: 1px solid var(--line); box-shadow: var(--shadow); padding: 14px 16px; width: min(300px, calc(100vw - 48px)); display: grid; gap: 12px; }
+  .book-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-weight: 600; color: var(--ink); }
+  .book-step { display: inline-flex; align-items: center; gap: 10px; }
+  .book-step button { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--gold); background: var(--paper); color: var(--ink); font-size: 1.2rem; cursor: pointer; }
+  .book-step button:hover { background: var(--gold-pale); }
+  .book-step output { min-width: 24px; text-align: center; font-family: var(--display); font-size: 1.2rem; font-weight: 600; }
+  .book-done { min-height: 42px; }
+  [hidden] { display: none !important; }
+  @media (min-width: 760px) {
+    .book { grid-template-columns: 1.1fr 1fr 1fr auto; align-items: stretch; }
+    .book-cell { border-bottom: 0; border-inline-end: 1px solid var(--line); padding: 18px 22px; }
+    .book-cta { margin: 10px; align-self: center; }
+  }
+</style>

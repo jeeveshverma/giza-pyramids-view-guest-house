@@ -4,6 +4,7 @@ import RoomCard from '../components/RoomCard.astro';
 import Img from '../components/Img.astro';
 import Icon from '../components/Icon.astro';
 import Lattice from '../components/Lattice.astro';
+import BookingBar from '../components/BookingBar.astro';
 import Landmark from '../components/Landmark.astro';
 import { useT, digits, type Lang } from '../i18n';
 import { ROOMS } from '../data/site';
@@ -22,6 +23,7 @@ const sizes: ('tall' | 'wide' | 'square')[] = ['tall', 'wide', 'tall', 'square',
         <p class="lead">{t('rooms.intro')}</p>
         <p class="muted">{t('rooms.stay')}</p>
       </div>
+      <div class="rooms-book"><BookingBar lang={lang} /></div>
       <div class="rooms-list">
         {ROOMS.map((r, i) => <RoomCard id={r.id} hero={r.hero} lang={lang} index={i} faces={r.faces} size={sizes[i]} />)}
       </div>
@@ -45,6 +47,7 @@ const sizes: ('tall' | 'wide' | 'square')[] = ['tall', 'wide', 'tall', 'square',
 </Layout>
 <style>
   .rooms-head { padding-top: calc(var(--header-h) + 40px); }
+  .rooms-book { margin-bottom: clamp(32px, 6vw, 64px); }
   .rooms-list { display: grid; gap: 48px; }
   @media (min-width: 720px) {
     .rooms-list { grid-template-columns: repeat(12, 1fr); gap: 40px 32px; align-items: start; }
