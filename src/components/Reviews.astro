@@ -100,7 +100,8 @@ const stars = Array.from({ length: 70 }, (_, i) => { const a = Math.sin(i * 12.9
   .rvw-head h2 { color: var(--cream); }
   .rvw-head .num { display: inline-flex; gap: 3px; color: var(--gold-light); }
   .rvw-scores { list-style: none; margin: 0 0 clamp(32px, 6vw, 56px); padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 760px; }
-  @media (min-width: 560px) { .rvw-scores { grid-template-columns: repeat(3, 1fr); } }
+  .rvw-scores { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  @media (max-width: 559px) { .rvw-scores a { padding: 12px 10px; } .rvw-score { font-size: 2.1rem; } .rvw-site { font-size: 0.75rem; } .rvw-site :global(svg) { display: none; } }
   .rvw-scores a { display: grid; gap: 2px; padding: 16px 18px; border: 1px solid rgba(210, 179, 133, 0.35); border-radius: var(--radius); text-decoration: none; color: inherit; transition: background 0.25s var(--ease), border-color 0.25s var(--ease); }
   .rvw-scores a:hover { background: rgba(255, 255, 255, 0.05); border-color: var(--gold-light); }
   .rvw-score { font-family: var(--display); font-size: clamp(2.6rem, 9vw, 3.6rem); line-height: 1; color: var(--cream); }

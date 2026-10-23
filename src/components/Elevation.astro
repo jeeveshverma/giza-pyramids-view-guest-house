@@ -68,6 +68,7 @@ const km = (n: number) => digits(n.toFixed(1), lang);
     </g>
     <text class="lbl-note" x={12} y={H - 8} text-anchor="start">{t('elev.note')}</text>
   </svg></div>
+  <p class="elev-hint" aria-hidden="true">⟵ ⟶</p>
   <figcaption>{t('elev.caption', { floor: d(E.floor11), base: d(E.khufuBase) })}</figcaption>
 </figure>
 <script>
@@ -77,6 +78,8 @@ const km = (n: number) => digits(n.toFixed(1), lang);
   .elev { margin: 0; background: var(--paper); border: 1px solid var(--line); position: relative; }
   .elev-scroll { overflow-x: auto; scrollbar-width: thin; }
   .elev-scroll svg { min-width: 720px; }
+  .elev-hint { display: none; margin: 0; padding: 4px 16px 0; text-align: center; color: var(--gold-text); font-size: 0.9rem; letter-spacing: 0.3em; }
+  @media (max-width: 760px) { .elev-hint { display: block; } }
   .elev::after { content: ''; position: absolute; inset: 6px; border: 1px solid var(--gold); opacity: 0.3; pointer-events: none; }
   .elev svg { width: 100%; height: auto; display: block; font-family: var(--sans); }
   .ground-line { fill: none; stroke: var(--gold); stroke-width: 1.2; }

@@ -25,7 +25,7 @@ const facilities = [
       <div class="prop-title">
         <p class="prop-kind"><Icon name="starFill" size={12} /><Icon name="starFill" size={12} /><Icon name="starFill" size={12} /> <span>{t('hero.eyebrow')}</span></p>
         <Heading class="prop-name">{SITE.name[lang]}</Heading>
-        <p class="prop-addr"><Icon name="pin" size={16} /> {t('footer.address')} · <a href="#map">{t('bk.showMap')}</a></p>
+        <p class="prop-addr"><Icon name="pin" size={16} /> <span>{t('footer.address')} · <a href="#map">{t('bk.showMap')}</a></span></p>
       </div>
       <div class="prop-side">
         <a class="prop-score" href={SITE.googleReviewsUrl} target="_blank" rel="noopener">
@@ -68,12 +68,14 @@ const facilities = [
   .prop-kind span { margin-inline-start: 8px; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-text); }
   html[lang='ar'] .prop-kind span { letter-spacing: 0; font-size: 0.9rem; }
   .prop-name { font-size: clamp(1.9rem, 4.6vw, 3rem); line-height: 1.1; }
-  .prop-addr { margin: 8px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 0.92rem; color: var(--body); }
+  .prop-addr { margin: 8px 0 0; display: flex; align-items: flex-start; gap: 6px; font-size: 0.92rem; color: var(--body); }
+  .prop-addr :global(.icon) { flex: none; margin-top: 3px; }
   .prop-addr :global(.icon) { color: var(--gold-text); }
   .prop-addr a { font-weight: 700; color: var(--gold-text); }
   .prop-side { display: flex; align-items: center; gap: 14px; }
   .prop-score { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
   .prop-score-txt { display: grid; text-align: end; line-height: 1.25; }
+  @media (max-width: 640px) { .prop-side { width: 100%; } .prop-score { flex-direction: row-reverse; justify-content: flex-end; } .prop-score-txt { text-align: start; } }
   .prop-score-txt b { font-size: 1.05rem; }
   .prop-score-txt small { color: var(--muted); font-size: 0.8rem; }
   .prop-badge { display: inline-grid; place-items: center; min-width: 42px; height: 40px; padding: 0 6px; border-radius: 8px 8px 8px 0; background: var(--night); color: var(--white); font-weight: 700; font-size: 1.1rem; }

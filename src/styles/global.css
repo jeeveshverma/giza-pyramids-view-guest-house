@@ -41,6 +41,7 @@ html[lang='ar'] {
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: calc(var(--header-h) + 8px); }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+html { background: var(--cream); }
 body {
   margin: 0;
   background: var(--cream);
@@ -134,6 +135,8 @@ html[lang='ar'] .eyebrow { letter-spacing: 0; font-size: 0.95rem; }
 .stick.show { transform: none; }
 .stick .btn { min-height: 48px; white-space: nowrap; }
 .stick .ic { width: 48px; padding: 0; background: var(--paper); border-color: var(--line); color: var(--ink); }
+.stick .ic-wa { background: var(--wa); border-color: var(--wa); color: #fff; }
+.stick-go { background: var(--ink); }
 @media (min-width: 960px) { .stick { display: none; } }
 body.has-stick { padding-bottom: 76px; }
 @media (min-width: 960px) { body.has-stick { padding-bottom: 0; } }

@@ -85,7 +85,7 @@ const pyr = PYRAMIDS.map((p) => ({ ...p, pos: xy(p.at.lat, p.at.lng), s: p.id ==
           <path class="road draw" d={`M${roadB.x} ${roadB.y} L ${roadA.x} ${roadA.y}`} />
           <path class="road road-2 draw" d={`M${faisalB.x} ${faisalB.y} L ${faisalA.x} ${faisalA.y}`} />
           <path class="road road-2 draw" d={`M${CX} ${CY} L ${CX + 8} ${CY - 54}`} />
-          <text class="road-label" transform={`translate(${(roadA.x + roadB.x) / 2 - 10} ${(roadA.y + roadB.y) / 2 - 8}) rotate(${(Math.atan2(roadA.y - roadB.y, roadA.x - roadB.x) * 180) / Math.PI})`} text-anchor="middle">{t('map.road')}</text>
+          <text class="road-label" transform={`translate(${roadB.x + (roadA.x - roadB.x) * 0.36} ${roadB.y + (roadA.y - roadB.y) * 0.36 + 14}) rotate(${(Math.atan2(roadA.y - roadB.y, roadA.x - roadB.x) * 180) / Math.PI})`} text-anchor="middle">{t('map.road')}</text>
           <text class="sea-label" x={nile[2].x + 14} y={nile[2].y + 60}>{t('map.nile')}</text>
           <text class="sea-label" x={16} y={H - 90}>{t('map.plateau')}</text>
           <g class="map-pyr">
@@ -193,7 +193,8 @@ const pyr = PYRAMIDS.map((p) => ({ ...p, pos: xy(p.at.lat, p.at.lng), s: p.id ==
   .poi { cursor: pointer; }
   .poi circle { fill: var(--cream); stroke: var(--gold); stroke-width: 1.4; transition: fill 0.25s; }
   .poi .n { font-size: 10px; font-weight: 700; fill: var(--ink); pointer-events: none; }
-  .poi .lbl { font-size: 11.5px; fill: var(--ink); }
+  .poi .lbl { font-size: 11.5px; fill: var(--ink); paint-order: stroke; stroke: var(--paper); stroke-width: 3.5px; stroke-linejoin: round; }
+  .road-label, .sea-label, .hotel-label { paint-order: stroke; stroke: var(--paper); stroke-width: 3.5px; stroke-linejoin: round; }
   .poi .km { fill: var(--muted); font-size: 10px; }
   .poi.sel circle, .poi:hover circle { fill: var(--gold-pale); }
   .poi.sel .n { fill: var(--ink); }

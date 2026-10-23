@@ -25,7 +25,7 @@ const ticks = [250, 260, 270, 280, 290];
 const dirs: Record<number, { en: string; ar: string }> = { 250: { en: 'WSW', ar: 'غ ج غ' }, 260: { en: '', ar: '' }, 270: { en: 'W', ar: 'غرب' }, 280: { en: '', ar: '' }, 290: { en: 'WNW', ar: 'غ ش غ' } };
 ---
 <figure class="pano rv" data-pano data-lat={SITE.geo.lat} data-lng={SITE.geo.lng} data-az0={AZ0} data-ppd={PPD} data-hor={HOR} dir="ltr">
-  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t('view.title')}>
+  <div class="pano-scroll"><svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t('view.title')}>
     <defs>
       <linearGradient id="pano-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--night)" stop-opacity=".0" /><stop offset="1" stop-color="var(--gold)" stop-opacity=".16" /></linearGradient>
       <linearGradient id="pano-haze" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--gold)" stop-opacity=".22" /><stop offset="1" stop-color="var(--gold)" stop-opacity="0" /></linearGradient>
@@ -53,7 +53,8 @@ const dirs: Record<number, { en: string; ar: string }> = { 250: { en: 'WSW', ar:
     <g class="pano-scale">
       {ticks.map((d) => <g transform={`translate(${(d - AZ0) * PPD} ${H - 30})`}><path d="M0 0v-8" /><text y="16" text-anchor="middle">{digits(d, lang)}°{dirs[d][lang] ? ` ${dirs[d][lang]}` : ''}</text></g>)}
     </g>
-  </svg>
+  </svg></div>
+  <p class="pano-hint" aria-hidden="true">⟵ ⟶</p>
   <figcaption class="pano-cap-text">
     <span class="pano-badge" data-suntext>{t('sunset.today', { time: '—' })}</span>
   </figcaption>
@@ -86,6 +87,8 @@ const dirs: Record<number, { en: string; ar: string }> = { 250: { en: 'WSW', ar:
     const x = (az - az0) * ppd;
     sun.setAttribute('transform', `translate(${x.toFixed(1)} ${hor - 16})`);
     sun.classList.add('on');
+    const sc = el.querySelector<HTMLElement>('.pano-scroll');
+    if (sc && sc.scrollWidth > sc.clientWidth) sc.scrollLeft = sc.scrollWidth * 0.58 - sc.clientWidth / 2;
     const txt = el.querySelector<HTMLElement>('[data-suntext]')!;
     txt.textContent = txt.textContent!.replace('—', time);
   });
@@ -113,6 +116,9 @@ const dirs: Record<number, { en: string; ar: string }> = { 250: { en: 'WSW', ar:
   @keyframes pano-glow { from { filter: drop-shadow(0 0 0 rgba(217, 181, 106, 0)); } to { filter: drop-shadow(0 0 10px rgba(217, 181, 106, 0.7)); } }
   .pano-cap-text { padding: 12px 16px; border-top: 1px solid rgba(217, 181, 106, 0.25); font-size: 0.95rem; color: var(--gold-light); display: flex; flex-wrap: wrap; gap: 8px 20px; }
   html[dir='rtl'] .pano-cap-text { direction: rtl; }
-  @media (max-width: 720px) { .pano-fact { font-size: 13px; } .pano-name { font-size: 22px; } .pano-scale text { font-size: 14px; } .pano-pyr:nth-child(odd) .pano-fact { display: none; } }
+  .pano-scroll { overflow-x: auto; scrollbar-width: none; }
+  .pano-scroll::-webkit-scrollbar { display: none; }
+  .pano-hint { display: none; margin: 0; padding: 6px 0 0; text-align: center; color: var(--gold-light); letter-spacing: 0.3em; font-size: 0.9rem; }
+  @media (max-width: 720px) { .pano-scroll svg { width: 600px; max-width: none; } .pano-fact { font-size: 13px; } .pano-name { font-size: 22px; } .pano-scale text { font-size: 13px; } .pano-hint { display: block; } }
   @media (prefers-reduced-motion: reduce) { .pano-sun.on { animation: none; } }
 </style>

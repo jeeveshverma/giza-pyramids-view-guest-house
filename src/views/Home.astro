@@ -176,13 +176,14 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
   .hero-photo :global(.photo) { height: 100%; border-radius: 0; }
   .hero-photo :global(img) { height: 100%; width: 100%; object-fit: cover; animation: pan 30s var(--ease) both; transform-origin: 50% 40%; }
   @keyframes pan { from { transform: scale(1.1); } to { transform: scale(1); } }
-  .hero-veil { position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(20, 26, 38, 0.5) 0%, rgba(20, 26, 38, 0.06) 28%, rgba(20, 26, 38, 0.42) 55%, rgba(20, 26, 38, 0.92) 100%); }
+  .hero-veil { position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(20, 26, 38, 0.62) 0%, rgba(20, 26, 38, 0.2) 26%, rgba(20, 26, 38, 0.38) 52%, rgba(20, 26, 38, 0.92) 100%), linear-gradient(90deg, rgba(20, 26, 38, 0.45) 0%, rgba(20, 26, 38, 0) 60%); }
+  html[dir='rtl'] .hero-veil { background: linear-gradient(180deg, rgba(20, 26, 38, 0.62) 0%, rgba(20, 26, 38, 0.2) 26%, rgba(20, 26, 38, 0.38) 52%, rgba(20, 26, 38, 0.92) 100%), linear-gradient(270deg, rgba(20, 26, 38, 0.45) 0%, rgba(20, 26, 38, 0) 60%); }
   .hero-in { padding-top: calc(var(--header-h) + 24px); padding-bottom: 96px; display: grid; gap: 12px; }
-  .hero-eyebrow { color: var(--gold-light); text-shadow: 0 1px 6px rgba(0,0,0,.5); }
+  .hero-eyebrow { color: var(--gold-pale); text-shadow: 0 1px 8px rgba(0,0,0,.7); }
   .hero-title { color: var(--cream); font-size: clamp(2.6rem, 10.5vw, 5.4rem); max-width: 11em; text-wrap: balance; text-shadow: 0 2px 10px rgba(0,0,0,.35); }
   html[lang='ar'] .hero-title { font-size: clamp(2.2rem, 9vw, 4.4rem); max-width: 14em; }
   .hero-ar { font-family: 'Tajawal', 'Noto Sans Arabic', sans-serif; font-weight: 500; font-size: 1.2rem; color: var(--gold-light); margin: 0; opacity: 0.95; }
-  html[lang='ar'] .hero-ar { font-family: var(--display); letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.95rem; }
+  html[lang='ar'] .hero-ar { font-family: var(--display); letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.95rem; text-align: right; }
   .hero-cta { display: grid; gap: 8px; margin-top: 8px; }
   .hero-book { background: var(--gold-light); border-color: var(--gold-light); color: var(--night); }
   .hero-book:hover { background: var(--gold-pale); }

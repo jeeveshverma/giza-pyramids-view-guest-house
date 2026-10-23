@@ -25,6 +25,7 @@ const more = list.length - (compact ? 5 : 10);
       <button type="button" class="pm-tile pm-side" data-open={i + 1} aria-label={`${t('gallery.open')}: ${p.alt[lang]}`}>
         <Img id={p.id} lang={lang} sizes="(min-width: 900px) 25vw, 33vw" widths={[320, 480, 640]} />
         {compact && i === side.length - 1 && more > 0 && <span class="pm-more">+{digits(more, lang)}</span>}
+        {i === 2 && list.length > 4 && <span class="pm-more pm-more-phone">+{digits(list.length - 4, lang)}</span>}
       </button>
     ))}
   </div>
@@ -108,6 +109,8 @@ const more = list.length - (compact ? 5 : 10);
   .pm-strip { display: none; }
   .pm-more { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 2px; background: rgba(20, 26, 38, 0.6); color: var(--white); font-size: 1.4rem; font-weight: 700; }
   .pm-more small { font-size: 0.8rem; font-weight: 600; }
+  .pm-more-phone { display: none; }
+  @media (max-width: 899px) { .pm-more-phone { display: grid; } .pm-side .pm-more:not(.pm-more-phone) { display: none; } }
   @media (min-width: 900px) {
     .pm-grid { grid-template-columns: 2fr 1fr 1fr; grid-template-rows: 1fr 1fr; height: clamp(360px, 38vw, 520px); }
     .pm-big { grid-column: 1; grid-row: 1 / span 2; aspect-ratio: auto; }
