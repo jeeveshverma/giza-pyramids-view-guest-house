@@ -1,10 +1,12 @@
 // End-to-end test of the booking path: search → availability → select rooms → checkout details →
 // final step → the WhatsApp link. Screenshots every step.   node scripts/flowtest.mjs <outdir>
-import { chromium, devices } from 'playwright';
+import { chromium, webkit, devices } from 'playwright';
+// ENGINE=webkit runs it in Safari's engine (iOS); the default is Chromium (Android/Chrome)
 const BASE = process.env.QA_BASE || 'http://127.0.0.1:4321/giza-pyramids-view-guest-house';
 const OUT = process.argv[2] || '.';
-const b = await chromium.launch();
-const runs = [['desk', { viewport: { width: 1440, height: 900 } }, '/'], ['phone', { ...devices['iPhone 13'] }, '/'], ['ar', { ...devices['iPhone 13'] }, '/ar/']];
+const b = await (process.env.ENGINE === 'webkit' ? webkit : chromium).launch();
+const PHONE = process.env.ENGINE === 'webkit' ? devices['iPhone 13'] : devices['Pixel 7'];
+const runs = [['desk', { viewport: { width: 1440, height: 900 } }, '/'], ['phone', { ...PHONE }, '/'], ['ar', { ...PHONE }, '/ar/']];
 let fail = 0;
 const check = (name, ok, msg) => { if (!ok) fail++; console.log(`${ok ? 'PASS' : 'FAIL'} [${name}] ${msg}`); };
 for (const [name, opts, home] of runs) {

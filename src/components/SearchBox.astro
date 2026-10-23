@@ -68,7 +68,12 @@ const dict = { adultsN: t('bk.adultsN'), childrenN: t('bk.childrenN'), noChildre
     inp.addEventListener('change', () => { if (!inp.value) return render(); const o = parse(inp.value); o.setDate(o.getDate() + 1); set({ in: inp.value, out: out.value > inp.value ? out.value : iso(o) }); });
     out.addEventListener('change', () => { if (!out.value) return render(); set({ out: out.value }); });
     const pop = q<HTMLElement>('[data-pop]'), gbtn = q<HTMLButtonElement>('[data-gbtn]');
-    const open = (o: boolean) => { pop.hidden = !o; gbtn.setAttribute('aria-expanded', String(o)); };
+    const open = (o: boolean) => {
+      pop.hidden = !o; gbtn.setAttribute('aria-expanded', String(o));
+      // the phone bottom bar steps aside while the panel is open, and the panel is scrolled fully into view
+      document.body.classList.toggle('sb-pop-open', o);
+      if (o) requestAnimationFrame(() => { const r = pop.getBoundingClientRect(); const over = r.bottom - (innerHeight - 16); if (over > 0) scrollBy({ top: over, behavior: 'smooth' }); });
+    };
     gbtn.addEventListener('click', () => open(pop.hidden));
     q('[data-done]').addEventListener('click', () => { open(false); gbtn.focus(); });
     document.addEventListener('click', (e) => { if (!form.contains(e.target as Node)) open(false); });

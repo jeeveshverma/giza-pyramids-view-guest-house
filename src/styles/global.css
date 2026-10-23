@@ -138,10 +138,12 @@ html[dir='rtl'] .rtl-flip { transform: scaleX(-1); }
   padding: 10px var(--gutter) calc(10px + env(safe-area-inset-bottom)); background: rgba(251, 248, 243, 0.92); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
   border-top: 1px solid var(--line); transform: translateY(110%); transition: transform 0.4s var(--ease); }
 .stick.show { transform: none; }
+body.sb-pop-open .stick { transform: translateY(110%); }
 .stick .btn { min-height: 48px; white-space: nowrap; }
 .stick .ic { width: 48px; padding: 0; background: var(--paper); border-color: var(--line); color: var(--ink); }
 .stick .ic-wa { background: var(--wa); border-color: var(--wa); color: #fff; }
 .stick-go { background: var(--ink); }
+@media (max-width: 340px) { .stick { gap: 6px; } .stick .btn { padding-inline: 12px; font-size: 0.95rem; } .stick-go svg { display: none; } }
 @media (min-width: 960px) { .stick { display: none; } }
 body.has-stick { padding-bottom: 76px; }
 @media (min-width: 960px) { body.has-stick { padding-bottom: 0; } }

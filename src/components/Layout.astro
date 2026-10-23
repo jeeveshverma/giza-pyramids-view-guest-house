@@ -199,7 +199,7 @@ const hotel = {
   html[dir='rtl'] .progress i { transform-origin: 100% 50%; }
 
   .hdr { position: fixed; top: 0; inset-inline: 0; z-index: 70; height: var(--header-h); transition: background 0.4s var(--ease), box-shadow 0.4s var(--ease), color 0.3s; color: var(--ink); }
-  .hdr.scrolled { background: rgba(244, 236, 221, 0.9); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 1px 0 var(--line); }
+  .hdr.scrolled { background: rgba(244, 236, 221, 0.97); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 1px 0 var(--line); }
   .hdr-over { color: var(--cream); }
   .hdr-over .logo-name, .hdr-over .logo-sub { color: var(--cream); }
   .hdr-over .logo-mark { color: var(--gold-light); }
@@ -210,6 +210,8 @@ const hotel = {
   .hdr-actions { display: flex; align-items: center; gap: 8px; }
   .hdr-lang { font-weight: 600; text-decoration: none; padding: 8px 10px; font-size: 0.95rem; min-height: 40px; display: inline-flex; align-items: center; line-height: 1; }
   .hdr-lang:lang(ar) { padding-top: 11px; }
+  /* 340px and under (iPhone SE, Galaxy S9+): the mark alone, so the language link, WhatsApp and the menu fit */
+  @media (max-width: 340px) { .hdr-logo .logo-words { display: none; } .hdr-logo { min-width: 44px; min-height: 44px; align-items: center; } }
   @media (max-width: 379px) { .hdr-in { gap: 8px; } .hdr-actions { gap: 4px; } .hdr-logo .logo-name { font-size: 0.86rem !important; letter-spacing: 0.06em; } .hdr-logo .logo-mark { width: 30px; height: 30px; } .hdr-lang { padding: 8px 4px; font-size: 0.9rem; } .hdr-burger { width: 40px; } }
   .hdr-wa { min-height: 42px; padding-inline: 14px; font-size: 0.92rem; }
   .hdr-wa span { display: none; }

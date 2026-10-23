@@ -74,8 +74,14 @@ export const roomCount = (s: Stay) => Object.values(s.rooms).reduce((a, b) => a 
 export const dg = (lang: string) => (v: number | string) => (lang === 'ar' ? String(v).replace(/\d/g, (x) => '٠١٢٣٤٥٦٧٨٩'[Number(x)]) : String(v));
 
 /** "Fri, Oct 23, 2026" / "الجمعة، ٢٣ أكتوبر ٢٠٢٦"; `short` drops the year. */
-export const fmtDate = (s: string, lang: string, short = false) =>
-  parse(s).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US', short ? { weekday: 'short', month: 'short', day: 'numeric' } : { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+/** Arabic is formatted by hand: Safari (iOS) and Chrome (Android) disagree on Arabic weekday and month names. */
+const AR_DAYS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+const AR_MONTHS = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+export const fmtDate = (s: string, lang: string, short = false) => {
+  const d = parse(s);
+  if (lang === 'ar') { const n = dg('ar'); return `${AR_DAYS[d.getDay()]}، ${n(d.getDate())} ${AR_MONTHS[d.getMonth()]}${short ? '' : ` ${n(d.getFullYear())}`}`; }
+  return d.toLocaleDateString('en-US', short ? { weekday: 'short', month: 'short', day: 'numeric' } : { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+};
 
 /** Pick the right plural form from a dictionary entry like "1 night|{n} nights" (Arabic adds a dual: "ليلة واحدة|ليلتان|{n} ليالٍ"). */
 export function plural(forms: string, n: number, lang: string): string {
