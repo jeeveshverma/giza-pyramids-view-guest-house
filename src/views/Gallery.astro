@@ -10,10 +10,10 @@ interface Props { lang: Lang }
 const { lang } = Astro.props;
 const { t } = useT(lang);
 // strip order: the view first, then the balcony and lounge, the roof, the rooms, the house
-const order = ['view', 'balcony', 'terrace', 'room', 'house'];
+const order = ['view', 'room', 'bathroom', 'terrace', 'house'];
 const items = [...PHOTOS].sort((a, b) => order.indexOf(a.group) - order.indexOf(b.group)).map((p) => p.id);
 // the mosaic below the strip: a few photos at mixed sizes
-const mosaic = ['view-sunrise', 'balcony-day', 'terrace-sunset', 'lounge-ceiling', 'room-view', 'view-dusk', 'lounge-night', 'terrace-evening', 'room-twin'];
+const mosaic = ['tv-room5', 'studio-kitchenette', 'view-show', 'tv-kettle', 'db-swans', 'terrace-sunset', 'tw-mirror', 'studio-shower', 'tv-sunset'];
 ---
 <Layout lang={lang} page="gallery" title={t('meta.gallery.title')} desc={t('meta.gallery.desc')}>
   <section class="section gal-head">

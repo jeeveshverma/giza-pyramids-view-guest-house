@@ -1,0 +1,97 @@
+---
+/**
+ * The property header, in the shape of a Booking.com listing page: name, address with a map
+ * link, the review badge and a Reserve button; then the photo mosaic; then a short description
+ * beside the "Property highlights" card, and the most popular facilities. Facts come from
+ * SITE and the listings; the distance to the Great Pyramid is computed.
+ */
+import { useT, digits, type Lang } from '../i18n';
+import { SITE, PYRAMIDS } from '../data/site';
+import { distanceKm, fmtKm } from '../lib/geo';
+import PhotoMosaic from './PhotoMosaic.astro';
+import Icon from './Icon.astro';
+interface Props { lang: Lang; mosaic: string[]; h1?: boolean }
+const { lang, mosaic, h1 = false } = Astro.props;
+const { t } = useT(lang);
+const km = fmtKm(distanceKm(SITE.geo, PYRAMIDS[0].at), lang);
+const Heading = h1 ? 'h1' : 'h2';
+const facilities = [
+  ['wifi', 'wifi'], ['breakfast', 'breakfast'], ['terrace', 'sun'], ['ac', 'ac'], ['shuttle', 'plane'], ['desk', 'clock'], ['lift', 'lift'], ['tours', 'compass'],
+] as const;
+---
+<section class="prop" id="property">
+  <div class="wrap">
+    <div class="prop-head">
+      <div class="prop-title">
+        <p class="prop-kind"><Icon name="starFill" size={12} /><Icon name="starFill" size={12} /><Icon name="starFill" size={12} /> <span>{t('hero.eyebrow')}</span></p>
+        <Heading class="prop-name">{SITE.name[lang]}</Heading>
+        <p class="prop-addr"><Icon name="pin" size={16} /> {t('footer.address')} · <a href="#map">{t('bk.showMap')}</a></p>
+      </div>
+      <div class="prop-side">
+        <a class="prop-score" href={SITE.googleReviewsUrl} target="_blank" rel="noopener">
+          <span class="prop-score-txt"><b>{t('bk.reviewWord')}</b><small>{t('reviews.count', { n: digits(SITE.scores.google.count, lang) })} · Google</small></span>
+          <span class="prop-badge">{digits(SITE.scores.google.score, lang).replace('.', lang === 'ar' ? '٫' : '.')}</span>
+        </a>
+        <a class="prop-reserve" href="#availability">{t('bk.reserveBtn')}</a>
+      </div>
+    </div>
+
+    <PhotoMosaic items={mosaic} lang={lang} />
+
+    <div class="prop-body">
+      <div class="prop-text">
+        <p class="lead">{t('hero.lead')}</p>
+        <h3>{t('bk.fac.title')}</h3>
+        <ul class="prop-fac">
+          {facilities.map(([k, ic]) => <li><Icon name={ic as any} size={20} /> {t(`bk.fac.${k}`)}</li>)}
+        </ul>
+      </div>
+      <aside class="prop-hl">
+        <h3>{t('bk.hl.title')}</h3>
+        <ul>
+          <li><Icon name="pyramid" size={20} /> {t('bk.hl.view')}</li>
+          <li><Icon name="breakfast" size={20} /> {t('bk.hl.breakfast')}</li>
+          <li><Icon name="pin" size={20} /> {t('bk.hl.walk', { km })}</li>
+          <li><Icon name="clock" size={20} /> {t('bk.hl.desk')}</li>
+          <li><Icon name="plane" size={20} /> {t('bk.hl.pickup')}</li>
+        </ul>
+        <a class="prop-reserve prop-reserve-wide" href="#availability">{t('bk.reserveBtn')}</a>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<style>
+  .prop { padding-block: clamp(28px, 5vw, 56px); }
+  .prop-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px 24px; margin-bottom: 16px; }
+  .prop-kind { margin: 0 0 4px; display: flex; align-items: center; gap: 2px; color: var(--gold); }
+  .prop-kind span { margin-inline-start: 8px; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-text); }
+  html[lang='ar'] .prop-kind span { letter-spacing: 0; font-size: 0.9rem; }
+  .prop-name { font-size: clamp(1.9rem, 4.6vw, 3rem); line-height: 1.1; }
+  .prop-addr { margin: 8px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 0.92rem; color: var(--body); }
+  .prop-addr :global(.icon) { color: var(--gold-text); }
+  .prop-addr a { font-weight: 700; color: var(--gold-text); }
+  .prop-side { display: flex; align-items: center; gap: 14px; }
+  .prop-score { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
+  .prop-score-txt { display: grid; text-align: end; line-height: 1.25; }
+  .prop-score-txt b { font-size: 1.05rem; }
+  .prop-score-txt small { color: var(--muted); font-size: 0.8rem; }
+  .prop-badge { display: inline-grid; place-items: center; min-width: 42px; height: 40px; padding: 0 6px; border-radius: 8px 8px 8px 0; background: var(--night); color: var(--white); font-weight: 700; font-size: 1.1rem; }
+  html[dir='rtl'] .prop-badge { border-radius: 8px 8px 0 8px; }
+  .prop-reserve { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 0 22px; border-radius: 4px; background: var(--ink); color: var(--cream); font-weight: 700; text-decoration: none; }
+  .prop-reserve:hover { background: var(--night-2); }
+  .prop-body { display: grid; gap: 24px; margin-top: 24px; }
+  .prop-text .lead { margin-bottom: 20px; }
+  .prop-text h3, .prop-hl h3 { font-family: var(--display); font-size: 1.4rem; font-weight: 700; margin-bottom: 12px; }
+  html[lang='ar'] .prop-text h3, html[lang='ar'] .prop-hl h3 { font-family: var(--sans); font-size: 1.15rem; }
+  .prop-fac { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px 22px; }
+  .prop-fac li { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font-weight: 600; font-size: 0.95rem; }
+  .prop-fac :global(.icon) { color: var(--wa); }
+  .prop-hl { background: var(--gold-pale); border-radius: 6px; padding: 18px; align-self: start; }
+  .prop-hl ul { list-style: none; margin: 0 0 16px; padding: 0; display: grid; gap: 10px; }
+  .prop-hl li { display: flex; gap: 10px; align-items: flex-start; color: var(--ink); font-size: 0.95rem; }
+  .prop-hl :global(.icon) { color: var(--gold-text); flex: none; margin-top: 1px; }
+  .prop-reserve-wide { width: 100%; }
+  @media (max-width: 640px) { .prop-side .prop-reserve { display: none; } }
+  @media (min-width: 900px) { .prop-body { grid-template-columns: 1fr 320px; gap: 40px; } }
+</style>

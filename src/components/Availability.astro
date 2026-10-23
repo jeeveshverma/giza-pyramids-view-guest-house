@@ -1,0 +1,238 @@
+---
+/**
+ * The availability list, laid out like Booking.com's room table: one row per room type with its
+ * photo, beds, features, who it sleeps, the price column ("on request": the site has no rates),
+ * what is included, and a room-count picker; beside it a reserve panel that sums the selection,
+ * warns when the rooms sleep fewer than the party, and goes on to the checkout with everything in
+ * the URL. Selection lives in the shared stay (src/lib/stay.ts). On phones each row becomes a
+ * card and the reserve panel sticks to the bottom of the list.
+ */
+import { path, useT, digits, type Lang } from '../i18n';
+import { ROOMS, type Feature } from '../data/site';
+import { photo } from '../data/photos';
+import { plural } from '../lib/stay';
+import Img from './Img.astro';
+import Icon from './Icon.astro';
+interface Props { lang: Lang; searchId?: string }
+const { lang, searchId = 'search' } = Astro.props;
+const { t } = useT(lang);
+const icon: Record<Feature, string> = { pyramids: 'pyramid', cityView: 'city', kitchenette: 'kitchen', kettle: 'kettle', minibar: 'fridge', fridge: 'fridge', table: 'table', armchair: 'sofa', wardrobe: 'wardrobe', dresser: 'mirror', shower: 'shower', ac: 'ac', wifi: 'wifi', towels: 'towel' };
+const rows = ROOMS.map((r) => {
+  const beds = (['double', 'queen', 'single'] as const).filter((k) => r.beds[k]).map((k) => plural(t(`bk.beds.${k}`), r.beds[k]!, lang)).join(lang === 'ar' ? ' و' : ' and ');
+  const lead = r.features.filter((f) => f === 'pyramids' || f === 'kitchenette');
+  const rest = r.features.filter((f) => !['pyramids', 'kitchenette', 'ac', 'wifi', 'towels'].includes(f));
+  return { ...r, beds, lead, rest, nPhotos: plural(t('bk.photosN'), r.photos.length, lang), name: t(`rooms.${r.id}.name`) };
+});
+const dict = { nightsN: t('bk.nightsN'), roomsN: t('bk.roomsN'), adultsN: t('bk.adultsN'), childrenN: t('bk.childrenN'), noChildren: t('bk.noChildren'), guestsN: t('bk.guestsN'), availFor: t('bk.availFor'), selected: t('bk.selected'), selNone: t('bk.selNone'), capacity: t('bk.capacity'), pickRoom: t('bk.pickRoom') };
+const sleeps = Object.fromEntries(ROOMS.map((r) => [r.id, r.sleeps]));
+---
+<section class="section av" id="availability" data-avail data-lang={lang} data-dict={JSON.stringify(dict)} data-sleeps={JSON.stringify(sleeps)} data-checkout={path(lang, 'enquire')}>
+  <div class="wrap">
+    <div class="av-head">
+      <div>
+        <h2>{t('bk.availTitle')}</h2>
+        <p class="av-sum" data-sum aria-live="polite"></p>
+      </div>
+      <a class="av-change" href={`#${searchId}`} data-change>{t('bk.changeSearch')}</a>
+    </div>
+
+    <div class="av-grid">
+      <div class="av-table" role="table" aria-label={t('bk.availTitle')}>
+        <div class="av-tr av-th" role="row">
+          <span role="columnheader">{t('bk.colRoom')}</span>
+          <span role="columnheader">{t('bk.colSleeps')}</span>
+          <span role="columnheader">{t('bk.colPrice')}</span>
+          <span role="columnheader">{t('bk.colChoices')}</span>
+          <span role="columnheader">{t('bk.colSelect')}</span>
+        </div>
+        {rows.map((r) => (
+          <div class="av-tr" role="row" data-row={r.id}>
+            <div class="av-room" role="cell">
+              <a class="av-photo" href={path(lang, 'rooms', r.id)} aria-label={`${r.name}: ${r.nPhotos}`}>
+                <Img id={r.hero} lang={lang} ratio="4 / 3" sizes="(min-width: 900px) 220px, 100vw" widths={[320, 480, 640]} />
+                <span class="av-count"><Icon name="photos" size={14} /> {r.nPhotos}</span>
+              </a>
+              <div class="av-info">
+                <a class="av-name" href={path(lang, 'rooms', r.id)}>{r.name}</a>
+                <p class="av-beds"><Icon name="bed" size={18} /> {r.beds}</p>
+                <ul class="av-chips">
+                  {r.lead.map((f) => <li class="lead"><Icon name={icon[f] as any} size={15} /> {t(`bk.f.${f}`)}</li>)}
+                  <li><Icon name="shower" size={15} /> {t('bk.privateBath')}</li>
+                  {r.rest.slice(0, 3).map((f) => <li><Icon name={icon[f] as any} size={15} /> {t(`bk.f.${f}`)}</li>)}
+                </ul>
+                <p class="av-desc">{t(`rooms.${r.id}.short`)}. <a href={path(lang, 'rooms', r.id)}>{t('bk.roomDetails')}</a></p>
+              </div>
+            </div>
+            <div class="av-sleeps" role="cell" aria-label={t('bk.sleepsN', { n: digits(r.sleeps, lang) })}>
+              <span class="av-m">{t('bk.colSleeps')}</span>
+              <span class="av-people" aria-hidden="true">{Array.from({ length: r.sleeps }, () => <Icon name="person" size={18} />)}</span>
+            </div>
+            <div class="av-price" role="cell">
+              <span class="av-m">{t('bk.colPrice')}</span>
+              <strong>{t('bk.price')}</strong>
+              <small>{t('bk.priceNote')}</small>
+            </div>
+            <ul class="av-choices" role="cell">
+              <li><Icon name="breakfast" size={16} /> <b>{t('bk.chBreakfast')}</b></li>
+              <li><Icon name="check" size={16} /> {t('bk.chNoCard')}</li>
+              <li><Icon name="check" size={16} /> {t('bk.chConfirm')}</li>
+            </ul>
+            <label class="av-select" role="cell">
+              <span class="av-m">{t('bk.colSelect')}</span>
+              <select data-room={r.id} aria-label={`${t('bk.colSelect')}: ${r.name}`}>
+                {Array.from({ length: r.max + 1 }, (_, n) => <option value={n}>{n === 0 ? digits(0, lang) : `${digits(n, lang)}`}</option>)}
+              </select>
+            </label>
+          </div>
+        ))}
+      </div>
+
+      <aside class="av-reserve" data-panel>
+        <p class="av-sel" data-sel></p>
+        <p class="av-party" data-party></p>
+        <p class="av-warn" data-warn hidden role="alert"></p>
+        <a class="av-go" href={path(lang, 'enquire')} data-reserve>{t('bk.reserve')}</a>
+        <ul class="av-promise">
+          <li><Icon name="check" size={15} /> {t('bk.reserveNote')}</li>
+          <li><Icon name="check" size={15} /> {t('bk.chConfirm')}</li>
+        </ul>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { readStay, writeStay, onStay, toQuery, nights, roomCount, fmtDate, plural, type Stay } from '../lib/stay';
+  document.querySelectorAll<HTMLElement>('[data-avail]').forEach((root) => {
+    const lang = root.dataset.lang!;
+    const D = JSON.parse(root.dataset.dict!) as Record<string, string>;
+    const SLEEPS = JSON.parse(root.dataset.sleeps!) as Record<string, number>;
+    const q = <T extends Element>(s: string) => root.querySelector<T>(s)!;
+    const selects = [...root.querySelectorAll<HTMLSelectElement>('[data-room]')];
+    let s: Stay = readStay();
+    const party = (x: Stay) => `${plural(D.adultsN, x.adults, lang)}${x.children ? ` · ${plural(D.childrenN, x.children, lang)}` : ''}`;
+    const capacity = (x: Stay) => Object.entries(x.rooms).reduce((a, [id, n]) => a + (SLEEPS[id] || 0) * n, 0);
+    const render = (warnPick = false) => {
+      q<HTMLElement>('[data-sum]').textContent = D.availFor.replace('{nights}', plural(D.nightsN, nights(s), lang)).replace('{in}', fmtDate(s.in, lang, true)).replace('{out}', fmtDate(s.out, lang, true)).replace('{party}', party(s));
+      selects.forEach((sel) => { sel.value = String(s.rooms[sel.dataset.room!] || 0); sel.closest('[data-row]')!.classList.toggle('on', Number(sel.value) > 0); });
+      const n = roomCount(s);
+      q<HTMLElement>('[data-sel]').textContent = n ? D.selected.replace('{rooms}', plural(D.roomsN, n, lang)).replace('{nights}', plural(D.nightsN, nights(s), lang)) : D.selNone;
+      q<HTMLElement>('[data-party]').textContent = party(s);
+      const warn = q<HTMLElement>('[data-warn]');
+      const cap = capacity(s), need = s.adults + s.children;
+      if (warnPick && !n) { warn.hidden = false; warn.textContent = D.pickRoom; }
+      else if (n && cap < need) { warn.hidden = false; warn.textContent = D.capacity.replace('{n}', plural(D.guestsN, cap, lang)).replace('{m}', plural(D.guestsN, need, lang)); }
+      else warn.hidden = true;
+      const go = q<HTMLAnchorElement>('[data-reserve]');
+      go.href = `${root.dataset.checkout}?${toQuery(s)}`;
+      go.classList.toggle('off', !n);
+      root.classList.toggle('has-sel', n > 0);
+      document.body.classList.toggle('av-selecting', n > 0);
+    };
+    selects.forEach((sel) => sel.addEventListener('change', () => {
+      const rooms = { ...s.rooms, [sel.dataset.room!]: Number(sel.value) };
+      s = writeStay({ ...s, rooms }, 'avail'); render();
+    }));
+    q<HTMLAnchorElement>('[data-reserve]').addEventListener('click', (e) => {
+      if (roomCount(s)) return;
+      e.preventDefault(); render(true); selects[0].focus();
+    });
+    q<HTMLAnchorElement>('[data-change]').addEventListener('click', (e) => {
+      const target = document.querySelector(q<HTMLAnchorElement>('[data-change]').getAttribute('href')!);
+      if (!target) return;
+      e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => target.querySelector<HTMLElement>('input, button')?.focus({ preventScroll: true }), 500);
+    });
+    onStay((x, from) => { if (from !== 'avail') { s = x; render(); } });
+    render();
+  });
+</script>
+
+<style>
+  .av { background: var(--paper); }
+  .av-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 8px 24px; margin-bottom: 20px; }
+  .av-head h2 { font-size: clamp(2rem, 5vw, 3rem); }
+  .av-sum { margin: 6px 0 0; font-weight: 600; color: var(--ink); }
+  .av-change { font-weight: 700; color: var(--gold-text); }
+  .av-grid { display: grid; gap: 20px; align-items: start; }
+
+  .av-table { display: grid; gap: 16px; }
+  .av-th { display: none; }
+  .av-tr { display: grid; gap: 14px; background: var(--white); border: 1px solid var(--line); border-radius: 6px; padding: 14px; transition: box-shadow 0.2s, border-color 0.2s; }
+  .av-tr.on { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold); }
+  .av-room { display: grid; gap: 12px; }
+  .av-photo { position: relative; display: block; border-radius: 4px; overflow: hidden; }
+  .av-photo :global(.photo) { border-radius: 4px; }
+  .av-photo :global(img) { transition: transform 0.8s var(--ease); }
+  .av-photo:hover :global(img) { transform: scale(1.04); }
+  .av-count { position: absolute; inset-inline-start: 8px; bottom: 8px; display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 3px; background: rgba(20, 26, 38, 0.78); color: var(--cream); font-size: 0.78rem; font-weight: 600; }
+  .av-info { display: grid; gap: 8px; align-content: start; }
+  .av-name { font-family: var(--display); font-size: 1.45rem; font-weight: 700; color: var(--ink); text-decoration: underline; text-decoration-color: var(--gold); text-underline-offset: 4px; line-height: 1.2; }
+  html[lang='ar'] .av-name { font-family: var(--sans); font-size: 1.2rem; }
+  .av-beds { margin: 0; display: flex; align-items: center; gap: 8px; color: var(--ink); font-weight: 600; font-size: 0.95rem; }
+  .av-beds :global(.icon) { color: var(--gold-text); }
+  .av-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .av-chips li { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border: 1px solid var(--line); border-radius: 3px; font-size: 0.78rem; color: var(--body); background: var(--paper); white-space: nowrap; }
+  .av-chips li :global(.icon) { color: var(--muted); }
+  .av-chips li.lead { border-color: var(--gold); background: var(--gold-pale); color: var(--ink); font-weight: 700; }
+  .av-chips li.lead :global(.icon) { color: var(--gold-text); }
+  .av-desc { margin: 0; font-size: 0.9rem; color: var(--muted); }
+  .av-desc a { color: var(--gold-text); font-weight: 600; }
+  .av-m { display: block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  html[lang='ar'] .av-m { letter-spacing: 0; font-size: 0.85rem; }
+  .av-sleeps, .av-price, .av-select { border-top: 1px solid var(--line); padding-top: 10px; }
+  /* phones: the room, then sleeps · price · rooms in one row, then what's included */
+  @media (max-width: 899px) {
+    .av-tr { grid-template-columns: auto 1fr auto; grid-template-areas: 'room room room' 'sleeps price select' 'choices choices choices'; column-gap: 14px; row-gap: 12px; }
+    .av-room { grid-area: room; } .av-sleeps { grid-area: sleeps; } .av-price { grid-area: price; } .av-select { grid-area: select; } .av-choices { grid-area: choices; }
+    .av-photo :global(.photo) { aspect-ratio: 16 / 9 !important; }
+    .av-tr .av-price small { display: none; }
+    .av-choices { grid-template-columns: 1fr; padding-top: 10px; }
+    .av-choices li:not(:first-child) { display: none; }
+    .av-people :global(svg) { width: 16px; height: 16px; }
+  }
+  .av-people { display: inline-flex; gap: 0; color: var(--ink); }
+  .av-price strong { display: block; font-size: 1.1rem; color: var(--ink); }
+  .av-price small { display: block; color: var(--muted); font-size: 0.8rem; }
+  .av-choices { list-style: none; margin: 0; padding: 10px 0 0; border-top: 1px solid var(--line); display: grid; gap: 6px; align-content: start; font-size: 0.84rem; line-height: 1.35; color: var(--body); }
+  .av-choices li { display: flex; gap: 6px; align-items: flex-start; }
+  .av-choices :global(.icon) { color: var(--wa); flex: none; margin-top: 2px; }
+  .av-choices b { color: var(--wa); }
+  .av-select select { min-width: 92px; min-height: 44px; padding: 6px 10px; border: 1px solid var(--muted); border-radius: 4px; background: var(--white); color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; }
+  .av-select select:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+
+  /* the reserve panel: a bar stuck to the bottom of the list on phones, a side panel on desktop */
+  .av-reserve { position: sticky; bottom: 0; z-index: 5; display: grid; grid-template-columns: 1fr auto; gap: 2px 14px; align-items: center; padding: 12px 14px calc(12px + env(safe-area-inset-bottom)); margin-inline: calc(var(--gutter) * -1); background: var(--white); border-top: 1px solid var(--line); box-shadow: 0 -12px 30px -18px rgba(20, 26, 38, 0.35); }
+  .av-sel { margin: 0; font-weight: 700; color: var(--ink); grid-column: 1; }
+  .av-party { margin: 0; font-size: 0.85rem; color: var(--muted); grid-column: 1; }
+  .av-warn { grid-column: 1 / -1; margin: 6px 0 0; padding: 8px 10px; border-radius: 4px; background: #fbeee5; color: var(--danger); font-size: 0.86rem; }
+  .av-go { grid-column: 2; grid-row: 1 / span 2; display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 22px; border-radius: 4px; background: var(--ink); color: var(--cream); font-weight: 700; text-decoration: none; white-space: nowrap; }
+  .av-go:hover { background: var(--night-2); }
+  .av-go.off { background: var(--muted); }
+  .av-promise { display: none; }
+  :global(body.av-selecting) :global(.stick) { transform: translateY(110%) !important; }
+
+  @media (min-width: 900px) {
+    .av-grid { grid-template-columns: minmax(0, 1fr) 260px; }
+    .av-table { gap: 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--white); }
+    .av-tr { grid-template-columns: minmax(0, 1fr) 84px 124px 176px 96px; gap: 0; border: 0; border-radius: 0; padding: 0; border-top: 1px solid var(--line); align-items: stretch; }
+    .av-tr.on { box-shadow: inset 4px 0 0 var(--gold); border-color: var(--line); }
+    html[dir='rtl'] .av-tr.on { box-shadow: inset -4px 0 0 var(--gold); }
+    .av-tr > * { padding: 16px 14px; border-inline-start: 1px solid var(--line); border-top: 0; }
+    .av-tr > :first-child { border-inline-start: 0; }
+    .av-th { display: grid; border-top: 0; background: var(--night); color: var(--cream); font-size: 0.85rem; font-weight: 700; }
+    .av-th > span { padding: 12px 14px; border-color: rgba(255, 255, 255, 0.12); }
+    .av-room { grid-template-columns: 150px minmax(0, 1fr); gap: 14px; align-content: start; }
+    .av-photo { align-self: start; }
+    .av-name { font-size: 1.3rem; }
+    .av-select select { min-width: 0; width: 100%; }
+    .av-m { display: none; }
+    .av-choices { padding-top: 16px; }
+    .av-reserve { position: sticky; top: calc(var(--header-h) + 16px); bottom: auto; margin: 0; grid-template-columns: 1fr; gap: 8px; padding: 18px; border: 1px solid var(--line); border-radius: 6px; box-shadow: var(--shadow); }
+    .av-go { grid-column: 1; grid-row: auto; min-height: 52px; font-size: 1.05rem; }
+    .av-promise { display: grid; gap: 4px; list-style: none; margin: 4px 0 0; padding: 0; font-size: 0.82rem; color: var(--body); }
+    .av-promise li { display: flex; gap: 6px; } .av-promise :global(.icon) { color: var(--wa); flex: none; margin-top: 2px; }
+    :global(body.av-selecting) :global(.stick) { transform: none; }
+  }
+  [hidden] { display: none !important; }
+</style>

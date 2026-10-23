@@ -3,43 +3,40 @@ import Layout from '../components/Layout.astro';
 import Img from '../components/Img.astro';
 import Icon from '../components/Icon.astro';
 import Lattice from '../components/Lattice.astro';
-import RoomCard from '../components/RoomCard.astro';
-import Filmstrip from '../components/Filmstrip.astro';
 import Reviews from '../components/Reviews.astro';
 import MapSection from '../components/MapSection.astro';
 import Sunset from '../components/Sunset.astro';
-import Skyline from '../components/Skyline.astro';
 import Panorama from '../components/Panorama.astro';
 import Elevation from '../components/Elevation.astro';
 import DayDial from '../components/DayDial.astro';
+import Landmark from '../components/Landmark.astro';
+import SearchBox from '../components/SearchBox.astro';
+import Property from '../components/Property.astro';
+import Availability from '../components/Availability.astro';
 import en from '../i18n/en.json';
 import ar from '../i18n/ar.json';
-import Landmark from '../components/Landmark.astro';
-import EnquiryForm from '../components/EnquiryForm.astro';
-import BookingBar from '../components/BookingBar.astro';
 import { PLACES } from '../data/places';
+import { PHOTOS, photo } from '../data/photos';
 import { fromHotel, fmtKm } from '../lib/geo';
 import { getImage } from 'astro:assets';
 import heroSrc from '../assets/photos/view-sunset.jpg';
 import { path, useT, digits, type Lang } from '../i18n';
-import { SITE, ROOMS } from '../data/site';
 import { waUrl } from '../lib/wa';
-import { photo } from '../data/photos';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const { t } = useT(lang);
 const wa = waUrl(t('enquire.waIntro'));
 const HERO_SIZES = '100vw';
 const heroImg = await getImage({ src: heroSrc, widths: [480, 720, 1080, 1440, 1600], format: 'avif', quality: 60 });
-const gate = PLACES.find((p) => p.id === 'gate')!;
-const facts = [t('facts.view'), t('facts.breakfast'), t('facts.distance', { km: fmtKm(fromHotel(gate.at).km, lang) }), t('facts.reply')];
 const practical: [string, string][] = ((lang === 'ar' ? ar : en) as any).practical.items;
 const liftFloors = ['11', '10', '9', '8', '7', '6', '5', '4', '3', '2', '1'];
-const strip = ['view-day', 'balcony-day', 'lounge-sunset', 'terrace-day', 'room-view', 'view-night', 'lounge-ceiling', 'terrace-sunset', 'room-twin', 'view-dusk', 'sofa-corner', 'reception'];
+// the gallery: the strongest ten first (big, four beside, five below), then every other photo
+const lead = ['terrace-sunset', 'tv-room5', 'studio-bed', 'view-show', 'tv-sunset', 'db-room8', 'terrace-day', 'tw-beds', 'studio-kitchenette', 'tr-beds'];
+const mosaic = [...lead, ...PHOTOS.map((p) => p.id).filter((id) => !lead.includes(id))];
 const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find((p) => p.id === id)!).map((p) => { const g = fromHotel(p.at); return { ...p, kmText: fmtKm(g.km, lang), mins: g.mode === 'foot' ? t('giza.onFoot', { min: g.min }) : t('giza.byCar', { min: g.min }) }; });
 ---
 <Layout lang={lang} page="home" title={t('meta.home.title')} desc={t('meta.home.desc')} overHero preload={{ href: heroImg.src, srcset: heroImg.srcSet.attribute, sizes: HERO_SIZES }}>
-  <!-- 01 Hero: the sunset photo, full bleed, the title over the rooftops -->
+  <!-- Hero: the sunset photo, the title over the rooftops, the lift panel -->
   <section class="hero" id="top">
     <div class="hero-photo">
       <Img id="view-sunset" lang={lang} priority sizes={HERO_SIZES} widths={[480, 720, 1080, 1440, 1600]} quality={60} position="50% 42%" />
@@ -49,70 +46,51 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
       <p class="eyebrow hero-eyebrow">{t('hero.eyebrow')}</p>
       <h1 class="hero-title">{t('hero.title')}</h1>
       <p class="hero-ar" lang={lang === 'ar' ? 'en' : 'ar'} dir={lang === 'ar' ? 'ltr' : 'rtl'}>{lang === 'ar' ? 'Giza Pyramids View Guest House' : 'بيت ضيافة إطلالة أهرامات الجيزة'}</p>
-      <p class="hero-lead">{t('hero.lead')}</p>
       <div class="hero-cta">
-        <a class="btn btn-wa btn-lg" href={wa} target="_blank" rel="noopener"><Icon name="whatsapp" /> {t('hero.cta')}</a>
-        <a class="btn btn-ghost hero-rooms" href={path(lang, 'rooms')}>{t('hero.ctaRooms')} <Icon name="arrowRight" size={18} class="rtl-flip" /></a>
+        <a class="btn btn-lg hero-book" href="#availability">{t('bk.checkAvail')} <Icon name="arrowRight" size={18} class="rtl-flip" /></a>
+        <a class="btn btn-ghost hero-wa" href={wa} target="_blank" rel="noopener"><Icon name="whatsapp" /> {t('hero.cta')}</a>
       </div>
-      <p class="caption hero-cap">{t('hero.photoCaption')}</p>
     </div>
-    <!-- the lift panel: eleven floors, the top one lit -->
     <ol class="lift" aria-label={t('hero.lift')}>
       {liftFloors.map((f, i) => <li class:list={[i === 0 && 'on']}><span>{digits(f, lang)}</span>{i === 0 && <em>{t('hero.lift')}</em>}</li>)}
       <li><span>{t('hero.liftG')}</span></li>
     </ol>
   </section>
 
-  <!-- the booking bar, straddling the bottom of the hero -->
-  <div class="wrap book-wrap"><BookingBar lang={lang} /></div>
+  <!-- the search box, straddling the bottom of the hero -->
+  <div class="wrap sb-wrap"><SearchBox lang={lang} id="search" /></div>
 
-  <!-- the drawn skyline and the facts strip -->
-  <div class="wrap">
-    <div class="sky-band" aria-hidden="true"><Skyline /></div>
-    <ul class="facts" aria-label="Facts">
-      {facts.map((f) => <li>{f}</li>)}
-    </ul>
-  </div>
+  <!-- the listing: name, score, gallery, highlights -->
+  <Property lang={lang} mosaic={mosaic} />
+
   <Sunset lang={lang} />
 
-  <!-- 02 Rooms -->
-  <section class="section" id="rooms">
-    <div class="wrap">
-      <div class="section-head rv">
-        <span class="num">{digits('01', lang)}</span>
-        <h2>{t('sections.rooms')}</h2>
-        <p class="lead">{t('rooms.intro')}</p>
-      </div>
-      <div class="rooms-grid">
-        {ROOMS.map((r, i) => <RoomCard id={r.id} hero={r.hero} lang={lang} index={i} faces={r.faces} size={i % 2 === 1 ? 'wide' : 'tall'} />)}
-      </div>
-      <p class="rooms-all rv"><a class="btn btn-gold" href={path(lang, 'rooms')}>{t('rooms.all')} <Icon name="arrowRight" size={18} class="rtl-flip" /></a></p>
-    </div>
-  </section>
+  <!-- the rooms, as an availability list -->
+  <Availability lang={lang} searchId="search" />
 
   <Lattice />
 
-  <!-- 03 The view: the panorama diagram at true bearings -->
+  <!-- The view: the panorama at true bearings -->
   <section class="section viewsec" id="view">
     <div class="wrap">
       <div class="section-head rv">
-        <span class="num">{digits('02', lang)}</span>
+        <span class="num">{digits('01', lang)}</span>
         <h2>{t('view.title')}</h2>
         <p class="lead">{t('view.text')}</p>
       </div>
       <Panorama lang={lang} />
       <div class="view-photos">
-        <div class="frame rv"><Img id="view-night" lang={lang} ratio="4 / 3" sizes="(min-width: 960px) 46vw, 100vw" /><p class="caption">{t('view.captionNight')}</p></div>
-        <div class="frame rv rv-d2"><Img id="view-day" lang={lang} ratio="4 / 3" sizes="(min-width: 960px) 46vw, 100vw" /><p class="caption">{t('view.captionDay')}</p></div>
+        <div class="frame rv"><Img id="view-show" lang={lang} ratio="4 / 3" sizes="(min-width: 960px) 46vw, 100vw" /><p class="caption">{photo('view-show').caption![lang]}</p></div>
+        <div class="frame rv rv-d2"><Img id="tv-window" lang={lang} ratio="4 / 3" sizes="(min-width: 960px) 46vw, 100vw" /><p class="caption">{photo('tv-window').caption![lang]}</p></div>
       </div>
     </div>
   </section>
 
-  <!-- 04 Why you can see them: the profile -->
+  <!-- Why you can see them: the profile -->
   <section class="section elevsec" id="height">
     <div class="wrap">
       <div class="section-head rv">
-        <span class="num">{digits('03', lang)}</span>
+        <span class="num">{digits('02', lang)}</span>
         <h2>{t('sections.elev')}</h2>
         <p class="lead">{t('elev.text')}</p>
       </div>
@@ -122,62 +100,48 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
 
   <Lattice />
 
-  <!-- 05 A day on the eleventh floor -->
+  <!-- A day on the eleventh floor -->
   <section class="section daysec" id="day">
     <div class="wrap">
       <div class="section-head rv">
-        <span class="num">{digits('04', lang)}</span>
+        <span class="num">{digits('03', lang)}</span>
         <h2>{t('sections.day')}</h2>
       </div>
       <div class="rv"><DayDial lang={lang} /></div>
     </div>
   </section>
 
-  <!-- 06 The roof terrace -->
+  <!-- The roof terrace -->
   <section class="section reno" id="terrace">
     <div class="wrap reno-in">
       <div class="reno-photo reno-a rv"><Img id="terrace-day" lang={lang} ratio="3 / 4" sizes="(min-width: 960px) 30vw, 60vw" /><p class="caption">{photo('terrace-day').caption![lang]}</p></div>
       <div class="reno-text rv rv-d1">
-        <span class="num">{digits('05', lang)}</span>
+        <span class="num">{digits('04', lang)}</span>
         <h2>{t('rooms.bathroom')}</h2>
         <p class="lead">{t('rooms.bathroomText')}</p>
         <Landmark name="sun" size={48} />
       </div>
-      <div class="reno-photo reno-b rv rv-d2"><Img id="terrace-sunset" lang={lang} ratio="4 / 3" sizes="(min-width: 960px) 38vw, 80vw" /><p class="caption">{photo('terrace-sunset').caption![lang]}</p></div>
+      <div class="reno-photo reno-b rv rv-d2"><Img id="terrace-noon" lang={lang} ratio="4 / 3" sizes="(min-width: 960px) 38vw, 80vw" /><p class="caption">{photo('terrace-noon').caption![lang]}</p></div>
     </div>
   </section>
 
-  <!-- 07 The practical part -->
-  <section class="section pract">
+  <!-- House rules and the practical part -->
+  <section class="section pract" id="rules">
     <div class="wrap pract-in">
-      <div class="section-head rv"><span class="num">{digits('06', lang)}</span><h2>{t('sections.practical')}</h2><p class="lead">{t('practical.intro')}</p></div>
+      <div class="section-head rv"><span class="num">{digits('05', lang)}</span><h2>{t('sections.practical')}</h2><p class="lead">{t('practical.intro')}</p></div>
       <dl class="pract-list rv rv-d1">
         {practical.map(([k, v]) => <div><dt>{k}</dt><dd>{v}</dd></div>)}
       </dl>
     </div>
   </section>
 
-  <!-- 08 Gallery filmstrip -->
-  <section class="section gal" id="gallery">
-    <div class="wrap">
-      <div class="section-head rv">
-        <span class="num">{digits('07', lang)}</span>
-        <h2>{t('sections.gallery')}</h2>
-        <p class="lead">{t('gallery.intro')}</p>
-      </div>
-    </div>
-    <Filmstrip items={strip} lang={lang} id="home-strip" height={440} />
-    <div class="wrap"><p class="gal-more rv"><a class="btn btn-gold" href={path(lang, 'gallery')}>{t('nav.gallery')} <Icon name="arrowRight" size={18} class="rtl-flip" /></a></p></div>
-  </section>
-
-  <!-- 07 Reviews -->
   <Reviews lang={lang} />
 
-  <!-- 08 Giza teaser -->
+  <!-- Giza from here -->
   <section class="section sal">
     <div class="wrap">
       <div class="section-head rv">
-        <span class="num">{digits('08', lang)}</span>
+        <span class="num">{digits('06', lang)}</span>
         <h2>{t('sections.giza')}</h2>
         <p class="lead">{t('giza.intro')}</p>
       </div>
@@ -193,77 +157,44 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
     </div>
   </section>
 
-  <!-- 09 Map -->
   <MapSection lang={lang} compact />
 
-  <Lattice />
-
-  <!-- 10 Enquire -->
-  <section class="section enq-home" id="enquire">
-    <div class="wrap enq-home-in">
-      <div class="enq-home-text">
-        <div class="section-head rv">
-          <span class="num">{digits('09', lang)}</span>
-          <h2>{t('enquire.title')}</h2>
-          <p class="lead">{t('enquire.text')}</p>
-        </div>
-        <blockquote class="note rv"><p>{t('enquire.note')}</p><footer>— {t('enquire.noteSign')}</footer></blockquote>
-      </div>
-      <div class="rv rv-d1"><EnquiryForm lang={lang} /></div>
+  <!-- the last word: back to the rooms -->
+  <section class="section endcta">
+    <div class="wrap endcta-in">
+      <h2>{t('bk.checkAvail')}</h2>
+      <p class="lead">{t('bk.finalLead')}</p>
+      <p><a class="btn btn-lg" href="#search">{t('bk.search')} <Icon name="arrowRight" size={18} class="rtl-flip" /></a> <a class="btn btn-ghost" href={wa} target="_blank" rel="noopener"><Icon name="whatsapp" /> {t('hero.cta')}</a></p>
     </div>
   </section>
 </Layout>
 
 <style>
-  /* ---- hero: the sunset photo, full bleed on every screen ---- */
-  .hero { position: relative; min-height: 100svh; display: grid; align-items: end; color: var(--cream); isolation: isolate; overflow: hidden; }
+  /* ---- hero: the sunset photo, full bleed ---- */
+  .hero { position: relative; min-height: 82svh; display: grid; align-items: end; color: var(--cream); isolation: isolate; overflow: hidden; }
   .hero-photo { position: absolute; inset: 0; z-index: -2; }
   .hero-photo :global(.photo) { height: 100%; border-radius: 0; }
   .hero-photo :global(img) { height: 100%; width: 100%; object-fit: cover; animation: pan 30s var(--ease) both; transform-origin: 50% 40%; }
   @keyframes pan { from { transform: scale(1.1); } to { transform: scale(1); } }
-  .hero-veil { position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(20, 26, 38, 0.5) 0%, rgba(20, 26, 38, 0.06) 28%, rgba(20, 26, 38, 0.42) 52%, rgba(20, 26, 38, 0.92) 100%); }
-  .hero-eyebrow { text-shadow: 0 1px 6px rgba(0,0,0,.5); }
-  .hero-in { padding-top: calc(var(--header-h) + 24px); padding-bottom: 64px; display: grid; gap: 12px; }
-  .hero-eyebrow { color: var(--gold-light); }
-  .hero-title { color: var(--cream); font-size: clamp(2.7rem, 11vw, 5.6rem); max-width: 11em; text-wrap: balance; text-shadow: 0 2px 10px rgba(0,0,0,.35); }
-  html[lang='ar'] .hero-title { font-size: clamp(2.3rem, 9vw, 4.4rem); max-width: 14em; }
+  .hero-veil { position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(20, 26, 38, 0.5) 0%, rgba(20, 26, 38, 0.06) 28%, rgba(20, 26, 38, 0.42) 55%, rgba(20, 26, 38, 0.92) 100%); }
+  .hero-in { padding-top: calc(var(--header-h) + 24px); padding-bottom: 96px; display: grid; gap: 12px; }
+  .hero-eyebrow { color: var(--gold-light); text-shadow: 0 1px 6px rgba(0,0,0,.5); }
+  .hero-title { color: var(--cream); font-size: clamp(2.6rem, 10.5vw, 5.4rem); max-width: 11em; text-wrap: balance; text-shadow: 0 2px 10px rgba(0,0,0,.35); }
+  html[lang='ar'] .hero-title { font-size: clamp(2.2rem, 9vw, 4.4rem); max-width: 14em; }
   .hero-ar { font-family: 'Tajawal', 'Noto Sans Arabic', sans-serif; font-weight: 500; font-size: 1.2rem; color: var(--gold-light); margin: 0; opacity: 0.95; }
   html[lang='ar'] .hero-ar { font-family: var(--display); letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.95rem; }
-  .hero-lead { max-width: 32em; color: rgba(244, 236, 221, 0.92); margin: 0; font-size: 1.05rem; text-shadow: 0 1px 4px rgba(0,0,0,.4); }
   .hero-cta { display: grid; gap: 8px; margin-top: 8px; }
-  .hero-rooms { color: var(--cream); text-decoration-color: var(--gold-light); justify-content: start; }
-  .hero-cap { color: rgba(244, 236, 221, 0.7); font-size: 0.95rem; margin: 6px 0 0; }
+  .hero-book { background: var(--gold-light); border-color: var(--gold-light); color: var(--night); }
+  .hero-book:hover { background: var(--gold-pale); }
+  .hero-wa { color: var(--cream); text-decoration-color: var(--gold-light); justify-content: start; }
   @media (prefers-reduced-motion: reduce) { .hero-photo :global(img) { animation: none; } }
   @media (min-width: 960px) {
-    .hero { min-height: 100vh; }
-    .hero-in { padding-bottom: 104px; max-width: var(--container); }
-    .hero-title { font-size: clamp(3.6rem, 6vw, 6.4rem); }
-    .hero-lead { font-size: 1.18rem; }
+    .hero { min-height: 86vh; }
+    .hero-in { padding-bottom: 128px; max-width: var(--container); }
+    .hero-title { font-size: clamp(3.6rem, 6vw, 6.2rem); }
     .hero-cta { grid-auto-flow: column; justify-content: start; align-items: center; gap: 18px; }
   }
-
-  .book-wrap { margin-top: -34px; position: relative; z-index: 3; }
-  @media (min-width: 960px) { .book-wrap { margin-top: -44px; } }
-  .sky-band { padding-top: 28px; max-width: 760px; margin-inline: auto; }
-  .facts { list-style: none; margin: 0; padding: 18px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; border-bottom: 1px solid var(--line); }
-  .facts li { font-size: 0.85rem; letter-spacing: 0.04em; color: var(--body); display: flex; align-items: center; gap: 10px; }
-  .facts li::before { content: ''; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 8px solid var(--gold); flex: none; }
-  @media (min-width: 720px) { .facts { grid-template-columns: repeat(4, 1fr); padding: 22px 0; } .facts li { font-size: 0.92rem; } }
-
-  .rooms-grid { display: grid; gap: 40px; }
-  .rooms-all { margin-top: 36px; }
-  @media (min-width: 720px) {
-    .rooms-grid { grid-template-columns: repeat(12, 1fr); gap: 32px; align-items: start; }
-    .rooms-grid > :global(:nth-child(1)) { grid-column: 1 / 6; }
-    .rooms-grid > :global(:nth-child(2)) { grid-column: 7 / 13; margin-top: 96px; }
-    .rooms-grid > :global(:nth-child(3)) { grid-column: 2 / 7; margin-top: -24px; }
-    .rooms-grid > :global(:nth-child(4)) { grid-column: 8 / 13; margin-top: 72px; }
-  }
-
-  .viewsec { background: var(--cream); }
-  .view-photos { display: grid; gap: 28px; margin-top: 40px; }
-  .view-photos .caption { margin-top: 10px; }
-  @media (min-width: 960px) { .view-photos { grid-template-columns: 1fr 1fr; gap: 40px; } .view-photos > :nth-child(2) { margin-top: 56px; } }
+  .sb-wrap { margin-top: -52px; position: relative; z-index: 4; }
 
   /* the lift panel */
   .lift { list-style: none; margin: 0; padding: 0; position: absolute; inset-inline-end: var(--gutter); top: calc(var(--header-h) + 18px); display: none; flex-direction: column; gap: 2px; z-index: 2; }
@@ -273,7 +204,12 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
   .lift em { position: absolute; inset-inline-end: 40px; white-space: nowrap; font-style: normal; font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold-light); }
   html[lang='ar'] .lift em { letter-spacing: 0; font-size: 0.85rem; }
   @media (min-width: 720px) { .lift { display: flex; } }
-  @media (min-width: 960px) { .lift { top: auto; bottom: 72px; } }
+  @media (min-width: 960px) { .lift { top: auto; bottom: 120px; } }
+
+  .viewsec { background: var(--cream); }
+  .view-photos { display: grid; gap: 28px; margin-top: 40px; }
+  .view-photos .caption { margin-top: 10px; }
+  @media (min-width: 960px) { .view-photos { grid-template-columns: 1fr 1fr; gap: 40px; } .view-photos > :nth-child(2) { margin-top: 56px; } }
 
   .elevsec { background: var(--paper); }
   .daysec .section-head { margin-bottom: 20px; }
@@ -287,22 +223,14 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
   @media (min-width: 720px) { .pract-list { grid-template-columns: 1fr 1fr; } }
   @media (min-width: 960px) { .pract-in { grid-template-columns: 1fr 2fr; gap: 64px; align-items: start; } .pract-in .section-head { margin: 0; } }
 
-  .gal-more { margin-top: 28px; }
   .sal-list { list-style: none; margin: 0 0 24px; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
   .sal-list li { display: grid; gap: 8px; }
   .sal-list strong { font-family: var(--display); font-size: 1.35rem; color: var(--ink); font-weight: 600; display: block; }
   html[lang='ar'] .sal-list strong { font-family: var(--sans); font-weight: 600; font-size: 1.1rem; }
   .sal-list p { margin: 2px 0 0; }
   @media (min-width: 720px) { .sal-list { grid-template-columns: repeat(4, 1fr); gap: 32px; } }
-  .enq-home { background: var(--paper); }
-  .enq-home-in { display: grid; gap: 32px; }
-  .note { margin: 0; padding: 0 0 0 18px; border-inline-start: 2px solid var(--gold); font-family: var(--display); font-size: 1.35rem; color: var(--ink); line-height: 1.4; }
-  html[dir='rtl'] .note { padding: 0 18px 0 0; }
-  html[lang='ar'] .note { font-family: var(--sans); font-size: 1.1rem; font-weight: 500; }
-  .note p { margin: 0 0 8px; }
-  .note footer { font-family: var(--sans); font-size: 0.85rem; color: var(--muted); letter-spacing: 0.06em; }
-  @media (min-width: 960px) { .enq-home-in { grid-template-columns: 1fr 1.1fr; gap: 72px; align-items: start; } }
-  .reno { background: var(--paper); }
+
+  .reno { background: var(--cream); }
   .reno-in { display: grid; gap: 32px; }
   .reno-photo .caption { margin: 10px 0 0; }
   .reno-a { width: 70%; }
@@ -314,4 +242,12 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
     .reno-text { grid-column: 5 / 9; padding-inline: 24px; }
     .reno-b { grid-column: 9 / 13; width: 100%; margin-top: 120px; }
   }
+
+  .endcta { background: var(--night); color: var(--cream); }
+  .endcta-in { display: grid; gap: 14px; justify-items: start; max-width: 760px; }
+  .endcta h2 { color: var(--cream); }
+  .endcta .lead { color: rgba(244, 236, 221, 0.85); }
+  .endcta p:last-child { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 0; }
+  .endcta .btn:not(.btn-ghost) { background: var(--gold-light); border-color: var(--gold-light); color: var(--night); }
+  .endcta .btn-ghost { color: var(--cream); }
 </style>

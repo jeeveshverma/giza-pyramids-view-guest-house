@@ -1,0 +1,349 @@
+---
+/**
+ * The checkout, in Booking.com's three steps: 1 your selection (done on the availability list;
+ * the step links back to it), 2 your details, 3 final step. The sidebar holds the property card
+ * and the booking details — dates, guests and rooms, all still editable here, so the page also
+ * works when opened directly. The final step shows the request as the WhatsApp message it will
+ * become, then opens WhatsApp with it. Nothing is charged; there is no booking engine.
+ */
+import { path, useT, digits, type Lang } from '../i18n';
+import { SITE, ROOMS } from '../data/site';
+import { plural } from '../lib/stay';
+import Img from './Img.astro';
+import Icon from './Icon.astro';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const { t } = useT(lang);
+const d = (n: number | string) => digits(n, lang);
+const arrivals = Array.from({ length: 10 }, (_, i) => { const h = 14 + i; return `${String(h).padStart(2, '0')}:00–${String((h + 1) % 24).padStart(2, '0')}:00`; });
+const roomNames = Object.fromEntries(ROOMS.map((r) => [r.id, t(`rooms.${r.id}.name`)]));
+const dict = {
+  nightsN: t('bk.nightsN'), roomsN: t('bk.roomsN'), adultsN: t('bk.adultsN'), childrenN: t('bk.childrenN'), noChildren: t('bk.noChildren'), guestsN: t('bk.guestsN'),
+  capacity: t('bk.capacity'), errRooms: t('bk.errRooms'), errName: t('bk.errName'), errPhone: t('bk.errPhone'), errEmail: t('bk.errEmail'), copied: t('bk.copied'), copy: t('bk.copy'),
+  checkinFrom: t('bk.checkinFrom', { t: d(SITE.checkIn) }), checkoutUntil: t('bk.checkoutUntil', { t: d(SITE.checkOut) }), arrivalUnknown: t('bk.arrivalUnknown'), pickupYes: t('bk.pickupYes'),
+  waIntro: t('bk.wa.intro'), waIn: t('bk.wa.in'), waOut: t('bk.wa.out'), waStay: t('bk.wa.stay'), waGuests: t('bk.wa.guests'), waRooms: t('bk.wa.rooms'), waName: t('bk.wa.name'), waPhone: t('bk.wa.phone'), waEmail: t('bk.wa.email'), waArrival: t('bk.wa.arrival'), waPickup: t('bk.wa.pickup'), waReq: t('bk.wa.req'), waFrom: t('bk.wa.from'),
+  checkIn: SITE.checkIn, checkOut: SITE.checkOut,
+};
+const sleeps = Object.fromEntries(ROOMS.map((r) => [r.id, r.sleeps]));
+const maxes = Object.fromEntries(ROOMS.map((r) => [r.id, r.max]));
+---
+<div class="co" data-co data-lang={lang} data-wa={SITE.whatsapp} data-dict={JSON.stringify(dict)} data-names={JSON.stringify(roomNames)} data-sleeps={JSON.stringify(sleeps)} data-max={JSON.stringify(maxes)} data-rooms-url={path(lang, 'rooms')}>
+  <ol class="co-steps" aria-label="Steps">
+    <li class="done"><a href={path(lang, 'rooms')} data-back-rooms><span class="co-dot"><Icon name="check" size={14} stroke={2.4} /></span>{t('bk.steps.0')}</a></li>
+    <li class="cur" data-stepdot="2"><span class="co-dot">{d(2)}</span>{t('bk.steps.1')}</li>
+    <li data-stepdot="3"><span class="co-dot">{d(3)}</span>{t('bk.steps.2')}</li>
+  </ol>
+
+  <div class="co-grid">
+    <p class="co-mini"><span data-mini></span> <a href="#co-book">{t('bk.change')}</a></p>
+    <aside class="co-side">
+      <div class="co-card co-prop">
+        <Img id="terrace-sunset" lang={lang} ratio="16 / 9" sizes="(min-width: 960px) 340px, 100vw" widths={[360, 540, 720]} />
+        <div class="co-prop-body">
+          <p class="co-stars" aria-hidden="true"><Icon name="starFill" size={13} /><Icon name="starFill" size={13} /><Icon name="starFill" size={13} /> <span>{t('hero.eyebrow')}</span></p>
+          <h3>{SITE.name[lang]}</h3>
+          <p class="co-addr">{t('footer.address')}</p>
+          <p class="co-score"><span class="co-badge">{d(SITE.scores.google.score)}</span> <span><b>{t('bk.reviewWord')}</b> · Google · {t('reviews.count', { n: d(SITE.scores.google.count) })}</span></p>
+          <ul class="co-hl">
+            <li><Icon name="pyramid" size={15} /> {t('bk.f.pyramids')}</li>
+            <li><Icon name="breakfast" size={15} /> {t('bk.chBreakfast')}</li>
+            <li><Icon name="wifi" size={15} /> {t('bk.f.wifi')}</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="co-card co-book" id="co-book">
+        <h3>{t('bk.yourBooking')}</h3>
+        <div class="co-dates">
+          <label class="co-date"><span class="co-k">{t('bk.checkin')}</span><b data-v="in"></b><small>{dict.checkinFrom}</small><input type="date" name="cin" aria-label={t('bk.checkin')} /></label>
+          <label class="co-date"><span class="co-k">{t('bk.checkout')}</span><b data-v="out"></b><small>{dict.checkoutUntil}</small><input type="date" name="cout" aria-label={t('bk.checkout')} /></label>
+        </div>
+        <p class="co-len"><span class="co-k">{t('bk.totalStay')}</span> <b data-v="nights"></b></p>
+        <div class="co-party">
+          <span class="co-k">{t('bk.guests')}</span>
+          <div class="co-pr"><span>{t('bk.adults')}</span><span class="co-step"><button type="button" data-p="adults:-1" aria-label={`${t('bk.adults')} −`}>−</button><output data-o="adults"></output><button type="button" data-p="adults:1" aria-label={`${t('bk.adults')} +`}>+</button></span></div>
+          <div class="co-pr"><span>{t('bk.children')}</span><span class="co-step"><button type="button" data-p="children:-1" aria-label={`${t('bk.children')} −`}>−</button><output data-o="children"></output><button type="button" data-p="children:1" aria-label={`${t('bk.children')} +`}>+</button></span></div>
+        </div>
+        <div class="co-rooms">
+          <span class="co-k">{t('bk.youSelected')} <b data-v="rooms"></b></span>
+          <ul>
+            {ROOMS.map((r) => (
+              <li data-rrow={r.id}>
+                <span class="co-rn">{t(`rooms.${r.id}.name`)}<small>{t(`rooms.${r.id}.short`)}</small></span>
+                <span class="co-step"><button type="button" data-r={`${r.id}:-1`} aria-label={`${t(`rooms.${r.id}.name`)} −`}>−</button><output data-ro={r.id}></output><button type="button" data-r={`${r.id}:1`} aria-label={`${t(`rooms.${r.id}.name`)} +`}>+</button></span>
+              </li>
+            ))}
+          </ul>
+          <p class="co-warn" data-warn hidden role="alert"></p>
+          <a class="co-change" href={path(lang, 'rooms')} data-back-rooms>{t('bk.change')}</a>
+        </div>
+      </div>
+    </aside>
+
+    <div class="co-main">
+      <form class="co-card co-step2" data-step="2" novalidate>
+        <h2>{t('bk.detailsTitle')}</h2>
+        <p class="co-lead">{t('bk.detailsLead')}</p>
+        <div class="co-fields">
+          <label class="co-f"><span>{t('bk.first')} <i aria-hidden="true">*</i></span><input name="first" autocomplete="given-name" required /></label>
+          <label class="co-f"><span>{t('bk.last')} <i aria-hidden="true">*</i></span><input name="last" autocomplete="family-name" required /></label>
+          <label class="co-f co-wide"><span>{t('bk.phone')} <i aria-hidden="true">*</i></span><input name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+" required /><small>{t('bk.phoneHint')}</small></label>
+          <label class="co-f co-wide"><span>{t('bk.email')} <em>({t('bk.optional')})</em></span><input name="email" type="email" inputmode="email" autocomplete="email" /></label>
+          <p class="co-err co-wide" data-err hidden role="alert"></p>
+        </div>
+        <fieldset class="co-fs">
+          <legend>{t('bk.arrival')}</legend>
+          <p class="co-hint"><Icon name="clock" size={16} /> {t('bk.arrivalHint', { t: d(SITE.checkIn) })}</p>
+          <select name="arrival" aria-label={t('bk.arrival')}>
+            <option value="">{t('bk.arrivalUnknown')}</option>
+            {arrivals.map((a) => <option value={a}>{d(a)}</option>)}
+            <option value="late">{t('bk.arrivalLate')}</option>
+          </select>
+        </fieldset>
+        <fieldset class="co-fs">
+          <legend>{t('bk.pickup')}</legend>
+          <label class="co-check"><input type="checkbox" name="pickup" /><span>{t('bk.pickupYes')}</span></label>
+          <label class="co-f co-flight" hidden><span>{t('bk.flight')}</span><input name="flight" placeholder="MS 778 · 14:30" /></label>
+        </fieldset>
+        <fieldset class="co-fs">
+          <legend>{t('bk.requests')} <em>({t('bk.optional')})</em></legend>
+          <textarea name="req" rows="3" placeholder={t('bk.requestsPh')}></textarea>
+          <p class="co-hint">{t('bk.requestsHint')}</p>
+        </fieldset>
+        <div class="co-actions"><button type="submit" class="co-next">{t('bk.next')} <Icon name="arrowRight" size={18} class="rtl-flip" /></button></div>
+      </form>
+
+      <section class="co-card co-step3" data-step="3" hidden aria-labelledby="co-final">
+        <h2 id="co-final" tabindex="-1">{t('bk.finalTitle')}</h2>
+        <p class="co-lead">{t('bk.finalLead')}</p>
+        <div class="co-wa">
+          <div class="co-wa-top"><Icon name="whatsapp" size={18} /> <bdi dir="ltr">{SITE.whatsappDisplay}</bdi> · {SITE.shortName[lang]}</div>
+          <div class="co-bubble"><pre data-msg></pre><span class="co-tick" aria-hidden="true">✓✓</span></div>
+        </div>
+        <div class="co-actions co-final-actions">
+          <a class="co-send" href="#" target="_blank" rel="noopener" data-send><Icon name="whatsapp" size={20} /> {t('bk.send')}</a>
+          <button type="button" class="co-ghost" data-copy><Icon name="copy" size={17} /> <span>{t('bk.copy')}</span></button>
+          <button type="button" class="co-ghost" data-back><Icon name="arrowLeft" size={17} class="rtl-flip" /> {t('bk.back')}</button>
+        </div>
+        <p class="co-call">{t('bk.or', { phone: '' })} <a href={`tel:${SITE.phone}`}><bdi dir="ltr">{SITE.phoneDisplay}</bdi></a></p>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { readStay, writeStay, toQuery, nights, roomCount, fmtDate, plural, dg, type Stay } from '../lib/stay';
+  const GKEY = 'gp-guest';
+  document.querySelectorAll<HTMLElement>('[data-co]').forEach((root) => {
+    const lang = root.dataset.lang!;
+    const D = JSON.parse(root.dataset.dict!) as Record<string, string>;
+    const NAMES = JSON.parse(root.dataset.names!) as Record<string, string>;
+    const SLEEPS = JSON.parse(root.dataset.sleeps!) as Record<string, number>;
+    const MAX = JSON.parse(root.dataset.max!) as Record<string, number>;
+    const d = dg(lang);
+    const q = <T extends Element>(s: string) => root.querySelector<T>(s)!;
+    const form = q<HTMLFormElement>('[data-step="2"]'), final = q<HTMLElement>('[data-step="3"]');
+    const cin = q<HTMLInputElement>('[name=cin]'), cout = q<HTMLInputElement>('[name=cout]');
+    let s: Stay = readStay();
+    const party = (x: Stay) => `${plural(D.adultsN, x.adults, lang)}${x.children ? `${lang === 'ar' ? '، ' : ', '}${plural(D.childrenN, x.children, lang)}` : ''}`;
+    const capacity = (x: Stay) => Object.entries(x.rooms).reduce((a, [id, n]) => a + (SLEEPS[id] || 0) * n, 0);
+
+    const renderStay = () => {
+      cin.value = s.in; cout.value = s.out;
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      cin.min = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      q<HTMLElement>('[data-v=in]').textContent = fmtDate(s.in, lang);
+      q<HTMLElement>('[data-v=out]').textContent = fmtDate(s.out, lang);
+      q<HTMLElement>('[data-v=nights]').textContent = plural(D.nightsN, nights(s), lang);
+      q<HTMLOutputElement>('[data-o=adults]').value = d(s.adults);
+      q<HTMLOutputElement>('[data-o=children]').value = d(s.children);
+      const n = roomCount(s);
+      q<HTMLElement>('[data-v=rooms]').textContent = n ? plural(D.roomsN, n, lang) : '';
+      q<HTMLElement>('[data-mini]').textContent = `${fmtDate(s.in, lang, true)} – ${fmtDate(s.out, lang, true)} · ${plural(D.nightsN, nights(s), lang)} · ${n ? plural(D.roomsN, n, lang) : '—'} · ${party(s)}`;
+      root.querySelectorAll<HTMLElement>('[data-rrow]').forEach((li) => { const k = s.rooms[li.dataset.rrow!] || 0; li.classList.toggle('on', k > 0); q<HTMLOutputElement>(`[data-ro="${li.dataset.rrow}"]`).value = d(k); });
+      const warn = q<HTMLElement>('[data-warn]'); const cap = capacity(s), need = s.adults + s.children;
+      if (!n) { warn.hidden = false; warn.textContent = D.errRooms; }
+      else if (cap < need) { warn.hidden = false; warn.textContent = D.capacity.replace('{n}', plural(D.guestsN, cap, lang)).replace('{m}', plural(D.guestsN, need, lang)); }
+      else warn.hidden = true;
+      root.querySelectorAll<HTMLAnchorElement>('[data-back-rooms]').forEach((a) => (a.href = `${root.dataset.roomsUrl}?${toQuery(s)}#availability`));
+    };
+    const set = (patch: Partial<Stay>) => { s = writeStay({ ...s, ...patch }, 'co'); renderStay(); if (!final.hidden) renderFinal(); };
+    cin.addEventListener('change', () => { if (!cin.value) return renderStay(); const o = new Date(cin.value + 'T00:00:00'); o.setDate(o.getDate() + 1); const oi = `${o.getFullYear()}-${String(o.getMonth() + 1).padStart(2, '0')}-${String(o.getDate()).padStart(2, '0')}`; set({ in: cin.value, out: cout.value > cin.value ? cout.value : oi }); });
+    cout.addEventListener('change', () => { if (cout.value) set({ out: cout.value }); else renderStay(); });
+    root.querySelectorAll<HTMLButtonElement>('[data-p]').forEach((b) => b.addEventListener('click', () => { const [k, by] = b.dataset.p!.split(':') as ['adults' | 'children', string]; set({ [k]: s[k] + Number(by) } as Partial<Stay>); }));
+    root.querySelectorAll<HTMLButtonElement>('[data-r]').forEach((b) => b.addEventListener('click', () => { const [id, by] = b.dataset.r!.split(':'); const n = Math.max(0, Math.min(MAX[id] ?? 3, (s.rooms[id] || 0) + Number(by))); set({ rooms: { ...s.rooms, [id]: n } }); }));
+
+    // the guest's own details survive a reload or a trip back to the rooms
+    const fields = ['first', 'last', 'phone', 'email', 'arrival', 'flight', 'req'] as const;
+    const el = (n: string) => form.querySelector<HTMLInputElement>(`[name=${n}]`)!;
+    try { const g = JSON.parse(sessionStorage.getItem(GKEY) || '{}'); fields.forEach((f) => { if (g[f]) el(f).value = g[f]; }); if (g.pickup) el('pickup').checked = true; } catch {}
+    const saveGuest = () => { try { const g: Record<string, unknown> = Object.fromEntries(fields.map((f) => [f, el(f).value])); g.pickup = el('pickup').checked; sessionStorage.setItem(GKEY, JSON.stringify(g)); } catch {} };
+    const syncPickup = () => { q<HTMLElement>('.co-flight').hidden = !el('pickup').checked; };
+    form.addEventListener('input', saveGuest); form.addEventListener('change', () => { saveGuest(); syncPickup(); }); syncPickup();
+
+    const err = q<HTMLElement>('[data-err]');
+    const validate = () => {
+      const problems: [string, string][] = [];
+      if (!roomCount(s)) problems.push(['', D.errRooms]);
+      if (!el('first').value.trim() || !el('last').value.trim()) problems.push([!el('first').value.trim() ? 'first' : 'last', D.errName]);
+      if (!/^\+?[\d\s\-().]{7,}$/.test(el('phone').value.trim())) problems.push(['phone', D.errPhone]);
+      if (el('email').value.trim() && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(el('email').value.trim())) problems.push(['email', D.errEmail]);
+      fields.forEach((f) => el(f).removeAttribute('aria-invalid'));
+      problems.forEach(([f]) => f && el(f).setAttribute('aria-invalid', 'true'));
+      err.hidden = !problems.length; err.textContent = problems.map(([, m]) => m).join(' ');
+      if (problems.length) { const first = problems.find(([f]) => f)?.[0]; if (first) el(first).focus(); else q<HTMLElement>('.co-rooms').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+      return !problems.length;
+    };
+
+    const message = () => {
+      const arrival = el('arrival').value === 'late' ? q<HTMLOptionElement>('[name=arrival] option[value=late]').textContent! : el('arrival').value ? d(el('arrival').value) : D.arrivalUnknown;
+      const rooms = Object.entries(s.rooms).filter(([, n]) => n > 0).map(([id, n]) => `${d(n)} × ${NAMES[id]}`).join('\n   ');
+      const L = [
+        D.waIntro, '',
+        `${D.waIn}: ${fmtDate(s.in, lang)} (${D.checkinFrom})`,
+        `${D.waOut}: ${fmtDate(s.out, lang)} (${D.checkoutUntil})`,
+        `${D.waStay}: ${plural(D.nightsN, nights(s), lang)}`,
+        `${D.waGuests}: ${party(s)}`,
+        `${D.waRooms}:\n   ${rooms}`, '',
+        `${D.waName}: ${el('first').value.trim()} ${el('last').value.trim()}`,
+        `${D.waPhone}: ${el('phone').value.trim()}`,
+      ];
+      if (el('email').value.trim()) L.push(`${D.waEmail}: ${el('email').value.trim()}`);
+      L.push(`${D.waArrival}: ${arrival}`);
+      if (el('pickup').checked) L.push(`${D.waPickup}: ${el('flight').value.trim() || '✓'}`);
+      if (el('req').value.trim()) L.push(`${D.waReq}: ${el('req').value.trim()}`);
+      L.push('', `— ${D.waFrom}`);
+      return L.join('\n');
+    };
+    const renderFinal = () => {
+      const m = message();
+      q<HTMLElement>('[data-msg]').textContent = m;
+      q<HTMLAnchorElement>('[data-send]').href = `https://wa.me/${root.dataset.wa}?text=${encodeURIComponent(m)}`;
+    };
+    const show = (step: 2 | 3, push = true) => {
+      form.hidden = step !== 2; final.hidden = step !== 3;
+      root.querySelectorAll<HTMLElement>('[data-stepdot]').forEach((li) => { const n = Number(li.dataset.stepdot); li.classList.toggle('cur', n === step); li.classList.toggle('done', n < step); });
+      if (step === 3) renderFinal();
+      if (push) history.pushState({ coStep: step }, '', location.href);
+      root.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (step === 3) setTimeout(() => q<HTMLElement>('#co-final').focus({ preventScroll: true }), 300);
+    };
+    form.addEventListener('submit', (e) => { e.preventDefault(); if (validate()) show(3); });
+    q('[data-back]').addEventListener('click', () => history.back());
+    addEventListener('popstate', (e) => show((e.state && e.state.coStep) === 3 ? 3 : 2, false));
+    q('[data-copy]').addEventListener('click', async () => {
+      const span = q<HTMLElement>('[data-copy] span');
+      try { await navigator.clipboard.writeText(message()); span.textContent = D.copied; setTimeout(() => (span.textContent = D.copy), 1800); } catch { span.textContent = D.copy; }
+    });
+    history.replaceState({ coStep: 2 }, '', location.href);
+    renderStay();
+  });
+</script>
+
+<style>
+  .co { display: grid; gap: 22px; }
+  .co-steps { list-style: none; margin: 0; padding: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-weight: 700; font-size: 0.92rem; color: var(--muted); }
+  .co-steps li { display: inline-flex; align-items: center; gap: 8px; }
+  .co-steps li + li::before { content: ''; width: clamp(14px, 6vw, 60px); height: 1px; background: var(--line); margin-inline-end: 8px; }
+  .co-steps a { display: inline-flex; align-items: center; gap: 8px; color: inherit; text-decoration: none; }
+  .co-dot { width: 26px; height: 26px; border-radius: 50%; display: inline-grid; place-items: center; border: 1px solid var(--line); background: var(--white); font-size: 0.85rem; }
+  .co-steps .done { color: var(--ink); } .co-steps .done .co-dot { background: var(--gold); border-color: var(--gold); color: var(--white); }
+  .co-steps .cur { color: var(--ink); } .co-steps .cur .co-dot { background: var(--ink); border-color: var(--ink); color: var(--cream); }
+
+  .co-grid { display: grid; gap: 20px; align-items: start; }
+  .co-mini { margin: 0; padding: 12px 14px; border-radius: 6px; background: var(--gold-pale); color: var(--ink); font-weight: 600; font-size: 0.92rem; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+  .co-mini a { color: var(--gold-text); font-weight: 700; }
+  @media (min-width: 960px) { .co-mini { display: none; } }
+  .co-card { background: var(--white); border: 1px solid var(--line); border-radius: 6px; }
+  .co-card h3 { font-family: var(--display); font-size: 1.3rem; font-weight: 700; }
+  html[lang='ar'] .co-card h3 { font-family: var(--sans); font-size: 1.1rem; }
+  .co-prop { overflow: hidden; }
+  .co-prop :global(.photo) { border-radius: 0; }
+  .co-prop-body { padding: 14px 16px 16px; display: grid; gap: 6px; }
+  .co-stars { margin: 0; display: flex; align-items: center; gap: 2px; color: var(--gold); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+  .co-stars span { margin-inline-start: 6px; color: var(--muted); }
+  html[lang='ar'] .co-stars span { letter-spacing: 0; text-transform: none; font-size: 0.85rem; }
+  .co-addr { margin: 0; font-size: 0.86rem; color: var(--muted); }
+  .co-score { margin: 4px 0 0; display: flex; align-items: center; gap: 8px; font-size: 0.86rem; color: var(--body); }
+  .co-badge { display: inline-grid; place-items: center; min-width: 34px; height: 30px; padding: 0 6px; border-radius: 6px 6px 6px 0; background: var(--night); color: var(--white); font-weight: 700; }
+  html[dir='rtl'] .co-badge { border-radius: 6px 6px 0 6px; }
+  .co-hl { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 0.82rem; color: var(--body); }
+  .co-hl li { display: inline-flex; align-items: center; gap: 5px; } .co-hl :global(.icon) { color: var(--gold-text); }
+
+  .co-book { padding: 16px; display: grid; gap: 14px; }
+  .co-k { display: block; font-size: 0.8rem; font-weight: 600; color: var(--muted); }
+  .co-dates { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 4px; }
+  .co-date { position: relative; display: grid; gap: 2px; padding: 10px 12px; cursor: pointer; }
+  .co-date + .co-date { border-inline-start: 1px solid var(--line); }
+  .co-date b { color: var(--ink); font-size: 0.98rem; }
+  .co-date small { color: var(--muted); font-size: 0.8rem; }
+  .co-date input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: 0; }
+  .co-date input::-webkit-calendar-picker-indicator { position: absolute; inset: 0; width: 100%; height: 100%; cursor: pointer; }
+  .co-date:focus-within { box-shadow: inset 0 0 0 2px var(--gold); }
+  .co-len { margin: 0; } .co-len b { color: var(--ink); }
+  .co-party { display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 12px; }
+  .co-pr { display: flex; justify-content: space-between; align-items: center; color: var(--ink); font-weight: 600; font-size: 0.95rem; }
+  .co-step { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 4px; flex: none; }
+  .co-step button { width: 42px; height: 42px; border: 0; background: none; color: var(--gold-text); font-size: 1.2rem; cursor: pointer; }
+  .co-step button:hover { background: var(--gold-pale); }
+  .co-step output { min-width: 26px; text-align: center; font-weight: 700; color: var(--ink); }
+  .co-rooms { border-top: 1px solid var(--line); padding-top: 12px; }
+  .co-rooms > .co-k b { color: var(--ink); }
+  .co-rooms ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; }
+  .co-rooms li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 4px; }
+  .co-rooms li.on { background: var(--gold-pale); }
+  .co-rn { font-size: 0.92rem; font-weight: 600; color: var(--muted); line-height: 1.3; }
+  .co-rooms li.on .co-rn { color: var(--ink); }
+  .co-rn small { display: block; font-weight: 400; font-size: 0.78rem; color: var(--muted); }
+  .co-warn { margin: 10px 0 0; padding: 8px 10px; border-radius: 4px; background: #fbeee5; color: var(--danger); font-size: 0.86rem; }
+  .co-change { display: inline-block; margin-top: 10px; font-weight: 700; color: var(--gold-text); font-size: 0.92rem; }
+
+  .co-main .co-card { padding: clamp(16px, 3vw, 28px); display: grid; gap: 18px; }
+  .co-main h2 { font-size: clamp(1.7rem, 4vw, 2.3rem); }
+  .co-lead { margin: -6px 0 0; color: var(--body); }
+  .co-fields { display: grid; gap: 14px; }
+  .co-f { display: grid; gap: 5px; }
+  .co-f > span, .co-fs legend { font-weight: 700; color: var(--ink); font-size: 0.95rem; }
+  .co-f i { color: var(--danger); font-style: normal; }
+  .co-f em, .co-fs legend em { font-style: normal; font-weight: 400; color: var(--muted); }
+  .co-f small, .co-hint { color: var(--muted); font-size: 0.84rem; margin: 0; display: flex; align-items: center; gap: 6px; }
+  .co-main input:not([type=checkbox]), .co-main select, .co-main textarea { width: 100%; min-height: 46px; padding: 9px 12px; border: 1px solid var(--muted); border-radius: 4px; background: var(--white); color: var(--ink); font: inherit; }
+  .co-main textarea { min-height: 90px; resize: vertical; }
+  .co-main input:focus, .co-main select:focus, .co-main textarea:focus { outline: 2px solid var(--gold); outline-offset: 0; border-color: var(--gold); }
+  .co-main [aria-invalid=true] { border-color: var(--danger); box-shadow: inset 0 0 0 1px var(--danger); }
+  .co-err { margin: 0; padding: 10px 12px; border-radius: 4px; background: #fbeee5; color: var(--danger); font-size: 0.9rem; }
+  .co-fs { border: 0; border-top: 1px solid var(--line); margin: 0; padding: 16px 0 0; display: grid; gap: 8px; }
+  .co-fs legend { padding: 0; float: left; width: 100%; margin-bottom: 4px; }
+  html[dir='rtl'] .co-fs legend { float: right; }
+  .co-check { display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--body); }
+  .co-check input { width: 20px; height: 20px; accent-color: var(--gold); margin: 0; flex: none; }
+  .co-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: flex-end; border-top: 1px solid var(--line); padding-top: 16px; }
+  .co-next, .co-send { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 24px; border: 0; border-radius: 4px; background: var(--ink); color: var(--cream); font: inherit; font-weight: 700; font-size: 1.02rem; cursor: pointer; text-decoration: none; }
+  .co-next:hover { background: var(--night-2); }
+  .co-send { background: var(--wa); color: var(--white); } .co-send:hover { background: var(--wa-dark); }
+  .co-ghost { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 16px; border: 1px solid var(--line); border-radius: 4px; background: var(--white); color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; }
+  .co-ghost:hover { background: var(--cream); }
+  .co-final-actions { justify-content: flex-start; }
+  .co-call { margin: 0; color: var(--muted); font-size: 0.9rem; } .co-call a { color: var(--ink); font-weight: 700; text-decoration: none; }
+
+  /* the request as the WhatsApp chat it becomes */
+  .co-wa { border-radius: 8px; overflow: hidden; border: 1px solid var(--line); background: #efe7dd url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M20 6l6 10H14zM8 26l4 7H4zM32 28l4 7h-8z' fill='none' stroke='%23d9c9b0' stroke-width='1'/%3E%3C/svg%3E"); }
+  .co-wa-top { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #075e54; color: #fff; font-size: 0.9rem; font-weight: 600; }
+  .co-bubble { position: relative; margin: 16px; margin-inline-start: auto; max-width: min(520px, 92%); padding: 10px 12px 18px; background: #dcf8c6; border-radius: 8px 0 8px 8px; box-shadow: 0 1px 1px rgba(0, 0, 0, 0.12); }
+  html[dir='rtl'] .co-bubble { border-radius: 0 8px 8px 8px; }
+  .co-bubble pre { margin: 0; white-space: pre-wrap; word-break: break-word; font-family: var(--sans); font-size: 0.9rem; line-height: 1.5; color: #111; }
+  .co-tick { position: absolute; inset-inline-end: 8px; bottom: 3px; font-size: 0.7rem; color: #34b7f1; letter-spacing: -2px; }
+
+  @media (min-width: 640px) { .co-fields { grid-template-columns: 1fr 1fr; } .co-wide { grid-column: 1 / -1; } }
+  @media (min-width: 960px) { .co-grid { grid-template-columns: 340px 1fr; gap: 28px; } .co-side { position: sticky; top: calc(var(--header-h) + 16px); display: grid; gap: 16px; } }
+  @media (max-width: 959px) {
+    /* phones: booking details first, then the form, the property card last */
+    .co-side { display: contents; }
+    .co-mini { order: 0; } .co-main { order: 1; } .co-book { order: 2; } .co-prop { order: 3; }
+    .co-prop { display: grid; grid-template-columns: 110px 1fr; } .co-prop :global(.photo) { height: 100%; aspect-ratio: auto !important; } .co-hl, .co-stars { display: none; }
+    .co-steps li:not(.cur) > a > :not(.co-dot), .co-steps li:not(.cur) { font-size: 0; }
+    .co-steps li:not(.cur) .co-dot { font-size: 0.85rem; }
+    .co-steps li + li::before { width: 18px; }
+  }
+  [hidden] { display: none !important; }
+</style>

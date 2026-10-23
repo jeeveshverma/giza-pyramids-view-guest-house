@@ -1,0 +1,115 @@
+---
+/**
+ * The search box, laid out like Booking.com's: one framed bar with check-in, check-out, guests
+ * and Search. It reads and writes the shared stay (src/lib/stay.ts). On a page with an
+ * availability list, Search updates that list in place and scrolls to it; elsewhere it goes to
+ * the Rooms page with the search in the URL.
+ */
+import { path, useT, type Lang } from '../i18n';
+import Icon from './Icon.astro';
+interface Props { lang: Lang; id?: string }
+const { lang, id = 'search' } = Astro.props;
+const { t } = useT(lang);
+const dict = { adultsN: t('bk.adultsN'), childrenN: t('bk.childrenN'), noChildren: t('bk.noChildren'), nightsN: t('bk.nightsN') };
+---
+<form class="sb" id={id} data-search data-lang={lang} data-rooms-url={path(lang, 'rooms')} data-dict={JSON.stringify(dict)} novalidate>
+  <label class="sb-cell sb-date">
+    <Icon name="calendar" size={24} stroke={1.4} />
+    <span class="sb-txt"><span class="sb-lbl">{t('bk.checkin')}</span><span class="sb-val" data-v="in">—</span></span>
+    <input type="date" name="in" aria-label={t('bk.checkin')} />
+  </label>
+  <label class="sb-cell sb-date">
+    <Icon name="calendar" size={24} stroke={1.4} />
+    <span class="sb-txt"><span class="sb-lbl">{t('bk.checkout')} <em class="sb-n" data-v="nights"></em></span><span class="sb-val" data-v="out">—</span></span>
+    <input type="date" name="out" aria-label={t('bk.checkout')} />
+  </label>
+  <div class="sb-cell sb-guests">
+    <button type="button" class="sb-gbtn" data-gbtn aria-expanded="false" aria-haspopup="dialog">
+      <Icon name="users" size={24} stroke={1.4} />
+      <span class="sb-txt"><span class="sb-lbl">{t('bk.guests')}</span><span class="sb-val" data-v="party">—</span></span>
+      <svg class="sb-caret" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" /></svg>
+    </button>
+    <div class="sb-pop" data-pop hidden role="dialog" aria-label={t('bk.guests')}>
+      <div class="sb-row"><span>{t('bk.adults')}</span><span class="sb-step"><button type="button" data-step="adults:-1" aria-label={`${t('bk.adults')} −`}>−</button><output data-o="adults"></output><button type="button" data-step="adults:1" aria-label={`${t('bk.adults')} +`}>+</button></span></div>
+      <div class="sb-row"><span>{t('bk.children')}<small>{t('bk.childrenHint')}</small></span><span class="sb-step"><button type="button" data-step="children:-1" aria-label={`${t('bk.children')} −`}>−</button><output data-o="children"></output><button type="button" data-step="children:1" aria-label={`${t('bk.children')} +`}>+</button></span></div>
+      <button type="button" class="sb-done" data-done>{t('bk.done')}</button>
+    </div>
+  </div>
+  <button type="submit" class="sb-go">{t('bk.search')}</button>
+</form>
+
+<script>
+  import { readStay, writeStay, onStay, iso, parse, nights, fmtDate, plural, dg, type Stay } from '../lib/stay';
+  document.querySelectorAll<HTMLFormElement>('[data-search]').forEach((form) => {
+    const lang = form.dataset.lang!;
+    const D = JSON.parse(form.dataset.dict!) as Record<string, string>;
+    const d = dg(lang);
+    const q = <T extends Element>(s: string) => form.querySelector<T>(s)!;
+    const inp = q<HTMLInputElement>('[name=in]'), out = q<HTMLInputElement>('[name=out]');
+    let s: Stay = readStay();
+    const party = (x: Stay) => `${plural(D.adultsN, x.adults, lang)} · ${x.children ? plural(D.childrenN, x.children, lang) : D.noChildren}`;
+    const render = () => {
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      inp.min = iso(today); inp.value = s.in;
+      const minOut = parse(s.in); minOut.setDate(minOut.getDate() + 1); out.min = iso(minOut); out.value = s.out;
+      q<HTMLElement>('[data-v=in]').textContent = fmtDate(s.in, lang);
+      q<HTMLElement>('[data-v=out]').textContent = fmtDate(s.out, lang);
+      q<HTMLElement>('[data-v=nights]').textContent = `· ${plural(D.nightsN, nights(s), lang)}`;
+      q<HTMLElement>('[data-v=party]').textContent = party(s);
+      q<HTMLOutputElement>('[data-o=adults]').value = d(s.adults);
+      q<HTMLOutputElement>('[data-o=children]').value = d(s.children);
+    };
+    const set = (patch: Partial<Stay>) => { s = writeStay({ ...s, ...patch }, form.id); render(); };
+    inp.addEventListener('change', () => { if (!inp.value) return render(); const o = parse(inp.value); o.setDate(o.getDate() + 1); set({ in: inp.value, out: out.value > inp.value ? out.value : iso(o) }); });
+    out.addEventListener('change', () => { if (!out.value) return render(); set({ out: out.value }); });
+    const pop = q<HTMLElement>('[data-pop]'), gbtn = q<HTMLButtonElement>('[data-gbtn]');
+    const open = (o: boolean) => { pop.hidden = !o; gbtn.setAttribute('aria-expanded', String(o)); };
+    gbtn.addEventListener('click', () => open(pop.hidden));
+    q('[data-done]').addEventListener('click', () => { open(false); gbtn.focus(); });
+    document.addEventListener('click', (e) => { if (!form.contains(e.target as Node)) open(false); });
+    form.addEventListener('keydown', (e) => { if (e.key === 'Escape') { open(false); gbtn.focus(); } });
+    form.querySelectorAll<HTMLButtonElement>('[data-step]').forEach((b) => b.addEventListener('click', () => {
+      const [k, by] = b.dataset.step!.split(':') as ['adults' | 'children', string];
+      set({ [k]: s[k] + Number(by) } as Partial<Stay>);
+    }));
+    form.addEventListener('submit', (e) => {
+      e.preventDefault(); open(false);
+      s = writeStay(s, form.id);
+      const list = document.getElementById('availability');
+      if (list) list.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      else location.href = `${form.dataset.roomsUrl}${location.search}#availability`;
+    });
+    onStay((x, from) => { if (from !== form.id) { s = x; render(); } });
+    render();
+  });
+</script>
+
+<style>
+  .sb { --frame: var(--gold-light); display: grid; gap: 4px; padding: 4px; background: var(--frame); border-radius: 8px; box-shadow: var(--shadow); position: relative; z-index: 4; font-family: var(--sans); }
+  .sb-cell { position: relative; display: flex; align-items: center; gap: 12px; padding: 10px 14px; min-height: 60px; background: var(--white); border-radius: 4px; color: var(--ink); cursor: pointer; }
+  .sb-cell :global(.icon) { color: var(--muted); flex: none; }
+  .sb-txt { display: grid; line-height: 1.25; min-width: 0; }
+  .sb-lbl { font-size: 0.78rem; color: var(--muted); font-weight: 600; letter-spacing: 0.02em; }
+  .sb-n { font-style: normal; color: var(--gold-text); }
+  .sb-val { font-size: 1rem; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sb-date input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; font: inherit; border: 0; }
+  .sb-date input::-webkit-calendar-picker-indicator { position: absolute; inset: 0; width: 100%; height: 100%; cursor: pointer; }
+  .sb-cell:focus-within { box-shadow: inset 0 0 0 2px var(--gold); }
+  .sb-gbtn { all: unset; display: flex; align-items: center; gap: 12px; width: 100%; cursor: pointer; }
+  .sb-caret { margin-inline-start: auto; color: var(--muted); flex: none; }
+  .sb-go { min-height: 60px; padding: 0 28px; border: 0; border-radius: 4px; background: var(--ink); color: var(--cream); font: inherit; font-size: 1.05rem; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+  .sb-go:hover { background: var(--night-2); }
+  .sb-go:focus-visible { outline: 2px solid var(--white); outline-offset: -4px; }
+  .sb-pop { position: absolute; top: calc(100% + 8px); inset-inline-start: 0; z-index: 6; background: var(--white); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); padding: 16px; width: min(320px, calc(100vw - 40px)); display: grid; gap: 14px; cursor: default; }
+  .sb-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-weight: 600; color: var(--ink); }
+  .sb-row small { display: block; font-weight: 400; font-size: 0.8rem; color: var(--muted); }
+  .sb-step { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 4px; }
+  .sb-step button { width: 40px; height: 40px; border: 0; background: none; color: var(--gold-text); font-size: 1.3rem; cursor: pointer; }
+  .sb-step button:hover { background: var(--gold-pale); }
+  .sb-step output { min-width: 32px; text-align: center; font-weight: 700; }
+  .sb-done { min-height: 44px; border: 1px solid var(--ink); border-radius: 4px; background: var(--white); color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; }
+  .sb-done:hover { background: var(--cream); }
+  [hidden] { display: none !important; }
+  @media (min-width: 560px) { .sb { grid-template-columns: 1fr 1fr; } .sb-guests, .sb-go { grid-column: 1 / -1; } }
+  @media (min-width: 900px) { .sb { grid-template-columns: 1fr 1fr 1.2fr auto; } .sb-guests, .sb-go { grid-column: auto; } }
+</style>

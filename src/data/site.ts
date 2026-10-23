@@ -50,18 +50,34 @@ export const PYRAMIDS = [
   { id: 'menkaure', name: { en: 'Menkaure', ar: 'منكاورع' }, sub: { en: 'The smallest of the three, 65 m', ar: 'أصغر الثلاثة، ٦٥ م' }, at: { lat: 29.97238, lng: 31.12822 }, height: 65 },
 ] as const;
 
-export type RoomId = 'twin-view' | 'double-view' | 'studio' | 'twin-city';
+export type RoomId = 'twin-view' | 'studio' | 'triple' | 'twin' | 'double';
 
-export type Amenity = 'view' | 'cityView' | 'balcony' | 'ac' | 'bath' | 'fridge' | 'wifi' | 'tv' | 'breakfast' | 'lift';
+/** What a room has, drawn from the owner's photos (2026-10-23) plus what every listing states. */
+export type Feature = 'pyramids' | 'cityView' | 'kitchenette' | 'kettle' | 'minibar' | 'fridge' | 'table' | 'armchair' | 'wardrobe' | 'dresser' | 'shower' | 'ac' | 'wifi' | 'towels';
+
+export interface Room {
+  id: RoomId;
+  hero: string;
+  photos: string[];
+  /** beds in the room, by kind */
+  beds: { double?: number; queen?: number; single?: number };
+  /** how many guests the beds sleep */
+  sleeps: number;
+  features: Feature[];
+  /** the most a guest can pick in the availability list; the house has 12 rooms in all (Trip.com) */
+  max: number;
+}
 
 /**
- * The four room types as the Trip.com listing names them (2026-10-23). Which photo shows which
- * room is read from the photos, not confirmed. Photo ids refer to src/data/photos.ts; the
- * non-view photos pair with the walk-through steps first.
+ * The five room types, grouped from the owner's 37 room photos by matching floors, ceilings,
+ * headboards, windows, bathroom tiles and the door numbers (5 and 8). Bed counts follow the photos
+ * and the Trip.com room names; the split of the twelve rooms between types is not published, so
+ * `max` is a guess. Everything here is provisional until the owner confirms it.
  */
-export const ROOMS: { id: RoomId; photos: string[]; hero: string; amenities: Amenity[]; faces: 'w' | 'e' }[] = [
-  { id: 'double-view', hero: 'room-view', photos: ['room-view', 'balcony-day', 'view-sunset', 'lounge-sunset'], amenities: ['view', 'balcony', 'ac', 'bath', 'fridge', 'wifi', 'breakfast', 'lift'] , faces: 'w' },
-  { id: 'twin-view', hero: 'room-twin', photos: ['room-twin', 'room-window', 'view-day', 'balcony-sunset'], amenities: ['view', 'ac', 'bath', 'fridge', 'wifi', 'breakfast', 'lift'] , faces: 'w' },
-  { id: 'studio', hero: 'lounge-new', photos: ['lounge-new', 'sofa-corner', 'view-dusk'], amenities: ['view', 'ac', 'bath', 'fridge', 'wifi', 'tv', 'breakfast', 'lift'] , faces: 'w' },
-  { id: 'twin-city', hero: 'corridor', photos: ['corridor', 'room-twin', 'terrace-day'], amenities: ['cityView', 'ac', 'bath', 'wifi', 'breakfast', 'lift'] , faces: 'e' },
+export const ROOMS: Room[] = [
+  { id: 'twin-view', hero: 'tv-room5', photos: ['tv-room5', 'tv-window', 'tv-sunset', 'tv-beds', 'tv-wide', 'tv-kettle', 'tv-table', 'tv-mirror'], beds: { double: 2 }, sleeps: 4, features: ['pyramids', 'minibar', 'kettle', 'table', 'dresser', 'ac', 'wifi', 'towels'], max: 3 },
+  { id: 'studio', hero: 'studio-bed', photos: ['studio-bed', 'studio-kitchenette', 'studio-table', 'studio-armchair', 'studio-shower'], beds: { queen: 1 }, sleeps: 2, features: ['kitchenette', 'armchair', 'table', 'wardrobe', 'shower', 'ac', 'wifi', 'towels'], max: 1 },
+  { id: 'triple', hero: 'tr-beds', photos: ['tr-beds', 'tr-light', 'tr-golden'], beds: { double: 1, single: 1 }, sleeps: 3, features: ['cityView', 'wardrobe', 'ac', 'wifi', 'towels'], max: 2 },
+  { id: 'twin', hero: 'tw-beds', photos: ['tw-beds', 'tw-swan', 'tw-fridge', 'tw-mirror', 'tw-shower'], beds: { single: 2 }, sleeps: 2, features: ['fridge', 'wardrobe', 'dresser', 'shower', 'ac', 'wifi', 'towels'], max: 2 },
+  { id: 'double', hero: 'db-room8', photos: ['db-room8', 'db-bed', 'db-window', 'db-side', 'db-ensuite', 'db-warm', 'db-swans', 'db-door', 'db-dresser', 'db-mirror', 'kettle-tray'], beds: { double: 1 }, sleeps: 2, features: ['cityView', 'kettle', 'dresser', 'ac', 'wifi', 'towels'], max: 3 },
 ];

@@ -29,13 +29,22 @@ plateau and Pyramids Road (`MapSection.astro`); a divider drawn from the balcony
 the starfield behind the reviews. There is deliberately no icon grid of amenities: the practical facts
 are a plain list.
 
+**Booking, the way Booking.com and Agoda do it** (there is no booking engine and no prices):
+search box (dates, guests) → availability table (one row per room type, sleeps, price "on request",
+what is included, a room-count picker, a reserve panel that checks the rooms sleep the party) →
+checkout in three steps (your selection, your details, final step) → the request shown as the
+WhatsApp message it becomes, then sent on WhatsApp. The stay lives in the URL and sessionStorage
+(`src/lib/stay.ts`), so every step links and reloads cleanly. `node scripts/flowtest.mjs <dir>`
+runs the whole path in English and Arabic, desktop and iPhone, and checks the message.
+
+**Photos:** 37 room, bathroom and detail photos are the owner's own (WhatsApp, 2026-10-23), grouped
+into five room types by floors, ceilings, headboards, windows, tiles and the door numbers 5 and 8.
+
 **Provisional until the owner confirms:**
+- The five room types, their bed counts and how many of each exist (`ROOMS` in `src/data/site.ts`).
 - The WhatsApp number is the listings' phone (+20 100 536 2094).
-- Which photo shows which room type (`ROOMS` in `src/data/site.ts`) is read from the photos.
-- The 24 photos are listing photos (Tripadvisor, ZenHotels, Trip.com; Booking.com blocks fetches and
-  Agoda has no listing), placeholders until originals arrive. The roof-terrace and newer-room photos
-  come from the Trip.com listing at the same address and phone.
-- The pin is the Google listing's (29.97496, 31.151992); the owner may want it moved to the door.
+- The pin is the Google listing's (29.97496, 31.151992).
+- Rates: shown as "on request"; the owner may want prices.
 
 ## Where things live
 

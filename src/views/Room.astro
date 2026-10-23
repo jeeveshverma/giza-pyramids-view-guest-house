@@ -1,122 +1,138 @@
 ---
+/**
+ * One room type, as Booking.com shows a room: its own photo gallery, the beds, who it sleeps,
+ * what is in the room, what every room includes, and a reserve box that adds the room to the
+ * shared stay and goes to the checkout. Other room types below.
+ */
 import Layout from '../components/Layout.astro';
 import Img from '../components/Img.astro';
 import Icon from '../components/Icon.astro';
-import Filmstrip from '../components/Filmstrip.astro';
+import PhotoMosaic from '../components/PhotoMosaic.astro';
 import { path, useT, digits, type Lang } from '../i18n';
-import { ROOMS, SITE, type Amenity } from '../data/site';
-import { photo } from '../data/photos';
-import { waUrl } from '../lib/wa';
-import en from '../i18n/en.json';
-import ar from '../i18n/ar.json';
+import { ROOMS, SITE, type Feature } from '../data/site';
+import { plural } from '../lib/stay';
 interface Props { lang: Lang; id: string }
 const { lang, id } = Astro.props;
 const { t } = useT(lang);
 const room = ROOMS.find((r) => r.id === id)!;
 const name = t(`rooms.${id}.name`);
-const steps: string[] = ((lang === 'ar' ? ar : en) as any).rooms[id].steps;
-// walk-through: pair each step with a photo from the room's list (the view photos last)
-const walkPhotos = room.photos.filter((p) => photo(p).group !== 'view').concat(room.photos.filter((p) => photo(p).group === 'view'));
-const walk = steps.map((s, i) => ({ text: s, photo: walkPhotos[Math.min(i, walkPhotos.length - 1)] }));
+const icon: Record<Feature, string> = { pyramids: 'pyramid', cityView: 'city', kitchenette: 'kitchen', kettle: 'kettle', minibar: 'fridge', fridge: 'fridge', table: 'table', armchair: 'sofa', wardrobe: 'wardrobe', dresser: 'mirror', shower: 'shower', ac: 'ac', wifi: 'wifi', towels: 'towel' };
+const beds = (['double', 'queen', 'single'] as const).filter((k) => room.beds[k]).map((k) => plural(t(`bk.beds.${k}`), room.beds[k]!, lang));
 const others = ROOMS.filter((r) => r.id !== id);
-const wa = waUrl(`${t('enquire.waIntro')} ${t('enquire.waRoom')}: ${name}.`);
-// amenities per unit type come from site.ts; the icon and label for each key live here
-const amenIcon = { view: 'pyramid', cityView: 'city', balcony: 'balcony', ac: 'ac', bath: 'shower', fridge: 'fridge', wifi: 'wifi', tv: 'tv', breakfast: 'breakfast', lift: 'lift' } as const;
-const amenLabel: Record<Amenity, { en: string; ar: string }> = {
-  view: { en: 'Pyramids view', ar: 'إطلالة على الأهرامات' }, cityView: { en: 'City view', ar: 'إطلالة على المدينة' }, balcony: { en: 'Balcony', ar: 'شرفة' }, ac: { en: 'Air conditioning', ar: 'تكييف' }, bath: { en: 'Private bathroom', ar: 'حمّام خاص' }, fridge: { en: 'Fridge', ar: 'ثلاجة' }, wifi: { en: 'Free Wi‑Fi', ar: 'واي فاي مجاني' }, tv: { en: 'TV', ar: 'تلفاز' }, breakfast: { en: 'Breakfast on the roof', ar: 'فطور على السطح' }, lift: { en: 'Lift to the 11th floor', ar: 'مصعد إلى الدور ١١' },
-};
-const amen = room.amenities.map((key) => ({ key, icon: amenIcon[key] }));
 const abs = (p: string) => new URL(p, SITE.url + '/').href;
 const jsonld = [
-  { '@context': 'https://schema.org', '@type': 'HotelRoom', name: `${name} — ${SITE.name.en}`, description: t(`rooms.${id}.desc`), containedInPlace: { '@id': `${SITE.url}/#hotel` } },
+  { '@context': 'https://schema.org', '@type': 'HotelRoom', name: `${name} — ${SITE.name.en}`, description: t(`rooms.${id}.desc`), occupancy: { '@type': 'QuantitativeValue', maxValue: room.sleeps }, containedInPlace: { '@id': `${SITE.url}/#hotel` } },
   { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
     { '@type': 'ListItem', position: 1, name: t('nav.home'), item: abs(path(lang, 'home')) },
     { '@type': 'ListItem', position: 2, name: t('nav.rooms'), item: abs(path(lang, 'rooms')) },
     { '@type': 'ListItem', position: 3, name, item: abs(path(lang, 'rooms', id)) } ] },
 ];
 ---
-<Layout lang={lang} page="rooms" sub={id} title={`${name} — ${t('meta.rooms.title')}`} desc={t(`rooms.${id}.desc`)} jsonld={jsonld}>
-  <section class="room-hero">
-    <div class="wrap room-hero-in">
-      <div class="room-intro">
-        <p class="eyebrow"><a href={path(lang, 'rooms')}>{t('nav.rooms')}</a> · {digits(String(ROOMS.indexOf(room) + 1).padStart(2, '0'), lang)}</p>
-        <h1>{name}</h1>
-        <p class="lead">{t(`rooms.${id}.desc`)}</p>
-        <p class="muted small">{t('rooms.stay')}</p>
-        <div class="room-cta">
-          <a class="btn btn-wa btn-lg" href={wa} target="_blank" rel="noopener"><Icon name="whatsapp" /> {t('rooms.enquireFor', { room: name })}</a>
-          <a class="btn btn-ghost" href={`${path(lang, 'enquire')}?room=${id}`}>{t('nav.enquire')} <Icon name="arrowRight" size={18} class="rtl-flip" /></a>
-        </div>
-      </div>
-      <div class="room-photo frame rv">
-        <Img id={room.hero} lang={lang} ratio="4 / 5" priority sizes="(min-width: 960px) 46vw, 100vw" widths={[480, 720, 940]} />
-        <p class="caption">{(photo(room.hero).caption ?? photo(room.hero).alt)[lang]}</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="section walk">
+<Layout lang={lang} page="rooms" sub={id} title={`${name} — ${SITE.name[lang]}`} desc={t(`rooms.${id}.desc`)} jsonld={jsonld}>
+  <section class="rm">
     <div class="wrap">
-      <div class="section-head rv"><span class="num">{t('rooms.walk')}</span><h2>{name}</h2></div>
-    </div>
-    <ol class="walk-list">
-      {walk.map((w, i) => (
-        <li class={`walk-step rv rv-d${(i % 3) + 1}`}>
-          <div class="walk-photo"><Img id={w.photo} lang={lang} ratio={i % 2 === 0 ? '4 / 5' : '4 / 3'} sizes="(min-width: 960px) 38vw, 78vw" /></div>
-          <p><span class="num">{digits(String(i + 1).padStart(2, '0'), lang)}</span> {w.text}</p>
-        </li>
-      ))}
-    </ol>
-  </section>
+      <p class="rm-crumb"><a href={path(lang, 'rooms')}>{t('nav.rooms')}</a> <Icon name="arrowRight" size={14} class="rtl-flip" /> {name}</p>
+      <h1>{name}</h1>
+      <p class="rm-sub"><Icon name="bed" size={18} /> {beds.join(lang === 'ar' ? ' و' : ' and ')} · {t('bk.sleepsN', { n: digits(room.sleeps, lang) })}</p>
+      <PhotoMosaic items={room.photos} lang={lang} id={`pm-${id}`} compact={room.photos.length < 10} />
 
-  <section class="section amen">
-    <div class="wrap amen-in">
-      <ul class="amen-list rv">
-        {amen.map((a) => <li><Icon name={a.icon} size={26} /> <span>{amenLabel[a.key][lang]}</span></li>)}
-      </ul>
-      <div class="amen-text rv rv-d1">
-        <h3>{t('rooms.bathroom')}</h3>
-        <p>{t('rooms.bathroomText')}</p>
+      <div class="rm-body">
+        <div class="rm-text">
+          <p class="lead">{t(`rooms.${id}.desc`)}</p>
+          <h2>{t('bk.roomPage.facilities')}</h2>
+          <ul class="rm-feat">
+            <li><Icon name="shower" size={20} /> {t('bk.privateBath')}</li>
+            {room.features.map((f) => <li class:list={[(f === 'pyramids' || f === 'kitchenette') && 'lead']}><Icon name={icon[f] as any} size={20} /> {t(`bk.f.${f}`)}</li>)}
+          </ul>
+          <h2>{t('bk.colChoices')}</h2>
+          <ul class="rm-inc">
+            <li><Icon name="breakfast" size={18} /> <b>{t('bk.chBreakfast')}</b></li>
+            <li><Icon name="check" size={18} /> {t('bk.chNoCard')}</li>
+            <li><Icon name="check" size={18} /> {t('bk.chConfirm')}</li>
+            <li><Icon name="clock" size={18} /> {t('footer.checkin', { in: digits(SITE.checkIn, lang), out: digits(SITE.checkOut, lang) })}</li>
+          </ul>
+        </div>
+        <aside class="rm-box" data-rmbox data-room={id} data-checkout={path(lang, 'enquire')}>
+          <p class="rm-price"><span>{t('bk.colPrice')}</span><strong>{t('bk.price')}</strong><small>{t('bk.priceNote')}</small></p>
+          <label class="rm-qty"><span>{t('bk.colSelect')}</span>
+            <select data-qty>{Array.from({ length: room.max }, (_, n) => <option value={n + 1}>{digits(n + 1, lang)}</option>)}</select>
+          </label>
+          <a class="rm-go" href={path(lang, 'enquire')} data-reserve>{t('bk.reserve')}</a>
+          <p class="rm-note"><Icon name="check" size={15} /> {t('bk.reserveNote')}</p>
+          <a class="rm-all" href={`${path(lang, 'rooms')}#availability`}>{t('bk.checkAvail')}</a>
+        </aside>
       </div>
     </div>
   </section>
 
-  <section class="section others">
-    <div class="wrap"><div class="section-head rv"><h2>{t('rooms.all')}</h2></div></div>
-    <Filmstrip items={others.map((r) => r.hero)} lang={lang} id="others-strip" height={360} />
-    <div class="wrap others-links rv">
-      {others.map((r) => <a href={path(lang, 'rooms', r.id)}>{t(`rooms.${r.id}.name`)} <Icon name="arrowRight" size={16} class="rtl-flip" /></a>)}
+  <section class="section rm-others">
+    <div class="wrap">
+      <h2>{t('bk.roomPage.others')}</h2>
+      <ul class="rm-cards">
+        {others.map((r) => (
+          <li>
+            <a href={path(lang, 'rooms', r.id)}>
+              <Img id={r.hero} lang={lang} ratio="4 / 3" sizes="(min-width: 900px) 24vw, 80vw" widths={[320, 480, 640]} />
+              <strong>{t(`rooms.${r.id}.name`)}</strong>
+              <span>{t(`rooms.${r.id}.short`)}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
     </div>
   </section>
 </Layout>
-<style>
-  .room-hero { padding-top: calc(var(--header-h) + 32px); }
-  .room-hero-in { display: grid; gap: 28px; }
-  .room-intro { display: grid; gap: 14px; align-content: center; }
-  .room-intro .eyebrow a { color: inherit; text-decoration: none; }
-  .room-intro h1 { font-size: clamp(2.6rem, 9vw, 4.6rem); }
-  .room-cta { display: grid; gap: 10px; justify-items: start; margin-top: 8px; }
-  .room-photo .caption { margin-top: 12px; }
-  @media (min-width: 960px) { .room-hero-in { grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; } .room-cta { grid-auto-flow: column; align-items: center; gap: 18px; } }
 
-  .walk-list { list-style: none; margin: 0; padding: 0 var(--gutter); display: flex; gap: 20px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
-  .walk-list::-webkit-scrollbar { display: none; }
-  .walk-step { flex: none; width: 78vw; max-width: 420px; scroll-snap-align: start; display: grid; gap: 12px; }
-  .walk-step p { margin: 0; font-family: var(--display); font-size: 1.2rem; color: var(--ink); display: flex; gap: 10px; align-items: baseline; }
-  html[lang='ar'] .walk-step p { font-family: var(--sans); font-size: 1.05rem; }
-  @media (min-width: 960px) {
-    .walk-list { display: grid; grid-template-columns: repeat(12, 1fr); gap: 40px 32px; overflow: visible; max-width: var(--container); margin-inline: auto; padding-inline: var(--gutter); }
-    .walk-step { width: auto; max-width: none; }
-    .walk-step:nth-child(4n+1) { grid-column: 1 / 6; } .walk-step:nth-child(4n+2) { grid-column: 7 / 13; margin-top: 120px; }
-    .walk-step:nth-child(4n+3) { grid-column: 2 / 7; margin-top: -40px; } .walk-step:nth-child(4n+4) { grid-column: 8 / 12; margin-top: 60px; }
-  }
-  .amen { background: var(--paper); }
-  .amen-in { display: grid; gap: 32px; }
-  .amen-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 18px 16px; }
-  .amen-list li { display: flex; align-items: center; gap: 12px; color: var(--ink); }
-  .amen-list :global(.icon) { color: var(--gold); flex: none; }
-  .amen-text { display: grid; gap: 8px; }
-  @media (min-width: 960px) { .amen-in { grid-template-columns: 1.2fr 1fr; gap: 64px; align-items: center; } .amen-list { grid-template-columns: repeat(3, 1fr); } }
-  .others-links { display: flex; flex-wrap: wrap; gap: 10px 24px; margin-top: 24px; }
-  .others-links a { text-decoration: none; font-weight: 600; color: var(--gold-text); display: inline-flex; align-items: center; gap: 6px; }
+<script>
+  import { readStay, writeStay, toQuery } from '../lib/stay';
+  document.querySelectorAll<HTMLElement>('[data-rmbox]').forEach((box) => {
+    const id = box.dataset.room!;
+    const sel = box.querySelector<HTMLSelectElement>('[data-qty]')!;
+    const go = box.querySelector<HTMLAnchorElement>('[data-reserve]')!;
+    const s = readStay();
+    if (s.rooms[id]) sel.value = String(Math.min(s.rooms[id], sel.options.length));
+    const href = () => { const x = readStay(); go.href = `${box.dataset.checkout}?${toQuery({ ...x, rooms: { ...x.rooms, [id]: Number(sel.value) } })}`; };
+    sel.addEventListener('change', href);
+    go.addEventListener('click', () => { const x = readStay(); writeStay({ ...x, rooms: { ...x.rooms, [id]: Number(sel.value) } }, 'room'); href(); });
+    href();
+  });
+</script>
+
+<style>
+  .rm { padding-top: calc(var(--header-h) + 24px); padding-bottom: clamp(32px, 6vw, 64px); }
+  .rm-crumb { margin: 0 0 8px; display: flex; align-items: center; gap: 6px; font-size: 0.9rem; color: var(--muted); }
+  .rm-crumb a { color: var(--gold-text); font-weight: 600; }
+  .rm h1 { font-size: clamp(2rem, 6vw, 3.4rem); }
+  .rm-sub { margin: 8px 0 18px; display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--ink); }
+  .rm-sub :global(.icon) { color: var(--gold-text); }
+  .rm-body { display: grid; gap: 28px; margin-top: 28px; }
+  .rm-text h2 { font-size: clamp(1.4rem, 3vw, 1.8rem); margin: 24px 0 12px; }
+  .rm-feat { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; }
+  .rm-feat li { display: flex; align-items: center; gap: 10px; color: var(--ink); }
+  .rm-feat :global(.icon) { color: var(--gold-text); flex: none; }
+  .rm-feat li.lead { font-weight: 700; }
+  .rm-inc { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .rm-inc li { display: flex; align-items: center; gap: 8px; color: var(--body); }
+  .rm-inc :global(.icon) { color: var(--wa); flex: none; }
+  .rm-inc b { color: var(--wa); }
+  .rm-box { display: grid; gap: 12px; padding: 18px; background: var(--white); border: 1px solid var(--line); border-radius: 6px; box-shadow: var(--shadow); align-self: start; }
+  .rm-price { margin: 0; display: grid; }
+  .rm-price span, .rm-qty span { font-size: 0.8rem; font-weight: 700; color: var(--muted); }
+  .rm-price strong { font-size: 1.3rem; color: var(--ink); }
+  .rm-price small { color: var(--muted); }
+  .rm-qty { display: grid; gap: 4px; }
+  .rm-qty select { min-height: 46px; padding: 6px 10px; border: 1px solid var(--muted); border-radius: 4px; background: var(--white); font: inherit; font-weight: 700; color: var(--ink); }
+  .rm-go { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; border-radius: 4px; background: var(--ink); color: var(--cream); font-weight: 700; font-size: 1.05rem; text-decoration: none; }
+  .rm-go:hover { background: var(--night-2); }
+  .rm-note { margin: 0; display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--body); }
+  .rm-note :global(.icon) { color: var(--wa); }
+  .rm-all { font-weight: 700; color: var(--gold-text); font-size: 0.92rem; }
+  @media (min-width: 900px) { .rm-body { grid-template-columns: 1fr 320px; gap: 48px; } .rm-box { position: sticky; top: calc(var(--header-h) + 16px); } }
+  .rm-others { background: var(--paper); }
+  .rm-others h2 { margin-bottom: 20px; }
+  .rm-cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+  .rm-cards a { display: grid; gap: 6px; text-decoration: none; color: inherit; }
+  .rm-cards strong { font-family: var(--display); font-size: 1.3rem; color: var(--ink); }
+  html[lang='ar'] .rm-cards strong { font-family: var(--sans); font-size: 1.1rem; }
+  .rm-cards span { color: var(--muted); font-size: 0.92rem; }
 </style>
