@@ -356,6 +356,8 @@
     "colSelect": "Select rooms",
     "price": "On request",
     "priceNote": "Today's rate comes back on WhatsApp",
+    "priceUsd": "US${n}",
+    "priceNight": "per night, confirmed on WhatsApp",
     "chBreakfast": "Breakfast included",
     "chNoCard": "No payment on this website",
     "chConfirm": "Confirmed on WhatsApp",

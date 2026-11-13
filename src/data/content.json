@@ -1,0 +1,28 @@
+{
+ "rooms": [
+  { "id": "twin-view", "price": null, "count": 3 },
+  { "id": "studio", "price": null, "count": 1 },
+  { "id": "triple", "price": null, "count": 2 },
+  { "id": "twin", "price": null, "count": 2 },
+  { "id": "double", "price": null, "count": 3 }
+ ],
+ "contact": {
+  "phone": "+20 100 536 2094",
+  "whatsapp": "+20 100 536 2094"
+ },
+ "scores": {
+  "google": { "score": "4.5", "count": 175 },
+  "tripadvisor": { "score": "4.9", "count": 14 },
+  "trip": { "score": "8.6", "count": 66 }
+ },
+ "reviews": [
+  { "name": "Andrea v", "text": "The view of the pyramids from this guest house is so beautiful, that it's powerful", "when": { "en": "Tripadvisor, October 2022", "ar": "Tripadvisor، أكتوبر ٢٠٢٢" } },
+  { "name": "shimron R", "text": "The room was comfortable and offered a stunning view of the pyramids from the balcony.", "when": { "en": "Tripadvisor, January 2025", "ar": "Tripadvisor، يناير ٢٠٢٥" } },
+  { "name": "Luca Di Lisio", "text": "The real highlight is the breathtaking view of the pyramids from the room and the communal terrace.", "when": { "en": "Tripadvisor, August 2025", "ar": "Tripadvisor، أغسطس ٢٠٢٥" } },
+  { "name": "Cc", "text": "A very authentic Egyptian guest house with lovely people.", "when": { "en": "Tripadvisor, May 2023", "ar": "Tripadvisor، مايو ٢٠٢٣" } },
+  { "name": "Richard S", "text": "Clean, tidy and extremely comfortable beds.", "when": { "en": "Tripadvisor, October 2022", "ar": "Tripadvisor، أكتوبر ٢٠٢٢" } },
+  { "name": "Stella F", "text": "The staff was so lovely & welcoming.", "when": { "en": "Tripadvisor, September 2023", "ar": "Tripadvisor، سبتمبر ٢٠٢٣" } },
+  { "name": "Joshua S", "text": "Amazing guest house, the staff are extremely friendly and helpful!", "when": { "en": "Tripadvisor, December 2022", "ar": "Tripadvisor، ديسمبر ٢٠٢٢" } },
+  { "name": "Maurizio3030", "text": "Each room has its own bathroom and they have a variety of room sizes.", "when": { "en": "Tripadvisor, September 2020", "ar": "Tripadvisor، سبتمبر ٢٠٢٠" } }
+ ]
+}

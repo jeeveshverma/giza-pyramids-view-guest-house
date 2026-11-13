@@ -13,7 +13,7 @@ Only facts the property already publishes on its listings: Google Maps (name, ad
 score the owner quoted: 4.5 from 175), Tripadvisor (4.9 from 14, the review lines quoted verbatim),
 Trip.com (8.6 from 66, the four room types, check-in 14:00 / check-out 11:00, breakfast 07:00–09:00,
 languages, amenities), Booking.com and Expedia (sun terrace, airport shuttle, free Wi‑Fi).
-**No prices.** Distances and bearings are computed from coordinates, never typed.
+No prices unless the owner sets them in the dashboard. Distances and bearings are computed from coordinates, never typed.
 
 **The idea the site is built on:** the house is on the eleventh floor, which puts it level with the
 base of the Great Pyramid, above the rooftops of Al Haram. Everything drawn serves that.
@@ -29,7 +29,7 @@ plateau and Pyramids Road (`MapSection.astro`); a divider drawn from the balcony
 the starfield behind the reviews. There is deliberately no icon grid of amenities: the practical facts
 are a plain list.
 
-**Booking, the way Booking.com and Agoda do it** (there is no booking engine and no prices):
+**Booking, the way Booking.com and Agoda do it** (there is no booking engine):
 search box (dates, guests) → availability table (one row per room type, sleeps, price "on request",
 what is included, a room-count picker, a reserve panel that checks the rooms sleep the party) →
 checkout in three steps (your selection, your details, final step) → the request shown as the
@@ -44,18 +44,18 @@ into five room types by floors, ceilings, headboards, windows, tiles and the doo
 - The five room types, their bed counts and how many of each exist (`ROOMS` in `src/data/site.ts`).
 - The WhatsApp number is the listings' phone (+20 100 536 2094).
 - The pin is the Google listing's (29.97496, 31.151992).
-- Rates: shown as "on request"; the owner may want prices.
+- Rates: shown as "on request" until the owner sets a price in the dashboard.
 
 ## Where things live
 
 | What | Where |
 |---|---|
-| Facts: name, phone, WhatsApp number, pin, scores, times | `src/data/site.ts` |
+| Facts: name, pin, times | `src/data/site.ts` |
+| What the owner edits: prices, room counts, phone, WhatsApp number, scores, review lines | `src/data/content.json` (see the dashboard below) |
 | The three pyramids' coordinates and heights (panorama, map) | `src/data/site.ts` (`PYRAMIDS`) |
 | Room types, their amenities and which photos belong to each | `src/data/site.ts` (`ROOMS`) |
 | Photo catalogue: group, alt text EN/AR, captions | `src/data/photos.ts` |
 | Landmarks with coordinates (distances are computed) | `src/data/places.ts` |
-| Tripadvisor review lines (verbatim) | `src/data/reviews.ts` |
 | All wording, per language | `src/i18n/en.json`, `src/i18n/ar.json` |
 | Pages | `src/views/*.astro`, routed by `src/pages/[...path].astro` |
 | Components (hero, skyline, panorama, filmstrip, reviews, map, form…) | `src/components/` |
@@ -80,6 +80,29 @@ QA without a browser: `npm run build && npx astro preview --host 127.0.0.1`, the
 
 ## Deploy
 
-`scripts/deploy.sh` builds and force-pushes `dist/` to the `gh-pages` branch (GitHub Pages source:
-branch `gh-pages`, `/`). Run `gh auth switch -u jeeveshverma` first and switch back after. The site
-lives under the `/giza-pyramids-view-guest-house` base path.
+Every push to `main` is built and published by `.github/workflows/publish.yml` (GitHub Pages
+source: GitHub Actions). Nothing is deployed by hand. The site lives under the
+`/giza-pyramids-view-guest-house` base path.
+
+## The owner's dashboard
+
+`/admin/` is a page for the owner: room prices and how many rooms of each type, the phone and
+WhatsApp numbers, the review scores, the guests' review lines, and replacing photos. It has no
+server. It commits `src/data/content.json` and the photo masters to `main` through the GitHub API,
+and the Publish workflow puts the change live a few minutes later.
+
+| What | Where |
+|---|---|
+| The page | `public/admin/` (`index.html`, `admin.js`, `admin.css`) |
+| What it edits, and the checks on it | `src/data/content.json`, `src/data/content.ts` (`admin.js` repeats the checks) |
+| The photo list and the live content it reads | `src/pages/admin/photos.json.ts`, `src/pages/admin/content.json.ts` |
+| The login | `public/admin/access.json`, written by `scripts/make_login.mjs` |
+
+The login and password are not checked anywhere: the password decrypts, in the browser, a GitHub
+access key stored locked in `access.json`. That key must be a fine-grained token for this repository
+only (Contents: read and write). Set or change the login with
+`GP_TOKEN=github_pat_... node scripts/make_login.mjs <login> [password]`, then commit and push
+`access.json`. Deleting the token on GitHub locks everyone out.
+
+`/admin/?branch=<name>` saves to another branch instead of `main`, which publishes nothing: use it
+to try the dashboard.

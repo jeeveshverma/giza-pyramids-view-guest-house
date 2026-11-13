@@ -1,7 +1,7 @@
 ---
 /**
  * The availability list, laid out like Booking.com's room table: one row per room type with its
- * photo, beds, features, who it sleeps, the price column ("on request": the site has no rates),
+ * photo, beds, features, who it sleeps, the price column (the rate from the dashboard, or "on request" when none is set),
  * what is included, and a room-count picker; beside it a reserve panel that sums the selection,
  * warns when the rooms sleep fewer than the party, and goes on to the checkout with everything in
  * the URL. Selection lives in the shared stay (src/lib/stay.ts). Below 1200px each row becomes a
@@ -70,8 +70,8 @@ const sleeps = Object.fromEntries(ROOMS.map((r) => [r.id, r.sleeps]));
             </div>
             <div class="av-price" role="cell">
               <span class="av-m">{t('bk.colPrice')}</span>
-              <strong>{t('bk.price')}</strong>
-              <small>{t('bk.priceNote')}</small>
+              <strong>{r.price ? t('bk.priceUsd', { n: digits(r.price, lang) }) : t('bk.price')}</strong>
+              <small>{r.price ? t('bk.priceNight') : t('bk.priceNote')}</small>
             </div>
             <ul class="av-choices" role="cell">
               <li><Icon name="breakfast" size={16} /> <b>{t('bk.chBreakfast')}</b></li>

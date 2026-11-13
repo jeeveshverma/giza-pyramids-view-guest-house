@@ -53,7 +53,7 @@ const jsonld = [
           </ul>
         </div>
         <aside class="rm-box" data-rmbox data-room={id} data-checkout={path(lang, 'enquire')}>
-          <p class="rm-price"><span>{t('bk.colPrice')}</span><strong>{t('bk.price')}</strong><small>{t('bk.priceNote')}</small></p>
+          <p class="rm-price"><span>{t('bk.colPrice')}</span><strong>{room.price ? t('bk.priceUsd', { n: digits(room.price, lang) }) : t('bk.price')}</strong><small>{room.price ? t('bk.priceNight') : t('bk.priceNote')}</small></p>
           <label class="rm-qty"><span>{t('bk.colSelect')}</span>
             <select data-qty>{Array.from({ length: room.max }, (_, n) => <option value={n + 1}>{digits(n + 1, lang)}</option>)}</select>
           </label>
