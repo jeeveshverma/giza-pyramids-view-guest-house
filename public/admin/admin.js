@@ -271,7 +271,7 @@
       S.photos.forEach(function (p, path) { S.shown[path] = p.url; });
       S.photos.clear();
       S.busy = false;
-      S.status = { kind: "work", text: "Saved. Now updating the website. This takes a few minutes…" };
+      S.status = { kind: "work", text: "Saved. Now updating the website. This takes a minute or two…" };
       render();
       watch(stamp, commitSha);
     }).catch(function (e) {

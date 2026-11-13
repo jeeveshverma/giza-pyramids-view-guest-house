@@ -89,7 +89,7 @@ source: GitHub Actions). Nothing is deployed by hand. The site lives under the
 `/admin/` is a page for the owner: room prices and how many rooms of each type, the phone and
 WhatsApp numbers, the review scores, the guests' review lines, and replacing photos. It has no
 server. It commits `src/data/content.json` and the photo masters to `main` through the GitHub API,
-and the Publish workflow puts the change live a few minutes later.
+and the Publish workflow puts the change live a minute or two later.
 
 | What | Where |
 |---|---|
