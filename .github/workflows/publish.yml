@@ -30,6 +30,12 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # Astro keeps every resized photo here; without it each build spends three minutes on them.
+      - uses: actions/cache@v4
+        with:
+          path: node_modules/.astro
+          key: astro-${{ hashFiles('src/assets/photos/**') }}
+          restore-keys: astro-
       - run: npm run build
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
