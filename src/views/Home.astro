@@ -87,7 +87,7 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
   <section class="section viewsec" id="view">
     <div class="wrap">
       <div class="section-head rv">
-        <span class="num">{digits('01', lang)}</span>
+        <span class="num floor">{digits('01', lang)}</span>
         <h2>{t('view.title')}</h2>
         <p class="lead">{t('view.text')}</p>
       </div>
@@ -103,7 +103,7 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
   <section class="section elevsec" id="height">
     <div class="wrap">
       <div class="section-head rv">
-        <span class="num">{digits('02', lang)}</span>
+        <span class="num floor">{digits('02', lang)}</span>
         <h2>{t('sections.elev')}</h2>
         <p class="lead">{t('elev.text')}</p>
       </div>
@@ -117,7 +117,7 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
   <section class="section daysec" id="day">
     <div class="wrap">
       <div class="section-head rv">
-        <span class="num">{digits('03', lang)}</span>
+        <span class="num floor">{digits('03', lang)}</span>
         <h2>{t('sections.day')}</h2>
       </div>
       <div class="rv"><DayDial lang={lang} /></div>
@@ -129,7 +129,7 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
     <div class="wrap reno-in">
       <div class="reno-photo reno-a rv"><Img id="terrace-day" lang={lang} ratio="3 / 4" sizes="(min-width: 960px) 30vw, 60vw" /><p class="caption">{photo('terrace-day').caption![lang]}</p></div>
       <div class="reno-text rv rv-d1">
-        <span class="num">{digits('04', lang)}</span>
+        <span class="num floor">{digits('04', lang)}</span>
         <h2>{t('rooms.bathroom')}</h2>
         <p class="lead">{t('rooms.bathroomText')}</p>
         <Landmark name="sun" size={48} />
@@ -141,7 +141,7 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
   <!-- House rules and the practical part -->
   <section class="section pract" id="rules">
     <div class="wrap pract-in">
-      <div class="section-head rv"><span class="num">{digits('05', lang)}</span><h2>{t('sections.practical')}</h2><p class="lead">{t('practical.intro')}</p></div>
+      <div class="section-head rv"><span class="num floor">{digits('05', lang)}</span><h2>{t('sections.practical')}</h2><p class="lead">{t('practical.intro')}</p></div>
       <dl class="pract-list rv rv-d1">
         {practical.map(([k, v]) => <div><dt>{k}</dt><dd>{v}</dd></div>)}
       </dl>
@@ -154,7 +154,7 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
   <section class="section sal">
     <div class="wrap">
       <div class="section-head rv">
-        <span class="num">{digits('06', lang)}</span>
+        <span class="num floor">{digits('06', lang)}</span>
         <h2>{t('sections.giza')}</h2>
         <p class="lead">{t('giza.intro')}</p>
       </div>
