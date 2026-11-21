@@ -6,7 +6,7 @@
     },
     "rooms": {
       "title": "Rooms and availability — Giza Pyramids View Guest House",
-      "desc": "Five kinds of room on the eleventh floor in Al Haram, Giza: twin rooms with the pyramids in the window, a deluxe studio with a kitchenette, triple, twin and double rooms. Breakfast included. Check availability and reserve on WhatsApp."
+      "desc": "Five kinds of room on the eleventh floor in Al Haram, Giza: twin rooms with the pyramids in the window, a deluxe studio with a kitchenette, triple, twin and double rooms. Breakfast included. See what is free for your dates and book; you pay at the house."
     },
     "gallery": {
       "title": "Photos — Giza Pyramids View Guest House",
@@ -18,11 +18,15 @@
     },
     "enquire": {
       "title": "Reserve — Giza Pyramids View Guest House",
-      "desc": "Your rooms, your details, and the request sent to the guest house on WhatsApp. Nothing is charged on the website."
+      "desc": "Your rooms, your details, and a booking number at the end. Nothing is charged on the website: you pay at the guest house."
     },
     "notfound": {
       "title": "Page not found — Giza Pyramids View Guest House",
       "desc": "That page does not exist."
+    },
+    "booking": {
+      "title": "My booking — Giza Pyramids View Guest House",
+      "desc": "See or cancel a booking made on this website, with its booking number and your mobile number."
     }
   },
   "nav": {
@@ -38,7 +42,8 @@
     "langLabel": "Switch language",
     "whatsapp": "WhatsApp",
     "call": "Call",
-    "contact": "Contact"
+    "contact": "Contact",
+    "booking": "My booking"
   },
   "hero": {
     "eyebrow": "Al Haram · Giza · the eleventh floor",
@@ -355,12 +360,12 @@
     "colChoices": "Your choices",
     "colSelect": "Select rooms",
     "price": "On request",
-    "priceNote": "Today's rate comes back on WhatsApp",
+    "priceNote": "The house confirms the rate on WhatsApp",
     "priceUsd": "US${n}",
-    "priceNight": "per night, confirmed on WhatsApp",
+    "priceNight": "per night, paid at the house",
     "chBreakfast": "Breakfast included",
     "chNoCard": "No payment on this website",
-    "chConfirm": "Confirmed on WhatsApp",
+    "chConfirm": "The house confirms on WhatsApp",
     "reserve": "I'll reserve",
     "reserveNote": "Nothing is charged on this website",
     "selected": "{rooms} for {nights}",
@@ -404,7 +409,7 @@
     "change": "Change your selection",
     "editDates": "Change dates",
     "detailsTitle": "Enter your details",
-    "detailsLead": "Almost done. Fill in the details below; the next step shows the request before it goes.",
+    "detailsLead": "Almost done. Fill in the details below; the next step shows everything before you book.",
     "first": "First name",
     "last": "Last name",
     "email": "Email address",
@@ -423,10 +428,10 @@
     "requestsHint": "Requests depend on availability; the house will say what it can do.",
     "next": "Next: final step",
     "back": "Back",
-    "finalTitle": "Check your request",
-    "finalLead": "Nothing is charged. When you send this, WhatsApp opens with the request written out; the house replies with availability and the rate, and the booking is confirmed when they confirm it.",
-    "send": "Send request on WhatsApp",
-    "copy": "Copy the request",
+    "finalTitle": "Check and book",
+    "finalLead": "Nothing is charged on this website: you pay at the guest house. Booking holds your rooms straight away, and you can cancel online up to the day before you arrive.",
+    "send": "Send on WhatsApp",
+    "copy": "Copy the message",
     "copied": "Copied",
     "or": "or call {phone}",
     "errRooms": "Choose at least one room.",
@@ -446,7 +451,9 @@
       "arrival": "Arrival",
       "pickup": "Airport pickup",
       "req": "Requests",
-      "from": "Sent from the website"
+      "from": "Sent from the website",
+      "booked": "Hello Giza Pyramids View Guest House, I have just booked on your website.",
+      "ref": "Booking number"
     },
     "hl": {
       "title": "Property highlights",
@@ -477,6 +484,69 @@
       "reserveThis": "Reserve this room",
       "others": "Other rooms"
     },
-    "endLead": "Choose your dates and rooms, add your details, and the request goes to the guest house on WhatsApp. Nothing is charged on this website; the house replies with availability and the rate."
+    "endLead": "Choose your dates and rooms, add your details, and you have a booking number. Nothing is charged on this website; you pay at the guest house, and the house confirms on WhatsApp.",
+    "complete": "Complete booking",
+    "booking": "Booking…",
+    "soldOut": "Sold out for these dates",
+    "lastRoom": "Last room",
+    "dropped": "Some of the rooms you picked are no longer free for these dates, so your selection was changed. Please check it.",
+    "liveOff": "Live availability could not be loaded. Check your connection and reload, or write to the house on WhatsApp.",
+    "payAt": "Paid at the guest house, nothing now",
+    "rateAsk": "The house confirms the rate on WhatsApp",
+    "errSold": "One of these rooms was taken for your dates a moment ago. Your selection has been changed to what is still free; check it and book again.",
+    "errOffline": "The booking could not be sent. Check your connection and press “Complete booking” again. Nothing has been booked yet.",
+    "errBusy": "Too many bookings were made from this connection in the last hour. Please write to the house on WhatsApp.",
+    "errGeneric": "The booking could not be made just now. Nothing has been booked. Try again, or write to the house on WhatsApp.",
+    "errDates": "These dates cannot be booked online. Change the dates, or write to the house on WhatsApp.",
+    "rv": {
+      "dates": "Dates",
+      "stay": "Stay",
+      "guests": "Guests",
+      "rooms": "Rooms",
+      "total": "Total",
+      "name": "Name",
+      "phone": "Mobile",
+      "email": "Email",
+      "arrival": "Arrival",
+      "pickup": "Airport pickup",
+      "req": "Requests"
+    },
+    "doneKicker": "Booking received",
+    "doneTitle": "Your rooms are held",
+    "refLabel": "Booking number",
+    "doneLead": "Keep this number. The guest house confirms the booking on WhatsApp, at the mobile number you gave. You can see the booking or cancel it at any time under “My booking”.",
+    "doneWaTitle": "Now say hello on WhatsApp",
+    "doneWaLead": "Send this message so the house has you in its chat. It is the quickest way to get your confirmation, and where to ask about the airport pickup.",
+    "manage": "See my booking"
+  },
+  "mb": {
+    "title": "My booking",
+    "lead": "Enter your booking number and the mobile number you booked with.",
+    "phone": "Mobile number",
+    "find": "Find my booking",
+    "finding": "Looking…",
+    "hint": "Lost the number? The house can find your booking by name:",
+    "need": "Enter the booking number and the mobile number you booked with.",
+    "notFound": "No booking matches that number and mobile. Check both and try again.",
+    "offline": "The booking could not be loaded. Check your connection and try again.",
+    "failed": "That did not work just now. Try again, or write to the house on WhatsApp.",
+    "tooLate": "It is too late to cancel online. Please write to the house on WhatsApp.",
+    "st": {
+      "pending": "Waiting for the house",
+      "confirmed": "Confirmed",
+      "cancelled": "Cancelled"
+    },
+    "pendingNote": "Your rooms are held. The house will confirm the booking on WhatsApp.",
+    "confirmedNote": "The house has confirmed your booking. See you in Giza.",
+    "cancelledNote": "This booking is cancelled and no rooms are held.",
+    "askHouse": "Message the house",
+    "waAbout": "Hello Giza Pyramids View Guest House, I am writing about booking {ref}.",
+    "cancel": "Cancel this booking",
+    "cancelAsk": "Cancel the booking? The rooms go back on sale at once.",
+    "cancelYes": "Yes, cancel it",
+    "cancelNo": "Keep it",
+    "cancelling": "Cancelling…",
+    "other": "Look up another booking",
+    "again": "Book another stay"
   }
 }

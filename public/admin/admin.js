@@ -1,6 +1,8 @@
 /* Giza Pyramids View Guest House — website dashboard (no dependencies).
    Edits src/data/content.json and the photos in src/assets/photos/, and commits them to GitHub.
-   The "Publish" workflow in .github/workflows/ then rebuilds and deploys the site. */
+   The "Publish" workflow in .github/workflows/ then rebuilds and deploys the site.
+   The Bookings section talks to the booking backend (worker/): it shows and changes bookings at
+   once, with no Publish step. It signs in there with the same access key. */
 (function () {
   "use strict";
 
@@ -11,7 +13,12 @@
   var PHOTO_DIR = "src/assets/photos/";
   var SITE = "../";
   var KEY = "gizapv.admin.key";
-  var TABS = [["rooms", "Rooms and prices"], ["contact", "Phone and WhatsApp"], ["scores", "Review scores"], ["reviews", "Guest reviews"], ["photos", "Photos"]];
+  // The booking backend. "?api=" may point at a copy running on this computer, for testing only.
+  var BOOK = "https://api.gizapyramidsviewguesthouse.com";
+  var apiParam = new URLSearchParams(location.search).get("api");
+  if (apiParam && /^http:\/\/(127\.0\.0\.1|localhost):\d+$/.test(apiParam)) BOOK = apiParam;
+  var SOURCES = [["whatsapp", "WhatsApp"], ["phone", "Phone"], ["walk-in", "Walk-in"], ["booking.com", "Booking.com"], ["other", "Other"]];
+  var TABS = [["bookings", "Bookings"], ["rooms", "Rooms and prices"], ["contact", "Phone and WhatsApp"], ["scores", "Review scores"], ["reviews", "Guest reviews"], ["photos", "Photos"]];
   // The room types, in the order the site lists them (the same list as src/data/content.ts).
   var ROOMS = [["twin-view", "Twin room, pyramids view"], ["studio", "Deluxe studio"], ["triple", "Triple room"], ["twin", "Twin room"], ["double", "Double room"]];
   var SCORES = [["google", "Google", 5], ["tripadvisor", "Tripadvisor", 5], ["trip", "Trip.com", 10]];
@@ -20,7 +27,8 @@
   var app = document.getElementById("app");
   var S = {
     token: null, saved: null, draft: null, sha: null, updated: null,
-    slots: [], photos: new Map(), shown: {}, tab: "rooms", busy: false, status: null, errors: []
+    slots: [], photos: new Map(), shown: {}, tab: "bookings", busy: false, status: null, errors: [],
+    bk: { list: null, cal: null, today: null, calFrom: null, range: "next", loading: false, error: null, form: null, formError: null, sure: null, acting: null, showCancelled: false }
   };
 
   /* ---------------------------------------------------------------- helpers */
@@ -357,7 +365,7 @@
 
   function viewRooms() {
     return h("section", null,
-      h("p", { class: "intro", text: "The price for one night in each kind of room, and how many of them a guest can ask for in one booking. Leave a price empty and the website shows “On request”." }),
+      h("p", { class: "intro", text: "The price for one night in each kind of room, and how many of them the house has. Leave a price empty and the website shows “On request”." }),
       h("div", { class: "card" }, S.draft.rooms.map(function (r, i) {
         var name = ROOMS[i][1];
         return h("div", { class: "line room" },
@@ -368,7 +376,7 @@
           h("label", { class: "pair" }, h("span", { class: "lbl", text: "Rooms" }),
             numberInput(r.count, function (v) { r.count = v; }, { label: name + ", number of rooms", max: 1, cls: "count" })));
       })),
-      h("p", { class: "note", text: "A price is shown as “US$45, per night, confirmed on WhatsApp”. The website never takes payment; the booking request still goes to WhatsApp." }));
+      h("p", { class: "note", text: "A price is shown as “US$45, per night, paid at the house”. The website never takes payment. The number of rooms is also how many the website will let guests book for the same night." }));
   }
 
   function viewContact() {
@@ -442,7 +450,185 @@
       }));
   }
 
-  var VIEWS = { rooms: viewRooms, contact: viewContact, scores: viewScores, reviews: viewReviews, photos: viewPhotos };
+  /* ---------------------------------------------------------------- bookings */
+  function bk(path, opts) {
+    opts = opts || {};
+    var headers = { Authorization: "Bearer " + S.token };
+    if (opts.body) headers["Content-Type"] = "application/json";
+    return fetch(BOOK + path, { method: opts.body ? "POST" : "GET", headers: headers, body: opts.body ? JSON.stringify(opts.body) : undefined, cache: "no-store" })
+      .then(function (res) {
+        return res.json().catch(function () { return {}; }).then(function (j) {
+          if (res.ok) return j;
+          throw friendly(j.message || "The booking system answered " + res.status + ".");
+        });
+      }, function () { throw friendly("The booking system could not be reached. Check your connection and try again."); });
+  }
+  function plusDays(iso, n) { var d = new Date(iso + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+  function dayText(iso, long) { return new Date(iso + "T00:00:00Z").toLocaleDateString("en-GB", long ? { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "UTC" } : { day: "numeric", month: "short", timeZone: "UTC" }); }
+  function roomName(id) { var r = ROOMS.filter(function (x) { return x[0] === id; })[0]; return r ? r[1] : id; }
+
+  function loadBookings() {
+    var B = S.bk;
+    B.loading = true; B.error = null;
+    render();
+    var first = B.today ? Promise.resolve() : bk("/admin/calendar?days=1").then(function (c) { B.today = c.today; B.calFrom = c.today; });
+    return first.then(function () {
+      var from = B.range === "past" ? plusDays(B.today, -90) : B.today, to = B.range === "past" ? plusDays(B.today, -1) : plusDays(B.today, 365);
+      return Promise.all([bk("/admin/bookings?from=" + from + "&to=" + to), bk("/admin/calendar?from=" + B.calFrom + "&days=14")]);
+    }).then(function (r) {
+      B.list = r[0].bookings; B.cal = r[1]; B.loading = false;
+      render();
+    }).catch(function (e) { B.loading = false; B.error = explain(e); render(); });
+  }
+  function act(b, action, extra) {
+    var B = S.bk;
+    B.acting = b.ref; B.sure = null; B.error = null;
+    render();
+    var body = Object.assign({ action: action }, extra || {});
+    return bk("/admin/bookings/" + b.ref, { body: body }).then(function () { B.acting = null; return loadBookings(); })
+      .catch(function (e) { B.acting = null; B.error = explain(e); render(); window.scrollTo(0, 0); });
+  }
+  function waLink(b, text) { return "https://wa.me/" + b.phone.replace(/\D/g, "") + "?text=" + encodeURIComponent(text); }
+  function confirmText(b) {
+    return "Hello " + b.first + ", this is Giza Pyramids View Guest House. Your booking " + b.ref + " is confirmed: " + dayText(b.in, true) + " to " + dayText(b.out, true) + ", " +
+      b.rooms.map(function (r) { return r.qty + " × " + roomName(r.id); }).join(", ") + ". We look forward to welcoming you.";
+  }
+
+  function bookingCard(b) {
+    var B = S.bk, busy = B.acting === b.ref, block = b.kind === "block", past = b.out <= B.today;
+    var who = block ? "Rooms closed" : (b.first + " " + b.last).trim() || "Guest";
+    var note = h("input", { type: "text", value: b.note, maxlength: 500, placeholder: block ? "Why they are closed" : "A note only you see", "aria-label": "Note for " + b.ref });
+    var rows = [
+      ["Stay", dayText(b.in, true) + " → " + dayText(b.out, true) + " · " + plural(b.nights, "night")],
+      ["Rooms", b.rooms.map(function (r) { return r.qty + " × " + roomName(r.id) + (r.price != null ? " (US$" + r.price + ")" : ""); }).join(", ")]
+    ];
+    if (!block) {
+      rows.push(["Guests", plural(b.adults, "adult") + (b.children ? ", " + plural(b.children, "child").replace("childs", "children") : "")]);
+      if (b.total != null) rows.push(["Total", "US$" + b.total + ", paid at the house"]);
+      if (b.arrival) rows.push(["Arrival", b.arrival === "late" ? "After midnight" : b.arrival]);
+      if (b.pickup) rows.push(["Airport pickup", b.flight || "Yes, flight not given"]);
+      if (b.requests) rows.push(["Requests", b.requests]);
+      if (b.email) rows.push(["Email", b.email]);
+      rows.push(["Came from", b.source === "website" ? "The website, " + new Date(b.created).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : (SOURCES.filter(function (x) { return x[0] === b.source; })[0] || [0, b.source])[1]]);
+    }
+    if (b.status === "cancelled" && b.cancelledBy) rows.push(["Cancelled by", b.cancelledBy === "guest" ? "The guest, on the website" : "The house"]);
+    var btns = [];
+    if (b.status === "pending") btns.push(h("button", { type: "button", class: "btn primary small", disabled: busy, onclick: function () { act(b, "confirm"); } }, "Confirm"));
+    if (!block && b.phone && b.status !== "cancelled") btns.push(h("a", { class: "btn small wa", href: waLink(b, b.status === "confirmed" ? confirmText(b) : "Hello " + b.first + ", this is Giza Pyramids View Guest House, about your booking " + b.ref + "."), target: "_blank", rel: "noopener" }, "WhatsApp the guest"));
+    if (b.status !== "cancelled" && !past) {
+      var sure = B.sure === b.ref;
+      btns.push(h("button", { type: "button", class: "btn small " + (sure ? "danger" : "ghost"), disabled: busy, onclick: function () { if (sure) act(b, "cancel"); else { B.sure = b.ref; render(); } } }, sure ? (block ? "Yes, reopen them" : "Yes, cancel it") : (block ? "Reopen these rooms" : "Cancel booking")));
+      if (sure) btns.push(h("button", { type: "button", class: "btn small ghost", onclick: function () { B.sure = null; render(); } }, "Keep it"));
+    }
+    if (b.status === "cancelled" && !past) btns.push(h("button", { type: "button", class: "btn small ghost", disabled: busy, onclick: function () { act(b, "restore"); } }, "Restore"));
+    return h("div", { class: "card bkg " + b.status + (block ? " block" : "") },
+      h("div", { class: "bkg-top" },
+        h("div", null, h("b", { class: "bkg-who", text: who }), block ? null : h("span", { class: "bkg-ref", text: b.ref })),
+        h("span", { class: "chip " + b.status, text: block ? (b.status === "cancelled" ? "Reopened" : "Closed") : b.status === "pending" ? "New, waiting for you" : b.status === "confirmed" ? "Confirmed" : "Cancelled" })),
+      !block && b.phone ? h("p", { class: "bkg-phone" }, h("a", { href: "tel:" + b.phone.replace(/[^\d+]/g, ""), dir: "ltr", text: b.phone })) : null,
+      h("dl", { class: "bkg-rows" }, rows.map(function (r) { return [h("dt", { text: r[0] }), h("dd", { text: r[1], dir: "auto" })]; })),
+      h("div", { class: "bkg-note" }, note,
+        h("button", { type: "button", class: "btn small ghost", disabled: busy, onclick: function () { act(b, "note", { note: note.value }); } }, "Save note")),
+      btns.length ? h("div", { class: "bkg-btns" }, btns) : null,
+      busy ? h("p", { class: "hint", text: "Saving…" }) : null);
+  }
+
+  function calendar() {
+    var B = S.bk, c = B.cal;
+    if (!c) return null;
+    var days = [];
+    for (var i = 0; i < c.days; i++) days.push(plusDays(c.from, i));
+    function go(by) { B.calFrom = plusDays(B.calFrom, by); loadBookings(); }
+    return h("div", { class: "card cal" },
+      h("div", { class: "cal-top" },
+        h("h2", { text: "Rooms taken, night by night" }),
+        h("span", { class: "cal-nav" },
+          h("button", { type: "button", class: "icon", "aria-label": "Two weeks earlier", onclick: function () { go(-14); } }, "←"),
+          h("button", { type: "button", class: "btn small ghost", disabled: B.calFrom === B.today, onclick: function () { B.calFrom = B.today; loadBookings(); } }, "Today"),
+          h("button", { type: "button", class: "icon", "aria-label": "Two weeks later", onclick: function () { go(14); } }, "→"))),
+      h("div", { class: "cal-scroll" }, h("table", null,
+        h("thead", null, h("tr", null, h("th", { scope: "col", text: "Night of" }), days.map(function (d) {
+          var dt = new Date(d + "T00:00:00Z");
+          return h("th", { scope: "col", class: d === B.today ? "today" : null }, h("small", { text: dt.toLocaleDateString("en-GB", { weekday: "short", timeZone: "UTC" }) }), String(dt.getUTCDate()), h("small", { text: dt.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" }) }));
+        }))),
+        h("tbody", null, ROOMS.map(function (r) {
+          var room = c.rooms[r[0]];
+          return h("tr", null, h("th", { scope: "row" }, r[1], h("small", { text: plural(room.count, "room") })), room.taken.map(function (n, i) {
+            return h("td", { class: (n >= room.count ? "full" : n ? "some" : "free") + (days[i] === B.today ? " today" : ""), title: n + " of " + room.count + " taken", text: n ? n + "/" + room.count : "·" });
+          }));
+        })))),
+      h("p", { class: "hint", text: "2/3 means two of the three rooms are taken that night. A dark cell is full." }));
+  }
+
+  function bookingForm() {
+    var B = S.bk, f = B.form, block = f.kind === "block";
+    function inp(key, props) { return h("input", Object.assign({ value: f[key] || "", oninput: function (e) { f[key] = e.target.value; } }, props)); }
+    function submit(e) {
+      e.preventDefault();
+      if (B.acting) return;
+      var rooms = {};
+      ROOMS.forEach(function (r) { if (f.rooms[r[0]]) rooms[r[0]] = f.rooms[r[0]]; });
+      if (!f.in || !f.out || f.out <= f.in) { B.formError = "Choose the first night and the day they leave; the leaving day must be later."; return render(); }
+      if (!Object.keys(rooms).length) { B.formError = "Choose at least one room."; return render(); }
+      if (!block && !oneLine(f.first) && !oneLine(f.last)) { B.formError = "Write the guest's name."; return render(); }
+      var body = { kind: f.kind, in: f.in, out: f.out, rooms: rooms, note: f.note || "" };
+      if (!block) Object.assign(body, { first: f.first || "", last: f.last || "", phone: f.phone || "", source: f.source, adults: parseInt(f.adults, 10) || 2, children: 0 });
+      B.acting = "form"; B.formError = null;
+      render();
+      bk("/admin/bookings", { body: body }).then(function () { B.acting = null; B.form = null; return loadBookings(); })
+        .catch(function (err) { B.acting = null; B.formError = explain(err); render(); });
+    }
+    return h("form", { class: "card bk-form", onsubmit: submit },
+      h("h2", { text: block ? "Close rooms" : "Add a booking" }),
+      h("p", { class: "intro", text: block ? "Take rooms off the website for some nights, for repairs or a stay you do not want to write down. Guests cannot book them until you reopen them." : "For a booking that did not come through the website: WhatsApp, the phone, a walk-in or Booking.com. It is confirmed straight away and the rooms come off the website." }),
+      B.formError ? h("div", { class: "status bad", role: "alert" }, h("span", { text: B.formError })) : null,
+      h("div", { class: "two" },
+        field(block ? "First night closed" : "Arrives", inp("in", { type: "date", required: true })),
+        field(block ? "Open again on" : "Leaves", inp("out", { type: "date", required: true }))),
+      h("div", { class: "bk-rooms" }, h("span", { class: "lbl", text: "Rooms" }), ROOMS.map(function (r) {
+        return h("label", { class: "line" }, h("span", { class: "name", text: r[1] }),
+          h("select", { "aria-label": r[1], onchange: function (e) { f.rooms[r[0]] = parseInt(e.target.value, 10); } }, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(function (n) { return h("option", { value: n, selected: (f.rooms[r[0]] || 0) === n, text: String(n) }); })));
+      })),
+      block ? null : h("div", { class: "two" }, field("First name", inp("first", { type: "text", maxlength: 60 })), field("Last name", inp("last", { type: "text", maxlength: 60 }))),
+      block ? null : h("div", { class: "two" },
+        field("Mobile, with country code", inp("phone", { type: "text", inputmode: "tel", dir: "ltr", maxlength: 30, placeholder: "+" })),
+        field("Adults", inp("adults", { type: "text", inputmode: "numeric", maxlength: 2, class: "num" }))),
+      block ? null : field("Came from", h("select", { onchange: function (e) { f.source = e.target.value; } }, SOURCES.map(function (x) { return h("option", { value: x[0], selected: f.source === x[0], text: x[1] }); }))),
+      field(block ? "Why (only you see this)" : "Note (only you see this)", inp("note", { type: "text", maxlength: 500 })),
+      h("div", { class: "bkg-btns" },
+        h("button", { type: "submit", class: "btn primary", disabled: B.acting === "form" }, B.acting === "form" ? "Saving…" : block ? "Close these rooms" : "Add the booking"),
+        h("button", { type: "button", class: "btn ghost", onclick: function () { B.form = null; B.formError = null; render(); } }, "Never mind")));
+  }
+
+  function viewBookings() {
+    var B = S.bk;
+    if (!B.list && !B.loading && !B.error) { setTimeout(loadBookings, 0); return h("section", null, h("p", { class: "intro", text: "Loading the bookings…" })); }
+    if (B.form) return h("section", null, bookingForm());
+    var list = B.list || [];
+    var fresh = list.filter(function (b) { return b.status === "pending"; });
+    var live = list.filter(function (b) { return b.status === "confirmed"; });
+    var gone = list.filter(function (b) { return b.status === "cancelled"; });
+    function open(kind) { B.form = { kind: kind, rooms: {}, source: "whatsapp", adults: "2", in: B.today, out: plusDays(B.today, 1) }; B.formError = null; render(); window.scrollTo(0, 0); }
+    return h("section", null,
+      h("p", { class: "intro", text: "Every booking made on the website lands here and holds its rooms at once. Confirm it and tell the guest on WhatsApp; cancel it and the rooms go back on sale." }),
+      B.error ? h("div", { class: "status bad", role: "alert" }, h("span", { text: B.error })) : null,
+      h("div", { class: "bk-tools" },
+        h("button", { type: "button", class: "btn primary", onclick: function () { open("guest"); } }, "+ Add a booking"),
+        h("button", { type: "button", class: "btn ghost", onclick: function () { open("block"); } }, "Close rooms"),
+        h("button", { type: "button", class: "btn ghost", disabled: B.loading, onclick: loadBookings }, B.loading ? "Loading…" : "Refresh")),
+      B.range === "next" && fresh.length ? h("div", { class: "group" }, h("h2", { text: "New, waiting for you (" + fresh.length + ")" }), fresh.map(bookingCard)) : null,
+      B.range === "next" ? calendar() : null,
+      h("div", { class: "bk-range" },
+        h("button", { type: "button", class: B.range === "next" ? "on" : null, onclick: function () { B.range = "next"; loadBookings(); } }, "Coming"),
+        h("button", { type: "button", class: B.range === "past" ? "on" : null, onclick: function () { B.range = "past"; loadBookings(); } }, "Last 90 days")),
+      h("div", { class: "group" }, h("h2", { text: (B.range === "next" ? "Confirmed and coming" : "Stays in the last 90 days") + " (" + live.length + ")" }),
+        live.length ? live.map(bookingCard) : h("p", { class: "note", text: B.list ? "Nothing here yet." : "" })),
+      gone.length ? h("div", { class: "group" },
+        h("button", { type: "button", class: "btn small ghost", onclick: function () { B.showCancelled = !B.showCancelled; render(); } }, (B.showCancelled ? "Hide" : "Show") + " cancelled (" + gone.length + ")"),
+        B.showCancelled ? gone.map(bookingCard) : null) : null);
+  }
+
+  var VIEWS = { bookings: viewBookings, rooms: viewRooms, contact: viewContact, scores: viewScores, reviews: viewReviews, photos: viewPhotos };
 
   function statusBox() {
     var s = S.status;
@@ -485,7 +671,7 @@
       h("header", { class: "top" },
         h("div", { class: "wrap" },
           h("div", { class: "brand" }, h("img", { src: SITE + "apple-touch-icon.png", alt: "", width: 38, height: 38 }),
-            h("div", null, h("b", { text: "Pyramids View Guest House" }), h("span", { text: "Website dashboard" }))),
+            h("div", null, h("b", { text: "Pyramids View Guest House" }), h("span", { text: "Bookings and website" }))),
           h("div", { class: "top-links" },
             h("a", { href: SITE, target: "_blank", rel: "noopener", text: "View site" }),
             h("button", { type: "button", class: "link", onclick: signOut }, "Sign out")))),
@@ -533,7 +719,7 @@
     app.replaceChildren(h("main", { class: "signin" },
       h("img", { src: SITE + "apple-touch-icon.png", alt: "Giza Pyramids View Guest House", width: 84, height: 84 }),
       h("h1", { text: "Website dashboard" }),
-      h("p", { text: "Change room prices, the phone and WhatsApp numbers, review scores, guest reviews and photos on the guest house's website." }),
+      h("p", { text: "See and confirm bookings, and change room prices, the phone and WhatsApp numbers, review scores, guest reviews and photos on the guest house's website." }),
       h("form", { onsubmit: function (e) {
         e.preventDefault();
         if (!login.value.trim() || !password.value.trim()) return;
@@ -551,6 +737,7 @@
     if (dirty() && !confirmDiscard()) return;
     try { localStorage.removeItem(KEY); } catch (e) { /* private mode */ }
     S.token = S.draft = S.saved = null;
+    S.bk.list = S.bk.cal = S.bk.form = null;
     S.photos.clear();
     renderSignIn();
   }

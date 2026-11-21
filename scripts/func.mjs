@@ -3,7 +3,7 @@
 // the lightbox opens from the filmstrip, the review band advances, the map responds to a tap.
 //   node scripts/func.mjs [/ar/]
 import { chromium, devices } from 'playwright';
-const BASE = process.env.QA_BASE || 'http://127.0.0.1:4321/giza-pyramids-view-guest-house';
+const BASE = process.env.QA_BASE || 'http://127.0.0.1:4321';
 const path = process.argv[2] || '/';
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ ...devices['iPhone 13'] });

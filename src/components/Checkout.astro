@@ -3,8 +3,10 @@
  * The checkout, in Booking.com's three steps: 1 your selection (done on the availability list;
  * the step links back to it), 2 your details, 3 final step. The sidebar holds the property card
  * and the booking details — dates, guests and rooms, all still editable here, so the page also
- * works when opened directly. The final step shows the request as the WhatsApp message it will
- * become, then opens WhatsApp with it. Nothing is charged; there is no booking engine.
+ * works when opened directly. The final step lists everything once more; "Complete booking" sends
+ * it to the booking backend (src/lib/api.ts), which holds the rooms and answers with a booking
+ * number. The page then shows the number and a WhatsApp message carrying it, for the guest to send
+ * to the house. Nothing is charged: guests pay at the house.
  */
 import { path, useT, digits, type Lang } from '../i18n';
 import { SITE, ROOMS } from '../data/site';
@@ -23,11 +25,16 @@ const dict = {
   checkinFrom: t('bk.checkinFrom', { t: d(SITE.checkIn) }), checkoutUntil: t('bk.checkoutUntil', { t: d(SITE.checkOut) }), arrivalUnknown: t('bk.arrivalUnknown'), pickupYes: t('bk.pickupYes'),
   waIntro: t('bk.wa.intro'), waIn: t('bk.wa.in'), waOut: t('bk.wa.out'), waStay: t('bk.wa.stay'), waGuests: t('bk.wa.guests'), waRooms: t('bk.wa.rooms'), waName: t('bk.wa.name'), waPhone: t('bk.wa.phone'), waEmail: t('bk.wa.email'), waArrival: t('bk.wa.arrival'), waPickup: t('bk.wa.pickup'), waReq: t('bk.wa.req'), waFrom: t('bk.wa.from'),
   checkIn: SITE.checkIn, checkOut: SITE.checkOut,
+  dropped: t('bk.dropped'), liveOff: t('bk.liveOff'), booking: t('bk.booking'), complete: t('bk.complete'), payAt: t('bk.payAt'), rateAsk: t('bk.rateAsk'), usd: t('bk.priceUsd'),
+  errSold: t('bk.errSold'), errOffline: t('bk.errOffline'), errBusy: t('bk.errBusy'), errGeneric: t('bk.errGeneric'), errDates: t('bk.errDates'),
+  rvDates: t('bk.rv.dates'), rvStay: t('bk.rv.stay'), rvGuests: t('bk.rv.guests'), rvRooms: t('bk.rv.rooms'), rvTotal: t('bk.rv.total'), rvName: t('bk.rv.name'), rvPhone: t('bk.rv.phone'), rvEmail: t('bk.rv.email'), rvArrival: t('bk.rv.arrival'), rvPickup: t('bk.rv.pickup'), rvReq: t('bk.rv.req'),
+  waBooked: t('bk.wa.booked'), waRef: t('bk.wa.ref'),
 };
+const prices = Object.fromEntries(ROOMS.map((r) => [r.id, r.price]));
 const sleeps = Object.fromEntries(ROOMS.map((r) => [r.id, r.sleeps]));
 const maxes = Object.fromEntries(ROOMS.map((r) => [r.id, r.max]));
 ---
-<div class="co" data-co data-lang={lang} data-wa={SITE.whatsapp} data-dict={JSON.stringify(dict)} data-names={JSON.stringify(roomNames)} data-sleeps={JSON.stringify(sleeps)} data-max={JSON.stringify(maxes)} data-rooms-url={path(lang, 'rooms')}>
+<div class="co" data-co data-lang={lang} data-wa={SITE.whatsapp} data-dict={JSON.stringify(dict)} data-names={JSON.stringify(roomNames)} data-sleeps={JSON.stringify(sleeps)} data-max={JSON.stringify(maxes)} data-prices={JSON.stringify(prices)} data-manage-url={path(lang, 'booking')} data-rooms-url={path(lang, 'rooms')}>
   <ol class="co-steps" aria-label="Steps">
     <li class="done"><a href={path(lang, 'rooms')} data-back-rooms><span class="co-dot"><Icon name="check" size={14} stroke={2.4} /></span>{t('bk.steps.0')}</a></li>
     <li class="cur" data-stepdot="2"><span class="co-dot">{d(2)}</span>{t('bk.steps.1')}</li>
@@ -77,6 +84,7 @@ const maxes = Object.fromEntries(ROOMS.map((r) => [r.id, r.max]));
           </ul>
           <a class="co-change" href={path(lang, 'rooms')} data-back-rooms>{t('bk.change')}</a>
         </div>
+        <p class="co-total" data-total hidden><span class="co-k">{t('bk.rv.total')}</span> <b data-total-v></b> <small>{t('bk.payAt')}</small></p>
       </div>
     </aside>
 
@@ -117,16 +125,34 @@ const maxes = Object.fromEntries(ROOMS.map((r) => [r.id, r.max]));
       <section class="co-card co-step3" data-step="3" hidden aria-labelledby="co-final">
         <h1 id="co-final" tabindex="-1">{t('bk.finalTitle')}</h1>
         <p class="co-lead">{t('bk.finalLead')}</p>
+        <div class="co-err" data-berr hidden role="alert"></div>
+        <dl class="co-review" data-review></dl>
+        <div class="co-actions co-final-actions">
+          <button type="button" class="co-ghost co-backbtn" data-back><Icon name="arrowLeft" size={17} class="rtl-flip" /> {t('bk.back')}</button>
+          <button type="button" class="co-next" data-book><span>{t('bk.complete')}</span> <Icon name="check" size={18} stroke={2.2} /></button>
+        </div>
+        <p class="co-call">{t('bk.or', { phone: '' })} <a href={`tel:${SITE.phone}`}><bdi dir="ltr">{SITE.phoneDisplay}</bdi></a></p>
+      </section>
+
+      <section class="co-card co-done" data-step="4" hidden aria-labelledby="co-done">
+        <p class="co-ok"><span><Icon name="check" size={16} stroke={2.6} /></span> {t('bk.doneKicker')}</p>
+        <h1 id="co-done" tabindex="-1">{t('bk.doneTitle')}</h1>
+        <p class="co-ref"><span>{t('bk.refLabel')}</span><b data-ref dir="ltr"></b></p>
+        <p class="co-lead co-done-lead">{t('bk.doneLead')}</p>
+        <dl class="co-review" data-done-review></dl>
+        <div class="co-hello">
+          <h2>{t('bk.doneWaTitle')}</h2>
+          <p>{t('bk.doneWaLead')}</p>
+        </div>
         <div class="co-wa">
           <div class="co-wa-top"><span class="co-wa-av" aria-hidden="true"><Icon name="pyramid" size={18} /></span><span class="co-wa-who"><b>{SITE.shortName[lang]}</b><bdi dir="ltr">{SITE.whatsappDisplay}</bdi></span><Icon name="whatsapp" size={20} class="co-wa-ic" /></div>
           <div class="co-bubble"><pre data-msg></pre><span class="co-tick" aria-hidden="true">✓✓</span></div>
         </div>
         <div class="co-actions co-final-actions">
-          <button type="button" class="co-ghost co-backbtn" data-back><Icon name="arrowLeft" size={17} class="rtl-flip" /> {t('bk.back')}</button>
+          <a class="co-ghost co-backbtn" href={path(lang, 'booking')} data-manage>{t('bk.manage')}</a>
           <button type="button" class="co-ghost co-copy" data-copy><Icon name="copy" size={17} /> <span>{t('bk.copy')}</span></button>
           <a class="co-send" href="#" target="_blank" rel="noopener" data-send><Icon name="whatsapp" size={20} /> {t('bk.send')}</a>
         </div>
-        <p class="co-call">{t('bk.or', { phone: '' })} <a href={`tel:${SITE.phone}`}><bdi dir="ltr">{SITE.phoneDisplay}</bdi></a></p>
       </section>
     </div>
   </div>
@@ -134,6 +160,7 @@ const maxes = Object.fromEntries(ROOMS.map((r) => [r.id, r.max]));
 
 <script>
   import { readStay, writeStay, toQuery, nights, roomCount, fmtDate, plural, dg, type Stay } from '../lib/stay';
+  import { availability, book, remember, ApiError, type Booking } from '../lib/api';
   const GKEY = 'gp-guest';
   document.querySelectorAll<HTMLElement>('[data-co]').forEach((root) => {
     const lang = root.dataset.lang!;
@@ -141,9 +168,16 @@ const maxes = Object.fromEntries(ROOMS.map((r) => [r.id, r.max]));
     const NAMES = JSON.parse(root.dataset.names!) as Record<string, string>;
     const SLEEPS = JSON.parse(root.dataset.sleeps!) as Record<string, number>;
     const MAX = JSON.parse(root.dataset.max!) as Record<string, number>;
+    const PRICE = JSON.parse(root.dataset.prices!) as Record<string, number | null>;
+    let LEFT: Record<string, number> | null = null; // rooms free for the dates, once the backend has said
+    const most = (id: string) => Math.min(MAX[id] ?? 3, LEFT ? LEFT[id] ?? 0 : 99);
+    const usd = (n: number) => D.usd.replace('{n}', d(n));
+    /** Dollars for the whole stay, or null when a picked room has no published price. */
+    const total = (x: Stay) => { const e = Object.entries(x.rooms).filter(([, n]) => n > 0); return e.length && e.every(([id]) => PRICE[id] != null) ? e.reduce((a, [id, n]) => a + PRICE[id]! * n * nights(x), 0) : null; };
     const d = dg(lang);
     const q = <T extends Element>(s: string) => root.querySelector<T>(s)!;
-    const form = q<HTMLFormElement>('[data-step="2"]'), final = q<HTMLElement>('[data-step="3"]');
+    const form = q<HTMLFormElement>('[data-step="2"]'), final = q<HTMLElement>('[data-step="3"]'), done = q<HTMLElement>('[data-step="4"]');
+    let booked: Booking | null = null, dropped = false;
     const cin = q<HTMLInputElement>('[name=cin]'), cout = q<HTMLInputElement>('[name=cout]');
     let s: Stay = readStay();
     const party = (x: Stay) => `${plural(D.adultsN, x.adults, lang)}${x.children ? `${lang === 'ar' ? '، ' : ', '}${plural(D.childrenN, x.children, lang)}` : ''}`;
@@ -163,17 +197,41 @@ const maxes = Object.fromEntries(ROOMS.map((r) => [r.id, r.max]));
       q<HTMLElement>('[data-mini]').textContent = [`${fmtDate(s.in, lang, true)} – ${fmtDate(s.out, lang, true)}`, plural(D.nightsN, nights(s), lang), n ? plural(D.roomsN, n, lang) : '', party(s)].filter(Boolean).join(' · ');
       root.querySelectorAll<HTMLElement>('[data-rrow]').forEach((li) => { const k = s.rooms[li.dataset.rrow!] || 0; li.classList.toggle('on', k > 0); q<HTMLOutputElement>(`[data-ro="${li.dataset.rrow}"]`).value = d(k); });
       const warn = q<HTMLElement>('[data-warn]'); const cap = capacity(s), need = s.adults + s.children;
-      if (!n) { warn.hidden = false; warn.textContent = D.errRooms; }
+      if (dropped) { warn.hidden = false; warn.textContent = D.dropped; }
+      else if (!n) { warn.hidden = false; warn.textContent = D.errRooms; }
       else if (cap < need) { warn.hidden = false; warn.textContent = D.capacity.replace('{n}', plural(D.guestsN, cap, lang)).replace('{m}', plural(D.guestsN, need, lang)); }
       else warn.hidden = true;
+      const tot = total(s); q<HTMLElement>('[data-total]').hidden = tot == null; q<HTMLElement>('[data-total-v]').textContent = tot == null ? '' : usd(tot);
+      root.querySelectorAll<HTMLButtonElement>('[data-r]').forEach((b) => { const [id, by] = b.dataset.r!.split(':'); b.disabled = Number(by) > 0 ? (s.rooms[id] || 0) >= most(id) : !(s.rooms[id] || 0); });
       const mw = q<HTMLElement>('[data-mini-warn]'); mw.hidden = warn.hidden; mw.textContent = warn.textContent;
       root.querySelectorAll<HTMLAnchorElement>('[data-back-rooms]').forEach((a) => (a.href = `${root.dataset.roomsUrl}?${toQuery(s)}#availability`));
     };
-    const set = (patch: Partial<Stay>) => { s = writeStay({ ...s, ...patch }, 'co'); renderStay(); if (!final.hidden) renderFinal(); if (tried && !err.hidden) validate(false); };
+    const set = (patch: Partial<Stay>) => {
+      if (booked) return; // the booking is made; what is on the page is its record
+      const dates = (patch.in && patch.in !== s.in) || (patch.out && patch.out !== s.out);
+      if (patch.rooms) dropped = false;
+      s = writeStay({ ...s, ...patch }, 'co'); renderStay(); if (!final.hidden) renderFinal(); if (tried && !err.hidden) validate(false);
+      if (dates) loadLeft();
+    };
+    // the rooms free for these dates; a selection that no longer fits is cut down, and said so
+    let asked = '';
+    const fit = (left: Record<string, number>) => {
+      LEFT = left;
+      const rooms = { ...s.rooms }; let cut = false;
+      for (const id of Object.keys(rooms)) if (rooms[id] > most(id)) { rooms[id] = most(id); cut = true; }
+      if (cut) { dropped = true; s = writeStay({ ...s, rooms }, 'co'); }
+      renderStay(); if (!final.hidden) renderFinal();
+      return cut;
+    };
+    const loadLeft = async () => {
+      const key = `${s.in}|${s.out}`; asked = key;
+      try { const a = await availability(s); if (asked === key) fit(Object.fromEntries(Object.entries(a.rooms).map(([id, r]) => [id, r.left]))); }
+      catch { if (asked === key) LEFT = null; } // not shown here: "Complete booking" checks again and says so
+    };
     cin.addEventListener('change', () => { if (!cin.value) return renderStay(); const o = new Date(cin.value + 'T00:00:00'); o.setDate(o.getDate() + 1); const oi = `${o.getFullYear()}-${String(o.getMonth() + 1).padStart(2, '0')}-${String(o.getDate()).padStart(2, '0')}`; set({ in: cin.value, out: cout.value > cin.value ? cout.value : oi }); });
     cout.addEventListener('change', () => { if (cout.value) set({ out: cout.value }); else renderStay(); });
     root.querySelectorAll<HTMLButtonElement>('[data-p]').forEach((b) => b.addEventListener('click', () => { const [k, by] = b.dataset.p!.split(':') as ['adults' | 'children', string]; set({ [k]: s[k] + Number(by) } as Partial<Stay>); }));
-    root.querySelectorAll<HTMLButtonElement>('[data-r]').forEach((b) => b.addEventListener('click', () => { const [id, by] = b.dataset.r!.split(':'); const n = Math.max(0, Math.min(MAX[id] ?? 3, (s.rooms[id] || 0) + Number(by))); set({ rooms: { ...s.rooms, [id]: n } }); }));
+    root.querySelectorAll<HTMLButtonElement>('[data-r]').forEach((b) => b.addEventListener('click', () => { const [id, by] = b.dataset.r!.split(':'); const n = Math.max(0, Math.min(most(id), (s.rooms[id] || 0) + Number(by))); set({ rooms: { ...s.rooms, [id]: n } }); }));
 
     // the guest's own details survive a reload or a trip back to the rooms
     const fields = ['first', 'last', 'phone', 'email', 'arrival', 'flight', 'req'] as const;
@@ -208,48 +266,112 @@ const maxes = Object.fromEntries(ROOMS.map((r) => [r.id, r.max]));
     // what the guest typed may run the other way from the language around it (a Latin name or
     // number in an Arabic line): isolate it, or WhatsApp lays "+20 100 123 4567" out back to front
     const iso = (v: string, ltr = false) => (lang === 'ar' && v ? `${ltr ? '\u2066' : '\u2068'}${v}\u2069` : v);
+    const arrivalText = () => (el('arrival').value === 'late' ? q<HTMLOptionElement>('[name=arrival] option[value=late]').textContent! : el('arrival').value ? d(el('arrival').value) : D.arrivalUnknown);
+    const fullName = () => `${el('first').value.trim()} ${el('last').value.trim()}`;
+    /** The message the guest sends the house once the booking is made: the number first, then the stay. */
     const message = () => {
-      const arrival = el('arrival').value === 'late' ? q<HTMLOptionElement>('[name=arrival] option[value=late]').textContent! : el('arrival').value ? d(el('arrival').value) : D.arrivalUnknown;
       const rooms = Object.entries(s.rooms).filter(([, n]) => n > 0).map(([id, n]) => `${d(n)} × ${NAMES[id]}`).join('\n   ');
       const L = [
-        D.waIntro, '',
+        D.waBooked, `${D.waRef}: ${iso(booked?.ref || '', true)}`, '',
         `${D.waIn}: ${fmtDate(s.in, lang)} (${D.checkinFrom})`,
         `${D.waOut}: ${fmtDate(s.out, lang)} (${D.checkoutUntil})`,
         `${D.waStay}: ${plural(D.nightsN, nights(s), lang)}`,
         `${D.waGuests}: ${party(s)}`,
         `${D.waRooms}:\n   ${rooms}`, '',
-        `${D.waName}: ${iso(`${el('first').value.trim()} ${el('last').value.trim()}`)}`,
+        `${D.waName}: ${iso(fullName())}`,
         `${D.waPhone}: ${iso(el('phone').value.trim(), true)}`,
       ];
-      if (el('email').value.trim()) L.push(`${D.waEmail}: ${iso(el('email').value.trim(), true)}`);
-      L.push(`${D.waArrival}: ${arrival}`);
+      L.push(`${D.waArrival}: ${arrivalText()}`);
       if (el('pickup').checked) L.push(`${D.waPickup}: ${iso(el('flight').value.trim()) || '✓'}`);
       if (el('req').value.trim()) L.push(`${D.waReq}: ${iso(el('req').value.trim())}`);
       L.push('', `— ${D.waFrom}`);
       return L.join('\n');
     };
-    const renderFinal = () => {
+    /** Everything about the booking as label and value rows; what the guest typed is set as text, never as markup. */
+    const review = (into: HTMLElement) => {
+      const tot = total(s);
+      const rooms = Object.entries(s.rooms).filter(([, n]) => n > 0).map(([id, n]) => `${d(n)} × ${NAMES[id]}${PRICE[id] != null ? ` · ${usd(PRICE[id]!)}` : ''}`);
+      const rows: [string, string | string[], string?][] = [
+        [D.rvDates, [`${fmtDate(s.in, lang)} · ${D.checkinFrom}`, `${fmtDate(s.out, lang)} · ${D.checkoutUntil}`]],
+        [D.rvStay, plural(D.nightsN, nights(s), lang)],
+        [D.rvGuests, party(s)],
+        [D.rvRooms, rooms],
+        [D.rvTotal, tot != null ? [usd(tot), D.payAt] : D.rateAsk, 'tot'],
+        [D.rvName, fullName(), 'auto'],
+        [D.rvPhone, el('phone').value.trim(), 'ltr'],
+      ];
+      if (el('email').value.trim()) rows.push([D.rvEmail, el('email').value.trim(), 'ltr']);
+      rows.push([D.rvArrival, arrivalText()]);
+      if (el('pickup').checked) rows.push([D.rvPickup, el('flight').value.trim() || '✓', 'auto']);
+      if (el('req').value.trim()) rows.push([D.rvReq, el('req').value.trim(), 'auto']);
+      into.replaceChildren(...rows.flatMap(([k, v, kind]) => {
+        const dt = Object.assign(document.createElement('dt'), { textContent: k });
+        const dd = document.createElement('dd');
+        if (kind === 'tot') dd.className = 'tot';
+        (Array.isArray(v) ? v : [v]).forEach((line) => { const sp = document.createElement('span'); sp.textContent = line; if (kind === 'ltr' || kind === 'auto') sp.dir = kind; dd.appendChild(sp); });
+        return [dt, dd];
+      }));
+    };
+    const berr = q<HTMLElement>('[data-berr]');
+    const renderFinal = () => { review(q<HTMLElement>('[data-review]')); };
+    const renderDone = () => {
       const m = message();
+      q<HTMLElement>('[data-ref]').textContent = booked!.ref;
+      review(q<HTMLElement>('[data-done-review]'));
       q<HTMLElement>('[data-msg]').textContent = m;
       q<HTMLAnchorElement>('[data-send]').href = `https://wa.me/${root.dataset.wa}?text=${encodeURIComponent(m)}`;
+      q<HTMLAnchorElement>('[data-manage]').href = `${root.dataset.manageUrl}?ref=${encodeURIComponent(booked!.ref)}`;
     };
-    const show = (step: 2 | 3, push = true) => {
-      form.hidden = step !== 2; final.hidden = step !== 3;
+    const show = (step: 2 | 3 | 4, push = true) => {
+      form.hidden = step !== 2; final.hidden = step !== 3; done.hidden = step !== 4;
+      root.classList.toggle('is-done', step === 4);
       root.querySelectorAll<HTMLElement>('[data-stepdot]').forEach((li) => { const n = Number(li.dataset.stepdot); li.classList.toggle('cur', n === step); li.classList.toggle('done', n < step); });
-      if (step === 3) renderFinal();
+      if (step === 3) { berr.hidden = true; renderFinal(); }
+      if (step === 4) renderDone();
       if (push) history.pushState({ coStep: step }, '', location.href);
       root.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      if (step === 3) setTimeout(() => q<HTMLElement>('#co-final').focus({ preventScroll: true }), 300);
+      if (step > 2) setTimeout(() => q<HTMLElement>(step === 3 ? '#co-final' : '#co-done').focus({ preventScroll: true }), 300);
     };
+    // "Complete booking": the backend holds the rooms and gives the number, or says why not
+    const bookBtn = q<HTMLButtonElement>('[data-book]'), bookLabel = bookBtn.querySelector('span')!;
+    const fail = (text: string) => { berr.textContent = text; berr.hidden = false; berr.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+    bookBtn.addEventListener('click', async () => {
+      if (bookBtn.disabled || booked) return;
+      if (!validate(false)) return show(2);
+      bookBtn.disabled = true; bookLabel.textContent = D.booking; berr.hidden = true;
+      try {
+        const b = await book(s, { first: el('first').value.trim(), last: el('last').value.trim(), phone: el('phone').value.trim(), email: el('email').value.trim(), arrival: el('arrival').value, pickup: el('pickup').checked, flight: el('pickup').checked ? el('flight').value.trim() : '', requests: el('req').value.trim() }, lang);
+        booked = b;
+        remember(b.ref, el('phone').value.trim());
+        root.querySelectorAll<HTMLInputElement | HTMLButtonElement>('.co-book input, .co-book button').forEach((x) => (x.disabled = true));
+        history.replaceState({ coStep: 4, booked: b }, '', location.href);
+        show(4, false);
+      } catch (e) {
+        const code = e instanceof ApiError ? e.code : 'server';
+        if (e instanceof ApiError && code === 'sold_out' && e.left) { fit(e.left); fail(D.errSold); }
+        else fail(code === 'offline' ? D.errOffline : code === 'slow_down' ? D.errBusy : ['past', 'dates', 'too_long', 'too_far'].includes(code) ? D.errDates : D.errGeneric);
+      } finally { bookBtn.disabled = false; bookLabel.textContent = D.complete; }
+    });
     form.addEventListener('submit', (e) => { e.preventDefault(); if (validate()) show(3); });
     q('[data-back]').addEventListener('click', () => history.back());
-    addEventListener('popstate', (e) => show((e.state && e.state.coStep) === 3 ? 3 : 2, false));
+    // once booked, Back stays on the booking: the form behind it would only make a second one
+    addEventListener('popstate', (e) => show(booked ? 4 : (e.state && e.state.coStep) === 3 ? 3 : 2, false));
     q('[data-copy]').addEventListener('click', async () => {
       const span = q<HTMLElement>('[data-copy] span');
       try { await navigator.clipboard.writeText(message()); span.textContent = D.copied; setTimeout(() => (span.textContent = D.copy), 1800); } catch { span.textContent = D.copy; }
     });
-    history.replaceState({ coStep: 2 }, '', location.href);
-    renderStay();
+    // a reload on the "booked" screen shows the booking again, not an empty form
+    const was = history.state as { coStep?: number; booked?: Booking } | null;
+    if (was && was.coStep === 4 && was.booked) {
+      booked = was.booked;
+      s = { ...s, in: booked.in, out: booked.out, adults: booked.adults, children: booked.children, rooms: Object.fromEntries(booked.rooms.map((r) => [r.id, r.qty])) };
+      renderStay();
+      root.querySelectorAll<HTMLInputElement | HTMLButtonElement>('.co-book input, .co-book button').forEach((x) => (x.disabled = true));
+      show(4, false);
+    } else {
+      history.replaceState({ coStep: 2 }, '', location.href);
+      renderStay(); loadLeft();
+    }
   });
 </script>
 
@@ -357,7 +479,32 @@ const maxes = Object.fromEntries(ROOMS.map((r) => [r.id, r.max]));
   }
   .co-call { margin: 0; color: var(--muted); font-size: 0.9rem; } .co-call a { color: var(--ink); font-weight: 700; text-decoration: none; }
 
-  /* the request as the WhatsApp chat it becomes */
+  .co-total { margin: 0; padding-top: 12px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+  .co-total b { font-size: 1.35rem; color: var(--ink); } .co-total small { color: var(--muted); font-size: 0.82rem; flex-basis: 100%; }
+  .co-step button:disabled { color: var(--line); cursor: default; background: none; }
+  .co-next:disabled { opacity: 0.6; cursor: progress; }
+  /* everything about the booking, label beside value */
+  .co-review { margin: 0; display: grid; grid-template-columns: minmax(96px, max-content) minmax(0, 1fr); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .co-review :global(dt), .co-review :global(dd) { margin: 0; padding: 11px 14px; border-top: 1px solid var(--line); }
+  .co-review :global(dt:first-of-type), .co-review :global(dt:first-of-type + dd) { border-top: 0; }
+  .co-review :global(dt) { background: var(--paper); color: var(--muted); font-size: 0.86rem; font-weight: 700; }
+  .co-review :global(dd) { color: var(--ink); font-weight: 600; display: grid; gap: 2px; overflow-wrap: anywhere; }
+  .co-review :global(dd span) { text-align: start; unicode-bidi: plaintext; }
+  .co-review :global(dd.tot span:first-child) { font-size: 1.25rem; }
+  .co-review :global(dd.tot span + span) { font-weight: 400; color: var(--muted); font-size: 0.86rem; }
+  /* booked */
+  .co-ok { margin: 0; display: flex; align-items: center; gap: 10px; color: var(--wa); font-weight: 800; }
+  .co-ok span { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--wa); color: var(--white); }
+  .co-ref { margin: 0; display: grid; gap: 2px; justify-items: start; padding: 14px 18px; border: 1px dashed var(--gold); border-radius: 6px; background: var(--gold-pale); }
+  .co-ref span { font-size: 0.8rem; font-weight: 700; color: var(--gold-text); }
+  .co-ref b { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: clamp(1.7rem, 7vw, 2.4rem); letter-spacing: 0.08em; color: var(--ink); user-select: all; }
+  .co-done-lead { margin: 0; }
+  .co-hello h2 { font-family: var(--display); font-size: 1.5rem; } .co-hello p { margin: 4px 0 0; color: var(--body); }
+  html[lang='ar'] .co-hello h2 { font-family: var(--sans); font-size: 1.2rem; }
+  .co.is-done .co-mini a, .co.is-done .co-change, .co.is-done .co-steps a { pointer-events: none; }
+  .co.is-done .co-mini a, .co.is-done .co-change { display: none; }
+
+  /* the message for the house, as the WhatsApp chat it becomes */
   .co-wa { border-radius: 8px; overflow: hidden; border: 1px solid var(--line); background: #efe7dd url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M24 8l6 10H18zM8 30l4 7H4zM38 32l4 7h-8z' fill='none' stroke='%23e2d6c4' stroke-width='1'/%3E%3C/svg%3E"); }
   .co-wa-top { display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: #075e54; color: #fff; }
   .co-wa-av { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; flex: none; background: var(--cream); color: var(--gold-text); }

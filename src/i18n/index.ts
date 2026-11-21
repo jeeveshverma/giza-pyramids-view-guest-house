@@ -10,12 +10,12 @@ export const LANGS: { code: Lang; name: string; hreflang: string; dir: 'ltr' | '
 
 export const dirOf = (lang: Lang) => LANGS.find((l) => l.code === lang)!.dir;
 
-export type PageKey = 'home' | 'rooms' | 'gallery' | 'giza' | 'enquire' | 'notfound';
+export type PageKey = 'home' | 'rooms' | 'gallery' | 'giza' | 'enquire' | 'booking' | 'notfound';
 export const PAGES: PageKey[] = ['home', 'rooms', 'gallery', 'giza', 'enquire'];
 
 /** Slugs are the same in both languages; Arabic pages live under /ar/. */
 const SLUG: Record<PageKey, string> = {
-  home: '', rooms: 'rooms/', gallery: 'gallery/', giza: 'giza/', enquire: 'enquire/', notfound: '404/',
+  home: '', rooms: 'rooms/', gallery: 'gallery/', giza: 'giza/', enquire: 'enquire/', booking: 'booking/', notfound: '404/',
 };
 
 const BASE = (import.meta.env.BASE_URL.replace(/\/$/, '') + '/') as string;

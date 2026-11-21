@@ -3,7 +3,7 @@
 // tap targets, and saves a screenshot of the top of each page.   node scripts/devicetest.mjs <outdir>
 import { chromium, webkit, devices } from 'playwright';
 import { mkdirSync } from 'node:fs';
-const BASE = process.env.QA_BASE || 'http://127.0.0.1:4321/giza-pyramids-view-guest-house';
+const BASE = process.env.QA_BASE || 'http://127.0.0.1:4321';
 const out = process.argv[2] || '/tmp/devicetest'; mkdirSync(out, { recursive: true });
 const PAGES = ['/', '/rooms/', '/rooms/twin-view/', '/gallery/', '/giza/', '/enquire/?in=2026-11-02&out=2026-11-05&adults=2&children=0&r=studio%3A1', '/ar/', '/ar/rooms/', '/ar/enquire/?r=double%3A1'];
 const RUNS = [['ios', webkit, devices['iPhone 13']], ['ios-se', webkit, devices['iPhone SE']], ['android', chromium, devices['Pixel 7']], ['android-s9', chromium, devices['Galaxy S9+']]];

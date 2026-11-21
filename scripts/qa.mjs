@@ -1,4 +1,4 @@
-// QA helper for UI sweeps (dev server must be running on http://127.0.0.1:4321/giza-pyramids-view-guest-house).
+// QA helper for UI sweeps (dev server must be running on http://127.0.0.1:4321).
 //
 //   node scripts/qa.mjs shots <path> <width> <outdir> [--device iphone|android|ipad|desktop] [--action menu|book|lang] [--max 12]
 //       Screenshots the page top-to-bottom in viewport-sized steps (PNG files outdir/<n>.png). Read them to review.
@@ -8,7 +8,7 @@
 import { chromium, devices } from 'playwright';
 import { mkdirSync } from 'node:fs';
 
-const BASE = process.env.QA_BASE || 'http://127.0.0.1:4321/giza-pyramids-view-guest-house';
+const BASE = process.env.QA_BASE || 'http://127.0.0.1:4321';
 const [, , cmd, ...rest] = process.argv;
 const flags = {}; const args = [];
 for (let i = 0; i < rest.length; i++) rest[i].startsWith('--') ? (flags[rest[i].slice(2)] = rest[++i]) : args.push(rest[i]);

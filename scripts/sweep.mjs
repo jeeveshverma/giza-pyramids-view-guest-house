@@ -3,7 +3,7 @@
 import { chromium, devices } from 'playwright';
 import sharp from 'sharp';
 import { mkdirSync } from 'node:fs';
-const BASE = process.env.QA_BASE || 'http://127.0.0.1:4321/giza-pyramids-view-guest-house';
+const BASE = process.env.QA_BASE || 'http://127.0.0.1:4321';
 const [out, ...want] = process.argv.slice(2);
 mkdirSync(out, { recursive: true });
 const DEV = {

@@ -1,8 +1,8 @@
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  site: 'https://jeeveshverma.github.io',
-  base: '/giza-pyramids-view-guest-house',
+  site: 'https://gizapyramidsviewguesthouse.com',
+  base: '/',
   trailingSlash: 'always',
   build: { format: 'directory', assets: '_gp', inlineStylesheets: 'always' },
   compressHTML: true,

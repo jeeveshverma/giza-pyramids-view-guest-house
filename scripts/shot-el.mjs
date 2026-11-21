@@ -1,7 +1,7 @@
 // node scripts/shot-el.mjs <path> <selector> <width> <out.png> — screenshot one element after it scrolls into view
 import { chromium, devices } from 'playwright';
 const [, , path, sel, width, out] = process.argv;
-const BASE = process.env.QA_BASE || 'http://127.0.0.1:4321/giza-pyramids-view-guest-house';
+const BASE = process.env.QA_BASE || 'http://127.0.0.1:4321';
 const browser = await chromium.launch();
 const w = Number(width);
 const ctx = await browser.newContext(w < 800 ? { ...devices['iPhone 13'], reducedMotion: 'no-preference' } : { viewport: { width: w, height: 900 } });

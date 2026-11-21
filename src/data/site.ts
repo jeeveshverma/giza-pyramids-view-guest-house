@@ -8,7 +8,7 @@ import { CONTENT, digitsOnly } from './content';
 const count = Object.fromEntries(CONTENT.rooms.map((r) => [r.id, r]));
 
 export const SITE = {
-  url: 'https://jeeveshverma.github.io/giza-pyramids-view-guest-house',
+  url: 'https://gizapyramidsviewguesthouse.com',
   name: { en: 'Giza Pyramids View Guest House', ar: 'بيت ضيافة إطلالة أهرامات الجيزة' },
   shortName: { en: 'Pyramids View Guest House', ar: 'إطلالة الأهرامات' },
   city: { en: 'Giza', ar: 'الجيزة' },

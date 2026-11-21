@@ -1,0 +1,180 @@
+---
+/**
+ * "My booking": the guest finds a booking with its number and the mobile number on it, sees what
+ * the house has (dates, rooms, whether it is confirmed) and can cancel it up to the day before
+ * arrival. A booking made on this device opens without typing. Data: src/lib/api.ts.
+ */
+import Layout from '../components/Layout.astro';
+import Icon from '../components/Icon.astro';
+import { path, useT, digits, type Lang } from '../i18n';
+import { SITE, ROOMS } from '../data/site';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const { t } = useT(lang);
+const names = Object.fromEntries(ROOMS.map((r) => [r.id, t(`rooms.${r.id}.name`)]));
+const dict = {
+  nightsN: t('bk.nightsN'), adultsN: t('bk.adultsN'), childrenN: t('bk.childrenN'), usd: t('bk.priceUsd'), payAt: t('bk.payAt'), rateAsk: t('bk.rateAsk'),
+  checkinFrom: t('bk.checkinFrom', { t: digits(SITE.checkIn, lang) }), checkoutUntil: t('bk.checkoutUntil', { t: digits(SITE.checkOut, lang) }),
+  rvDates: t('bk.rv.dates'), rvStay: t('bk.rv.stay'), rvGuests: t('bk.rv.guests'), rvRooms: t('bk.rv.rooms'), rvTotal: t('bk.rv.total'), rvName: t('bk.rv.name'), rvArrival: t('bk.rv.arrival'), rvPickup: t('bk.rv.pickup'), rvReq: t('bk.rv.req'),
+  arrivalUnknown: t('bk.arrivalUnknown'), arrivalLate: t('bk.arrivalLate'),
+  pending: t('mb.st.pending'), confirmed: t('mb.st.confirmed'), cancelled: t('mb.st.cancelled'),
+  pendingNote: t('mb.pendingNote'), confirmedNote: t('mb.confirmedNote'), cancelledNote: t('mb.cancelledNote'),
+  notFound: t('mb.notFound'), offline: t('mb.offline'), tooLate: t('mb.tooLate'), failed: t('mb.failed'), need: t('mb.need'),
+  find: t('mb.find'), finding: t('mb.finding'), cancel: t('mb.cancel'), cancelYes: t('mb.cancelYes'), cancelling: t('mb.cancelling'),
+  waAbout: t('mb.waAbout'),
+};
+---
+<Layout lang={lang} page="booking" title={t('meta.booking.title')} desc={t('meta.booking.desc')} noindex>
+  <section class="mb-page">
+    <div class="wrap mb" data-mb data-lang={lang} data-wa={SITE.whatsapp} data-dict={JSON.stringify(dict)} data-names={JSON.stringify(names)}>
+      <form class="mb-card mb-find" data-find novalidate>
+        <h1>{t('mb.title')}</h1>
+        <p class="mb-lead">{t('mb.lead')}</p>
+        <p class="mb-err" data-err hidden role="alert"></p>
+        <label class="mb-f"><span>{t('bk.refLabel')}</span><input name="ref" dir="ltr" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="GP-7K4M2Q" maxlength="12" required /></label>
+        <label class="mb-f"><span>{t('mb.phone')}</span><input name="phone" type="tel" inputmode="tel" autocomplete="tel" dir="ltr" placeholder="+" required /></label>
+        <button type="submit" class="mb-go"><span>{t('mb.find')}</span></button>
+        <p class="mb-hint">{t('mb.hint')} <a href={`https://wa.me/${SITE.whatsapp}`} target="_blank" rel="noopener">{t('nav.whatsapp')}</a></p>
+      </form>
+
+      <article class="mb-card mb-res" data-res hidden aria-live="polite">
+        <header class="mb-head">
+          <p class="mb-ref"><span>{t('bk.refLabel')}</span><b data-ref dir="ltr"></b></p>
+          <p class="mb-st" data-st></p>
+        </header>
+        <p class="mb-note" data-note></p>
+        <p class="mb-err" data-cerr hidden role="alert"></p>
+        <dl class="mb-rows" data-rows></dl>
+        <div class="mb-actions">
+          <a class="mb-wa" href="#" target="_blank" rel="noopener" data-wa-link><Icon name="whatsapp" size={19} /> {t('mb.askHouse')}</a>
+          <button type="button" class="mb-cancel" data-cancel hidden>{t('mb.cancel')}</button>
+          <button type="button" class="mb-keep" data-keep hidden>{t('mb.cancelNo')}</button>
+        </div>
+        <p class="mb-ask" data-ask hidden>{t('mb.cancelAsk')}</p>
+        <p class="mb-other"><button type="button" data-other>{t('mb.other')}</button> · <a href={path(lang, 'rooms')}>{t('mb.again')}</a></p>
+      </article>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  import { findBooking, cancelBooking, mine, remember, ApiError, type Booking } from '../lib/api';
+  import { fmtDate, plural, dg } from '../lib/stay';
+  document.querySelectorAll<HTMLElement>('[data-mb]').forEach((root) => {
+    const lang = root.dataset.lang!, d = dg(lang);
+    const D = JSON.parse(root.dataset.dict!) as Record<string, string>;
+    const NAMES = JSON.parse(root.dataset.names!) as Record<string, string>;
+    const q = <T extends Element>(s: string) => root.querySelector<T>(s)!;
+    const form = q<HTMLFormElement>('[data-find]'), res = q<HTMLElement>('[data-res]');
+    const ref = form.querySelector<HTMLInputElement>('[name=ref]')!, phone = form.querySelector<HTMLInputElement>('[name=phone]')!;
+    const err = q<HTMLElement>('[data-err]'), cerr = q<HTMLElement>('[data-cerr]');
+    const go = q<HTMLButtonElement>('.mb-go'), cancel = q<HTMLButtonElement>('[data-cancel]'), keep = q<HTMLButtonElement>('[data-keep]'), ask = q<HTMLElement>('[data-ask]');
+    let cur: { b: Booking; phone: string } | null = null, armed = false;
+    const usd = (n: number) => D.usd.replace('{n}', d(n));
+    const why = (e: unknown) => { const c = e instanceof ApiError ? e.code : ''; return c === 'not_found' ? D.notFound : c === 'offline' ? D.offline : c === 'too_late' ? D.tooLate : D.failed; };
+
+    const arm = (on: boolean) => { armed = on; cancel.textContent = on ? D.cancelYes : D.cancel; cancel.classList.toggle('sure', on); keep.hidden = !on; ask.hidden = !on; };
+    const show = (b: Booking, ph: string) => {
+      cur = { b, phone: ph };
+      q<HTMLElement>('[data-ref]').textContent = b.ref;
+      const st = q<HTMLElement>('[data-st]'); st.textContent = D[b.status]; st.dataset.s = b.status;
+      q<HTMLElement>('[data-note]').textContent = D[b.status + 'Note'];
+      const party = `${plural(D.adultsN, b.adults, lang)}${b.children ? `${lang === 'ar' ? '، ' : ', '}${plural(D.childrenN, b.children, lang)}` : ''}`;
+      const arrival = b.arrival === 'late' ? D.arrivalLate : b.arrival ? d(b.arrival) : D.arrivalUnknown;
+      const rows: [string, string[], string?][] = [
+        [D.rvDates, [`${fmtDate(b.in, lang)} · ${D.checkinFrom}`, `${fmtDate(b.out, lang)} · ${D.checkoutUntil}`]],
+        [D.rvStay, [plural(D.nightsN, b.nights, lang)]],
+        [D.rvGuests, [party]],
+        [D.rvRooms, b.rooms.map((r) => `${d(r.qty)} × ${NAMES[r.id] || r.id}${r.price != null ? ` · ${usd(r.price)}` : ''}`)],
+        [D.rvTotal, b.total != null ? [usd(b.total), D.payAt] : [D.rateAsk], 'tot'],
+        [D.rvName, [`${b.first} ${b.last}`.trim()], 'auto'],
+        [D.rvArrival, [arrival]],
+      ];
+      if (b.pickup) rows.push([D.rvPickup, [b.flight || '✓'], 'auto']);
+      if (b.requests) rows.push([D.rvReq, [b.requests], 'auto']);
+      q<HTMLElement>('[data-rows]').replaceChildren(...rows.flatMap(([k, v, kind]) => {
+        const dt = Object.assign(document.createElement('dt'), { textContent: k }), dd = document.createElement('dd');
+        if (kind === 'tot') dd.className = 'tot';
+        v.forEach((line) => { const sp = document.createElement('span'); sp.textContent = line; if (kind === 'auto') sp.dir = 'auto'; dd.appendChild(sp); });
+        return [dt, dd];
+      }));
+      q<HTMLAnchorElement>('[data-wa-link]').href = `https://wa.me/${root.dataset.wa}?text=${encodeURIComponent(D.waAbout.replace('{ref}', b.ref))}`;
+      cancel.hidden = !b.canCancel; arm(false); cerr.hidden = true;
+      form.hidden = true; res.hidden = false;
+      history.replaceState(null, '', `${location.pathname}?ref=${encodeURIComponent(b.ref)}`);
+    };
+
+    const look = async (r: string, ph: string, quiet = false) => {
+      go.disabled = true; go.querySelector('span')!.textContent = D.finding; err.hidden = true;
+      try { const b = await findBooking(r, ph); remember(b.ref, ph); show(b, ph); }
+      catch (e) { if (!quiet || !(e instanceof ApiError && e.code === 'not_found')) { err.textContent = why(e); err.hidden = false; } }
+      finally { go.disabled = false; go.querySelector('span')!.textContent = D.find; }
+    };
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!ref.value.trim() || phone.value.replace(/\D/g, '').length < 7) { err.textContent = D.need; err.hidden = false; (ref.value.trim() ? phone : ref).focus(); return; }
+      look(ref.value, phone.value);
+    });
+    // cancelling takes two presses of the same button, with a way back in between
+    cancel.addEventListener('click', async () => {
+      if (!cur) return;
+      if (!armed) return arm(true);
+      cancel.disabled = true; cancel.textContent = D.cancelling; cerr.hidden = true;
+      try { show(await cancelBooking(cur.b.ref, cur.phone), cur.phone); }
+      catch (e) { cerr.textContent = why(e); cerr.hidden = false; arm(false); }
+      finally { cancel.disabled = false; }
+    });
+    keep.addEventListener('click', () => arm(false));
+    q('[data-other]').addEventListener('click', () => { res.hidden = true; form.hidden = false; ref.value = ''; phone.value = ''; err.hidden = true; history.replaceState(null, '', location.pathname); ref.focus(); });
+
+    // a booking made on this device opens by itself: the one in the link, or the latest
+    const want = (new URLSearchParams(location.search).get('ref') || '').toUpperCase();
+    const known = mine(), hit = known.find((x) => x.ref === want) || (!want ? known[0] : undefined);
+    if (want) ref.value = want;
+    if (hit) { ref.value = hit.ref; phone.value = hit.phone; look(hit.ref, hit.phone, true); }
+  });
+</script>
+
+<style>
+  .mb-page { padding-top: calc(var(--header-h) + 32px); padding-bottom: clamp(48px, 7vw, 96px); background: var(--paper); min-height: 70vh; }
+  .mb { max-width: 680px; }
+  .mb-card { background: var(--white); border: 1px solid var(--line); border-radius: 6px; padding: clamp(18px, 4vw, 32px); display: grid; gap: 16px; }
+  .mb-card h1 { font-size: clamp(1.9rem, 5vw, 2.6rem); }
+  .mb-lead { margin: -8px 0 0; color: var(--body); }
+  .mb-f { display: grid; gap: 5px; } .mb-f > span { font-weight: 700; color: var(--ink); font-size: 0.95rem; }
+  .mb-f input { width: 100%; min-height: 48px; padding: 9px 12px; border: 1px solid var(--muted); border-radius: 4px; background: var(--white); color: var(--ink); font: inherit; font-size: 16px; }
+  .mb-f input[name=ref] { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; letter-spacing: 0.08em; text-transform: uppercase; }
+  .mb-f input:focus { outline: 2px solid var(--gold); border-color: var(--gold); }
+  html[dir='rtl'] .mb-f input { text-align: right; }
+  .mb-go { min-height: 52px; border: 0; border-radius: 4px; background: var(--ink); color: var(--cream); font: inherit; font-weight: 700; font-size: 1.02rem; cursor: pointer; }
+  .mb-go:hover { background: var(--night-2); } .mb-go:disabled { opacity: 0.6; cursor: progress; }
+  .mb-hint { margin: 0; color: var(--muted); font-size: 0.9rem; } .mb-hint a { color: var(--gold-text); font-weight: 700; }
+  .mb-err { margin: 0; padding: 12px 14px; border-radius: 4px; border-inline-start: 3px solid var(--danger); background: #fbeee5; color: var(--danger); font-size: 0.92rem; font-weight: 600; }
+
+  .mb-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+  .mb-ref { margin: 0; display: grid; gap: 2px; justify-items: start; } .mb-ref span { font-size: 0.8rem; font-weight: 700; color: var(--gold-text); }
+  .mb-ref b { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: clamp(1.6rem, 6vw, 2.1rem); letter-spacing: 0.08em; color: var(--ink); }
+  .mb-st { margin: 0; padding: 7px 14px; border-radius: 999px; font-weight: 800; font-size: 0.9rem; background: var(--gold-pale); color: var(--gold-text); }
+  .mb-st[data-s='confirmed'] { background: #dff1e6; color: var(--wa-dark); }
+  .mb-st[data-s='cancelled'] { background: #f3e2df; color: var(--danger); }
+  .mb-note { margin: 0; color: var(--body); }
+  .mb-rows { margin: 0; display: grid; grid-template-columns: minmax(96px, max-content) minmax(0, 1fr); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .mb-rows :global(dt), .mb-rows :global(dd) { margin: 0; padding: 11px 14px; border-top: 1px solid var(--line); }
+  .mb-rows :global(dt:first-of-type), .mb-rows :global(dt:first-of-type + dd) { border-top: 0; }
+  .mb-rows :global(dt) { background: var(--paper); color: var(--muted); font-size: 0.86rem; font-weight: 700; }
+  .mb-rows :global(dd) { color: var(--ink); font-weight: 600; display: grid; gap: 2px; overflow-wrap: anywhere; }
+  .mb-rows :global(dd span) { text-align: start; unicode-bidi: plaintext; }
+  .mb-rows :global(dd.tot span:first-child) { font-size: 1.25rem; } .mb-rows :global(dd.tot span + span) { font-weight: 400; color: var(--muted); font-size: 0.86rem; }
+  .mb-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  .mb-wa { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 50px; padding: 0 20px; border-radius: 4px; background: var(--wa); color: var(--white); font-weight: 700; text-decoration: none; flex: 1 1 220px; }
+  .mb-wa:hover { background: var(--wa-dark); }
+  .mb-cancel, .mb-keep { min-height: 50px; padding: 0 18px; border-radius: 4px; border: 1px solid var(--line); background: var(--white); color: var(--danger); font: inherit; font-weight: 700; cursor: pointer; flex: 1 1 160px; }
+  .mb-keep { color: var(--ink); }
+  .mb-cancel.sure { background: var(--danger); border-color: var(--danger); color: var(--white); }
+  .mb-cancel:disabled { opacity: 0.6; cursor: progress; }
+  .mb-ask { margin: -6px 0 0; color: var(--danger); font-weight: 600; font-size: 0.92rem; }
+  .mb-other { margin: 0; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.92rem; }
+  .mb-other button { border: 0; background: none; padding: 0; font: inherit; color: var(--gold-text); font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .mb-other a { color: var(--gold-text); font-weight: 700; }
+  [hidden] { display: none !important; }
+</style>

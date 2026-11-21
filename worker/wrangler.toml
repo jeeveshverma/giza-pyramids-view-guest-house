@@ -1,0 +1,22 @@
+# The booking backend: one Worker and one D1 database in the guest house's own Cloudflare account
+# (Pyramidsterraceinn). Deployed with `npx wrangler deploy` from this folder; see README.md here.
+name = "gpv-booking"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+account_id = "ddc7804f8b0ee9bedd4a1627e0d3382f"
+workers_dev = false
+
+routes = [{ pattern = "api.gizapyramidsviewguesthouse.com", custom_domain = true }]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "gpv-bookings"
+database_id = "dd266ba2-3b5a-44ca-9df5-8a1456438bc5"
+migrations_dir = "migrations"
+
+[vars]
+# Room counts and prices come from what the site was built with (the owner's dashboard edits it).
+CONTENT_URL = "https://gizapyramidsviewguesthouse.com/admin/content.json"
+# The owner's dashboard signs in with its GitHub access key; whoever can push to this repo is the owner.
+REPO = "jeeveshverma/giza-pyramids-view-guest-house"
+ORIGINS = "https://jeeveshverma.github.io,https://gizapyramidsviewguesthouse.com,https://www.gizapyramidsviewguesthouse.com"

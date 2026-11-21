@@ -4,7 +4,9 @@
  * photo, beds, features, who it sleeps, the price column (the rate from the dashboard, or "on request" when none is set),
  * what is included, and a room-count picker; beside it a reserve panel that sums the selection,
  * warns when the rooms sleep fewer than the party, and goes on to the checkout with everything in
- * the URL. Selection lives in the shared stay (src/lib/stay.ts). Below 1200px each row becomes a
+ * the URL. Selection lives in the shared stay (src/lib/stay.ts). The rooms left for the dates come
+ * live from the booking backend (src/lib/api.ts): a type with none left is marked and cannot be
+ * picked, and the picker never offers more rooms than are free. Below 1200px each row becomes a
  * card (the five-column table needs the width); below 900px the reserve panel becomes a bar stuck
  * to the bottom of the list.
  */
@@ -24,7 +26,7 @@ const rows = ROOMS.map((r) => {
   const rest = r.features.filter((f) => !['pyramids', 'kitchenette', 'ac', 'wifi', 'towels'].includes(f));
   return { ...r, beds, lead, rest, nPhotos: plural(t('bk.photosN'), r.photos.length, lang), name: t(`rooms.${r.id}.name`) };
 });
-const dict = { nightsN: t('bk.nightsN'), roomsN: t('bk.roomsN'), adultsN: t('bk.adultsN'), childrenN: t('bk.childrenN'), noChildren: t('bk.noChildren'), guestsN: t('bk.guestsN'), availFor: t('bk.availFor'), selected: t('bk.selected'), selNone: t('bk.selNone'), capacity: t('bk.capacity'), pickRoom: t('bk.pickRoom') };
+const dict = { nightsN: t('bk.nightsN'), roomsN: t('bk.roomsN'), adultsN: t('bk.adultsN'), childrenN: t('bk.childrenN'), noChildren: t('bk.noChildren'), guestsN: t('bk.guestsN'), availFor: t('bk.availFor'), selected: t('bk.selected'), selNone: t('bk.selNone'), capacity: t('bk.capacity'), pickRoom: t('bk.pickRoom'), soldOut: t('bk.soldOut'), lastRoom: t('bk.lastRoom'), dropped: t('bk.dropped'), liveOff: t('bk.liveOff') };
 const sleeps = Object.fromEntries(ROOMS.map((r) => [r.id, r.sleeps]));
 ---
 <section class="section av" id="availability" data-avail data-lang={lang} data-dict={JSON.stringify(dict)} data-sleeps={JSON.stringify(sleeps)} data-checkout={path(lang, 'enquire')}>
@@ -36,6 +38,7 @@ const sleeps = Object.fromEntries(ROOMS.map((r) => [r.id, r.sleeps]));
       </div>
       <a class="av-change" href={`#${searchId}`} data-change>{t('bk.changeSearch')}</a>
     </div>
+    <p class="av-note" data-note hidden role="status"></p>
 
     <div class="av-grid">
       <div class="av-table" role="table" aria-label={t('bk.availTitle')}>
@@ -80,9 +83,10 @@ const sleeps = Object.fromEntries(ROOMS.map((r) => [r.id, r.sleeps]));
             </ul>
             <label class="av-select" role="cell">
               <span class="av-m">{t('bk.colSelect')}</span>
-              <select data-room={r.id} aria-label={`${t('bk.colSelect')}: ${r.name}`}>
+              <select data-room={r.id} data-max={r.max} aria-label={`${t('bk.colSelect')}: ${r.name}`}>
                 {Array.from({ length: r.max + 1 }, (_, n) => <option value={n}>{n === 0 ? digits(0, lang) : `${digits(n, lang)}`}</option>)}
               </select>
+              <em class="av-left" data-left={r.id} hidden></em>
             </label>
           </div>
         ))}
@@ -103,7 +107,8 @@ const sleeps = Object.fromEntries(ROOMS.map((r) => [r.id, r.sleeps]));
 </section>
 
 <script>
-  import { readStay, writeStay, onStay, toQuery, nights, roomCount, fmtDate, plural, type Stay } from '../lib/stay';
+  import { readStay, writeStay, onStay, toQuery, nights, roomCount, fmtDate, plural, dg, type Stay } from '../lib/stay';
+  import { availability } from '../lib/api';
   document.querySelectorAll<HTMLElement>('[data-avail]').forEach((root) => {
     const lang = root.dataset.lang!;
     const D = JSON.parse(root.dataset.dict!) as Record<string, string>;
@@ -144,8 +149,37 @@ const sleeps = Object.fromEntries(ROOMS.map((r) => [r.id, r.sleeps]));
       e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'center' });
       setTimeout(() => target.querySelector<HTMLElement>('input, button')?.focus({ preventScroll: true }), 500);
     });
-    onStay((x, from) => { if (from !== 'avail') { s = x; render(); } });
-    render();
+    // live availability: how many of each type are free on every night of the stay
+    const d = dg(lang), note = q<HTMLElement>('[data-note]');
+    let asked = '';
+    const say = (text: string) => { note.hidden = !text; note.textContent = text; };
+    const load = async () => {
+      const key = `${s.in}|${s.out}`;
+      if (key === asked) return;
+      asked = key; root.classList.add('av-wait');
+      try {
+        const a = await availability(s);
+        if (asked !== key) return; // the dates changed while this was on its way
+        const rooms = { ...s.rooms }; let dropped = false;
+        selects.forEach((sel) => {
+          const id = sel.dataset.room!, left = Math.min(a.rooms[id]?.left ?? 0, Number(sel.dataset.max));
+          sel.replaceChildren(...Array.from({ length: left + 1 }, (_, n) => new Option(d(n), String(n))));
+          sel.disabled = left === 0;
+          sel.closest('[data-row]')!.classList.toggle('sold', left === 0);
+          const tag = q<HTMLElement>(`[data-left="${id}"]`);
+          tag.hidden = left > 1; tag.textContent = left === 0 ? D.soldOut : D.lastRoom;
+          if ((rooms[id] || 0) > left) { rooms[id] = left; dropped = true; }
+        });
+        if (dropped) s = writeStay({ ...s, rooms }, 'avail');
+        say(dropped ? D.dropped : '');
+        render();
+      } catch {
+        if (asked !== key) return;
+        asked = ''; say(D.liveOff); // shown, not hidden: the guest can still send the request
+      } finally { if (asked === key || !asked) root.classList.remove('av-wait'); }
+    };
+    onStay((x, from) => { if (from !== 'avail') { s = x; render(); load(); } });
+    render(); load();
   });
 </script>
 
@@ -209,6 +243,11 @@ const sleeps = Object.fromEntries(ROOMS.map((r) => [r.id, r.sleeps]));
   .av-choices b { color: var(--wa); }
   .av-select select { min-width: 92px; min-height: 44px; padding: 6px 10px; border: 1px solid var(--muted); border-radius: 4px; background: var(--white); color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; }
   .av-select select:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+  .av-select select:disabled { opacity: 0.45; cursor: not-allowed; }
+  .av-left { display: block; margin-top: 6px; font-style: normal; font-size: 0.78rem; font-weight: 700; color: var(--danger); line-height: 1.25; }
+  .av-tr.sold .av-photo, .av-tr.sold .av-info, .av-tr.sold .av-sleeps, .av-tr.sold .av-price, .av-tr.sold .av-choices { opacity: 0.55; }
+  .av-note { margin: -8px 0 16px; padding: 10px 14px; border-radius: 4px; border-inline-start: 3px solid var(--gold); background: var(--gold-pale); color: var(--ink); font-weight: 600; font-size: 0.92rem; }
+  .av-wait .av-select { opacity: 0.6; }
 
   /* the reserve panel: a bar stuck to the bottom of the list on phones, a side panel on desktop */
   .av-reserve { position: sticky; bottom: 0; z-index: 5; display: grid; grid-template-columns: 1fr auto; gap: 2px 14px; align-items: center; padding: 12px 14px calc(12px + env(safe-area-inset-bottom)); margin-inline: calc(var(--gutter) * -1); background: var(--white); border-top: 1px solid var(--line); box-shadow: 0 -12px 30px -18px rgba(20, 26, 38, 0.35); }

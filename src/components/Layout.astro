@@ -132,6 +132,7 @@ const hotel = {
         <p class="eyebrow">{t('nav.menu')}</p>
         <ul class="ftr-nav">
           {nav.map(([p, label]) => <li><a href={path(lang, p)}>{label}</a></li>)}
+          <li><a href={path(lang, 'booking')}>{t('nav.booking')}</a></li>
           <li><a href={switchLang(lang, page, sub)} lang={other.hreflang}>{t('nav.lang')}</a></li>
         </ul>
       </div>
