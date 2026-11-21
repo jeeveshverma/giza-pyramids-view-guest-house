@@ -473,7 +473,7 @@
     render();
     var first = B.today ? Promise.resolve() : bk("/admin/calendar?days=1").then(function (c) { B.today = c.today; B.calFrom = c.today; });
     return first.then(function () {
-      var from = B.range === "past" ? plusDays(B.today, -90) : B.today, to = B.range === "past" ? plusDays(B.today, -1) : plusDays(B.today, 365);
+      var from = B.range === "past" ? plusDays(B.today, -90) : B.today, to = B.range === "past" ? plusDays(B.today, -1) : plusDays(B.today, 550);
       return Promise.all([bk("/admin/bookings?from=" + from + "&to=" + to), bk("/admin/calendar?from=" + B.calFrom + "&days=14")]);
     }).then(function (r) {
       B.list = r[0].bookings; B.cal = r[1]; B.loading = false;
