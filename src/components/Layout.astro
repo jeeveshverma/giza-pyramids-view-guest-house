@@ -142,6 +142,7 @@ const hotel = {
     <div class="wrap ftr-base">
       <span>© {digits(new Date().getFullYear(), lang)} {t('footer.rights')}</span>
       <span class="ftr-place">{SITE.city[lang]} · {SITE.country[lang]}</span>
+      <span class="ftr-made">{t('footer.made')}</span>
     </div>
   </footer>
 
@@ -271,6 +272,7 @@ const hotel = {
   .ftr .nowrap { white-space: nowrap; }
   .ftr-place { font-size: 0.85rem; color: rgba(244, 236, 221, 0.55); }
   .ftr-nav { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .ftr-made { flex-basis: 100%; font-size: 0.8rem; opacity: 0.65; }
   .ftr-base { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); font-size: 0.9rem; }
   /* phones: the brand sits on the same left edge as the columns under it */
   .ftr .ftr-brand .logo-stack { justify-items: start; text-align: start; }
