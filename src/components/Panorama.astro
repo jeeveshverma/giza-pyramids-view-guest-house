@@ -103,8 +103,8 @@ const dirs: Record<number, { en: string; ar: string }> = { 250: { en: 'WSW', ar:
 </script>
 
 <style>
-  .pano { margin: 0; background: var(--night); border: 1px solid rgba(217, 181, 106, 0.35); position: relative; color: var(--cream); }
-  .pano::after { content: ''; position: absolute; inset: 6px; border: 1px solid var(--gold-light); opacity: 0.3; pointer-events: none; }
+  .pano { margin: 0; background: var(--night); border: 2px solid var(--ink); border-radius: 14px; overflow: hidden; box-shadow: 8px 8px 0 var(--gold); position: relative; color: var(--cream); }
+  .pano::after { content: none; }
   .pano svg { width: 100%; height: auto; display: block; font-family: var(--sans); }
   .pano-hor { stroke: var(--gold-light); stroke-width: 1; opacity: 0.8; }
   .pano-face { fill: var(--night-2); stroke: var(--gold-light); stroke-width: 1.2; }

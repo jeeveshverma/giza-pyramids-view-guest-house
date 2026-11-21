@@ -80,12 +80,12 @@ const anchor = (a: 'start' | 'end' | 'middle') => (!rtl || a === 'middle' ? a : 
   document.querySelectorAll<HTMLElement>('.elev').forEach((el) => { const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { el.classList.add('go'); io.disconnect(); } }), { threshold: 0.3 }); io.observe(el); });
 </script>
 <style>
-  .elev { margin: 0; background: var(--paper); border: 1px solid var(--line); position: relative; }
+  .elev { margin: 0; background: var(--paper); border: 2px solid var(--ink); border-radius: 14px; overflow: hidden; box-shadow: 8px 8px 0 var(--teal); position: relative; }
   .elev-scroll { overflow-x: auto; scrollbar-width: thin; }
   .elev-scroll svg { min-width: 720px; }
   .elev-hint { display: none; margin: 0; padding: 4px 16px 0; text-align: center; color: var(--gold-text); font-size: 0.9rem; letter-spacing: 0.3em; }
   @media (max-width: 760px) { .elev-hint { display: block; } }
-  .elev::after { content: ''; position: absolute; inset: 6px; border: 1px solid var(--gold); opacity: 0.3; pointer-events: none; }
+  .elev::after { content: none; }
   .elev svg { width: 100%; height: auto; display: block; font-family: var(--sans); }
   .ground-line { fill: none; stroke: var(--gold); stroke-width: 1.2; }
   .nile { fill: none; stroke: #3f6f93; stroke-width: 1.2; }

@@ -217,8 +217,8 @@ const pyr = PYRAMIDS.map((p) => ({ ...p, pos: xy(p.at.lat, p.at.lng), s: p.id ==
 
 <style>
   .map-grid { display: grid; gap: 28px; }
-  .citymap { margin: 0; background: var(--paper); border: 1px solid var(--line); position: relative; }
-  .citymap::after { content: ''; position: absolute; inset: 6px; border: 1px solid var(--gold); opacity: 0.3; pointer-events: none; }
+  .citymap { margin: 0; background: var(--paper); border: 2px solid var(--ink); border-radius: 14px; overflow: hidden; box-shadow: 8px 8px 0 var(--red); position: relative; }
+  .citymap::after { content: none; }
   .citymap svg { width: 100%; height: auto; display: block; font-family: var(--sans); }
   .shore, .road { fill: none; stroke: var(--gold); stroke-width: 1.2; }
   .shore { stroke-dasharray: 3 3; opacity: 0.8; }

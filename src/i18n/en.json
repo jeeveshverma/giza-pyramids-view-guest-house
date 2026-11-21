@@ -47,13 +47,16 @@
   },
   "hero": {
     "eyebrow": "Al Haram · Giza · the eleventh floor",
-    "title": "Eleven floors up, the pyramids are the view from your bed",
+    "title": "Three pyramids, {km} km from your pillow",
     "lead": "A guest house on the top floor of an ordinary Giza apartment block, which is the whole point: at this height you stand level with the base of the Great Pyramid, and the rooftops of Al Haram fall away below Khufu, Khafre and Menkaure.",
     "cta": "Enquire on WhatsApp",
     "ctaRooms": "See the rooms",
     "photoCaption": "The balcony, today's sunset",
     "lift": "You are here",
-    "liftG": "G"
+    "liftG": "G",
+    "sub": "Cairo never stops honking. Take the lift to the eleventh floor and the street drops away: Khufu, Khafre and Menkaure fill the window, and breakfast is on the roof.",
+    "badgeTop": "Floor",
+    "badgeBottom": "level with the Great Pyramid’s base"
   },
   "facts": {
     "view": "Level with the Great Pyramid's base",
@@ -548,5 +551,27 @@
     "cancelling": "Cancelling…",
     "other": "Look up another booking",
     "again": "Book another stay"
+  },
+  "ride": {
+    "eyebrow": "The lift, ground to eleven",
+    "title": "Cairo is loud. The lift takes forty seconds.",
+    "floor": "Floor",
+    "ding": "Floor 11. The roof terrace.",
+    "g": {
+      "t": "Street level",
+      "p": "Al Haram at full volume. Microbuses stopping wherever a hand goes up, horns in three keys, tea glasses on a tin tray, a man who would like to sell you a camel ride. This is the Cairo of twenty million people, and it is a good part of why you came."
+    },
+    "f4": {
+      "t": "The horns turn into a hum",
+      "p": "Four floors up the street is already a sound, not a place. Laundry on the lines, and every satellite dish on every balcony looking at the same patch of sky."
+    },
+    "f8": {
+      "t": "Rooftop Cairo",
+      "p": "Water tanks, pigeon lofts on stilts, somebody’s chairs set out for the evening. The city has a second ground floor up here that you never see from a taxi."
+    },
+    "f11": {
+      "t": "The doors open",
+      "p": "Nothing between you and the plateau is taller than you are. Khufu, Khafre and Menkaure stand in the window base to tip, the kettle is on, and the loudest thing on the terrace is a spoon in a glass."
+    }
   }
 }

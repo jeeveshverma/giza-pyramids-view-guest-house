@@ -390,7 +390,8 @@ const maxes = Object.fromEntries(ROOMS.map((r) => [r.id, r.max]));
   .co-mini a { color: var(--gold-text); font-weight: 700; display: inline-flex; align-items: center; min-height: 32px; }
   .co-mini-warn { flex-basis: 100%; color: var(--danger); font-weight: 600; font-size: 0.86rem; }
   @media (min-width: 960px) { .co-mini { display: none; } }
-  .co-card { background: var(--white); border: 1px solid var(--line); border-radius: 6px; }
+  .co-card { background: var(--white); border: 2px solid var(--ink); border-radius: 12px; }
+  .co-main .co-card { box-shadow: 8px 8px 0 var(--gold); }
   .co-card h3 { font-family: var(--display); font-size: 1.3rem; font-weight: 700; }
   html[lang='ar'] .co-card h3 { font-family: var(--sans); font-size: 1.1rem; }
   .co-prop { overflow: hidden; }
@@ -460,10 +461,10 @@ const maxes = Object.fromEntries(ROOMS.map((r) => [r.id, r.max]));
   .co-check { display: flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; color: var(--body); }
   .co-check input { width: 20px; height: 20px; accent-color: var(--gold); margin: 0; flex: none; }
   .co-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: flex-end; border-top: 1px solid var(--line); padding-top: 16px; }
-  .co-next, .co-send { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 24px; border: 0; border-radius: 4px; background: var(--ink); color: var(--cream); font: inherit; font-weight: 700; font-size: 1.02rem; cursor: pointer; text-decoration: none; }
-  .co-next:hover { background: var(--night-2); }
+  .co-next, .co-send { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 24px; border: 2px solid var(--ink); border-radius: 10px; box-shadow: 3px 3px 0 var(--ink); background: var(--gold-light); color: var(--ink); font: inherit; font-weight: 700; font-size: 1.02rem; cursor: pointer; text-decoration: none; }
+  .co-next:hover { background: var(--gold-pale); }
   .co-send { background: var(--wa); color: var(--white); } .co-send:hover { background: var(--wa-dark); }
-  .co-ghost { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 16px; border: 1px solid var(--line); border-radius: 4px; background: var(--white); color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; }
+  .co-ghost { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 16px; border: 2px solid var(--ink); border-radius: 10px; background: var(--white); color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; }
   .co-ghost:hover { background: var(--cream); }
   .co-final-actions .co-backbtn { margin-inline-end: auto; }
   /* final step: when Back, Copy and Send don't fit on one line, Send gets its own row on top */
@@ -495,8 +496,12 @@ const maxes = Object.fromEntries(ROOMS.map((r) => [r.id, r.max]));
   /* booked */
   .co-ok { margin: 0; display: flex; align-items: center; gap: 10px; color: var(--wa); font-weight: 800; }
   .co-ok span { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--wa); color: var(--white); }
-  .co-ref { margin: 0; display: grid; gap: 2px; justify-items: start; padding: 14px 18px; border: 1px dashed var(--gold); border-radius: 6px; background: var(--gold-pale); }
-  .co-ref span { font-size: 0.8rem; font-weight: 700; color: var(--gold-text); }
+  /* the booking number is a ticket for the lift: a notch punched in each side, a tear line across */
+  .co-ref { position: relative; margin: 0; display: grid; gap: 2px; justify-items: start; padding: 16px 26px 18px; border: 2px solid var(--ink); border-radius: 12px; background: var(--gold-light); box-shadow: var(--hard); background-image: linear-gradient(90deg, var(--ink) 50%, transparent 0); background-size: 14px 2px; background-repeat: repeat-x; background-position: 0 34px; }
+  .co-ref::before, .co-ref::after { content: ''; position: absolute; top: 25px; width: 20px; height: 20px; border-radius: 50%; background: var(--white); border: 2px solid var(--ink); }
+  .co-ref::before { left: -12px; clip-path: inset(0 0 0 50%); } .co-ref::after { right: -12px; clip-path: inset(0 50% 0 0); }
+  .co-ref span { font-size: 0.74rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink); padding-bottom: 12px; }
+  html[lang='ar'] .co-ref span { letter-spacing: 0; font-size: 0.9rem; }
   .co-ref b { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: clamp(1.7rem, 7vw, 2.4rem); letter-spacing: 0.08em; color: var(--ink); user-select: all; }
   .co-done-lead { margin: 0; }
   .co-hello h2 { font-family: var(--display); font-size: 1.5rem; } .co-hello p { margin: 4px 0 0; color: var(--body); }

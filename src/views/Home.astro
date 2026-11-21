@@ -13,6 +13,7 @@ import Landmark from '../components/Landmark.astro';
 import SearchBox from '../components/SearchBox.astro';
 import Property from '../components/Property.astro';
 import Availability from '../components/Availability.astro';
+import LiftRide from '../components/LiftRide.astro';
 import en from '../i18n/en.json';
 import ar from '../i18n/ar.json';
 import { PLACES } from '../data/places';
@@ -29,32 +30,35 @@ const wa = waUrl(t('enquire.waIntro'));
 const HERO_SIZES = '100vw';
 const heroImg = await getImage({ src: heroSrc, widths: [480, 720, 1080, 1440, 1600], format: 'avif', quality: 60 });
 const practical: [string, string][] = ((lang === 'ar' ? ar : en) as any).practical.items;
-const liftFloors = ['11', '10', '9', '8', '7', '6', '5', '4', '3', '2', '1'];
+// the sticker's edge: a 18-point price burst
+const burst = Array.from({ length: 36 }, (_, i) => { const a = (i / 36) * Math.PI * 2, r = i % 2 ? 88 : 99; return (i ? 'L' : 'M') + (100 + r * Math.cos(a)).toFixed(1) + ' ' + (100 + r * Math.sin(a)).toFixed(1); }).join(' ') + 'Z';
+const kmToKhufu = fmtKm(fromHotel(PLACES.find((p) => p.id === 'pyramids')!.at).km, lang);
+const ticker = [t('bk.hl.view'), t('bk.hl.breakfast'), t('bk.hl.walk', { km: kmToKhufu }), t('bk.hl.desk'), t('bk.hl.pickup'), t('bk.chNoCard')];
 // the gallery: the strongest ten first (big, four beside, five below), then every other photo
 const lead = ['terrace-sunset', 'tv-room5', 'studio-bed', 'view-show', 'tv-sunset', 'db-room8', 'terrace-day', 'tw-beds', 'studio-kitchenette', 'tr-beds'];
 const mosaic = [...lead, ...PHOTOS.map((p) => p.id).filter((id) => !lead.includes(id))];
 const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find((p) => p.id === id)!).map((p) => { const g = fromHotel(p.at); return { ...p, kmText: fmtKm(g.km, lang), mins: g.mode === 'foot' ? t('giza.onFoot', { min: digits(g.min, lang) }) : t('giza.byCar', { min: digits(g.min, lang) }) }; });
 ---
 <Layout lang={lang} page="home" title={t('meta.home.title')} desc={t('meta.home.desc')} overHero preload={{ href: heroImg.src, srcset: heroImg.srcSet.attribute, sizes: HERO_SIZES }}>
-  <!-- Hero: the sunset photo, the title over the rooftops, the lift panel -->
+  <!-- Hero: a poster. The sunset photo, the fact in slab capitals, a price-burst sticker with the floor -->
   <section class="hero" id="top">
     <div class="hero-photo">
       <Img id="view-sunset" lang={lang} priority sizes={HERO_SIZES} widths={[480, 720, 1080, 1440, 1600]} quality={60} position="50% 42%" />
     </div>
     <div class="hero-veil" aria-hidden="true"></div>
     <div class="wrap hero-in">
-      <p class="eyebrow hero-eyebrow">{t('hero.eyebrow')}</p>
-      <h1 class="hero-title">{t('hero.title')}</h1>
-      <p class="hero-ar" lang={lang === 'ar' ? 'en' : 'ar'} dir={lang === 'ar' ? 'ltr' : 'rtl'}>{lang === 'ar' ? 'Giza Pyramids View Guest House' : 'بيت ضيافة إطلالة أهرامات الجيزة'}</p>
+      <p class="hero-tag">{t('hero.eyebrow')}</p>
+      <h1 class="hero-title">{t('hero.title', { km: kmToKhufu })}</h1>
+      <p class="hero-sub">{t('hero.sub')}</p>
       <div class="hero-cta">
-        <a class="btn btn-lg hero-book" href="#availability">{t('bk.checkAvail')} <Icon name="arrowRight" size={18} class="rtl-flip" /></a>
+        <a class="btn btn-lg btn-gold hero-book" href="#availability">{t('bk.checkAvail')} <Icon name="arrowRight" size={18} class="rtl-flip" /></a>
         <a class="btn btn-ghost hero-wa" href={wa} target="_blank" rel="noopener"><Icon name="whatsapp" /> {t('hero.cta')}</a>
       </div>
     </div>
-    <ol class="lift" aria-label={t('hero.lift')}>
-      {liftFloors.map((f, i) => <li class:list={[i === 0 && 'on']}><span>{digits(f, lang)}</span>{i === 0 && <em>{t('hero.lift')}</em>}</li>)}
-      <li><span>{t('hero.liftG')}</span></li>
-    </ol>
+    <a class="hero-badge" href="#ride" aria-label={`${t('hero.badgeTop')} ${digits(11, lang)}: ${t('hero.badgeBottom')}`}>
+      <svg viewBox="0 0 200 200" aria-hidden="true"><path d={burst} /></svg>
+      <span><small>{t('hero.badgeTop')}</small><b>{digits(11, lang)}</b><em>{t('hero.badgeBottom')}</em></span>
+    </a>
   </section>
 
   <!-- the search box, straddling the bottom of the hero -->
@@ -63,10 +67,19 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
   <!-- the listing: name, score, gallery, highlights -->
   <Property lang={lang} mosaic={mosaic} />
 
+  <!-- the shop-front ticker: what you get, on a loop -->
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-run">
+      {[0, 1].map(() => <ul>{ticker.map((x) => <li>{x}</li>)}</ul>)}
+    </div>
+  </div>
+
   <Sunset lang={lang} />
 
   <!-- the rooms, as an availability list -->
   <Availability lang={lang} searchId="search" />
+
+  <LiftRide lang={lang} />
 
   <Lattice />
 
@@ -170,44 +183,57 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
 </Layout>
 
 <style>
-  /* ---- hero: the sunset photo, full bleed ---- */
-  .hero { position: relative; min-height: 82svh; display: grid; align-items: end; color: var(--cream); isolation: isolate; overflow: hidden; }
+  /* ---- hero: a poster over the sunset photo ---- */
+  .hero { position: relative; min-height: 86svh; display: grid; align-items: end; color: var(--cream); isolation: isolate; overflow: hidden; border-bottom: 2px solid var(--ink); }
   .hero-photo { position: absolute; inset: 0; z-index: -2; }
   .hero-photo :global(.photo) { height: 100%; border-radius: 0; }
   .hero-photo :global(img) { height: 100%; width: 100%; object-fit: cover; animation: pan 30s var(--ease) both; transform-origin: 50% 40%; }
   @keyframes pan { from { transform: scale(1.1); } to { transform: scale(1); } }
-  .hero-veil { position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(20, 26, 38, 0.62) 0%, rgba(20, 26, 38, 0.2) 26%, rgba(20, 26, 38, 0.38) 52%, rgba(20, 26, 38, 0.92) 100%), linear-gradient(90deg, rgba(20, 26, 38, 0.45) 0%, rgba(20, 26, 38, 0) 60%); }
-  html[dir='rtl'] .hero-veil { background: linear-gradient(180deg, rgba(20, 26, 38, 0.62) 0%, rgba(20, 26, 38, 0.2) 26%, rgba(20, 26, 38, 0.38) 52%, rgba(20, 26, 38, 0.92) 100%), linear-gradient(270deg, rgba(20, 26, 38, 0.45) 0%, rgba(20, 26, 38, 0) 60%); }
-  .hero-in { padding-top: calc(var(--header-h) + 24px); padding-bottom: 96px; display: grid; gap: 12px; }
-  .hero-eyebrow { color: var(--gold-pale); text-shadow: 0 1px 8px rgba(0,0,0,.7); }
-  .hero-title { color: var(--cream); font-size: clamp(2.6rem, 10.5vw, 5.4rem); max-width: 11em; text-wrap: balance; text-shadow: 0 2px 10px rgba(0,0,0,.35); }
-  html[lang='ar'] .hero-title { font-size: clamp(2.2rem, 9vw, 4.4rem); max-width: 14em; }
-  .hero-ar { justify-self: start; font-family: 'Tajawal', 'Noto Sans Arabic', sans-serif; font-weight: 500; font-size: 1.2rem; color: var(--gold-light); margin: 0; opacity: 0.95; }
-  html[lang='ar'] .hero-ar { font-family: var(--display); letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.95rem; text-align: right; }
-  .hero-cta { display: grid; gap: 8px; margin-top: 8px; }
-  .hero-book { background: var(--gold-light); border-color: var(--gold-light); color: var(--night); }
-  .hero-book:hover { background: var(--gold-pale); }
+  /* night indigo from the top and the reading side, a band of sunset left clear in the middle */
+  .hero-veil { position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(17, 26, 60, 0.72) 0%, rgba(17, 26, 60, 0.12) 30%, rgba(17, 26, 60, 0.3) 55%, rgba(17, 26, 60, 0.94) 100%), linear-gradient(90deg, rgba(17, 26, 60, 0.55) 0%, rgba(17, 26, 60, 0) 62%); }
+  html[dir='rtl'] .hero-veil { background: linear-gradient(180deg, rgba(17, 26, 60, 0.72) 0%, rgba(17, 26, 60, 0.12) 30%, rgba(17, 26, 60, 0.3) 55%, rgba(17, 26, 60, 0.94) 100%), linear-gradient(270deg, rgba(17, 26, 60, 0.55) 0%, rgba(17, 26, 60, 0) 62%); }
+  .hero-in { padding-top: calc(var(--header-h) + 24px); padding-bottom: 96px; display: grid; gap: 14px; justify-items: start; }
+  .hero-tag { margin: 0; padding: 6px 12px; background: var(--red); color: var(--white); border: 2px solid var(--ink); border-radius: 6px; box-shadow: 3px 3px 0 var(--ink); font-size: 0.74rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; transform: rotate(-1.5deg); }
+  html[lang='ar'] .hero-tag { letter-spacing: 0; font-size: 0.92rem; transform: rotate(1.5deg); }
+  .hero-title { color: var(--gold-light); font-size: clamp(2.5rem, 11vw, 5rem); max-width: 10.5em; text-shadow: 3px 3px 0 var(--ink); }
+  html[lang='ar'] .hero-title { font-size: clamp(2.6rem, 11.5vw, 5.2rem); max-width: 11em; }
+  .hero-sub { margin: 0; max-width: 33em; font-size: 1.08em; font-weight: 500; color: var(--cream); text-shadow: 0 1px 10px rgba(17, 26, 60, 0.9); }
+  .hero-cta { display: grid; gap: 10px; margin-top: 6px; }
   .hero-wa { color: var(--cream); text-decoration-color: var(--gold-light); justify-content: start; justify-self: start; padding-inline: 0; }
   /* the arrows point the way the page reads */
   :global(html[dir='rtl']) .hero-cta :global(.rtl-flip), :global(html[dir='rtl']) .sal :global(.rtl-flip), :global(html[dir='rtl']) .endcta :global(.rtl-flip) { transform: scaleX(-1); }
   @media (min-width: 560px) { .hero-cta { grid-auto-flow: column; justify-content: start; align-items: center; gap: 24px; } }
   @media (prefers-reduced-motion: reduce) { .hero-photo :global(img) { animation: none; } }
   @media (min-width: 960px) {
-    .hero { min-height: 86vh; }
-    .hero-in { padding-bottom: 128px; max-width: var(--container); }
-    .hero-title { font-size: clamp(3.6rem, 6vw, 6.2rem); }
+    .hero { min-height: 88vh; }
+    .hero-in { padding-bottom: 132px; max-width: var(--container); }
+    .hero-title { font-size: clamp(3.6rem, 6.4vw, 6.4rem); }
   }
   .sb-wrap { margin-top: -52px; position: relative; z-index: 4; }
 
-  /* the lift panel */
-  .lift { list-style: none; margin: 0; padding: 0; position: absolute; inset-inline-end: var(--gutter); top: calc(var(--header-h) + 18px); display: none; flex-direction: column; gap: 2px; z-index: 2; }
-  .lift li { position: relative; display: flex; align-items: center; gap: 10px; }
-  .lift span { width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(217, 181, 106, 0.45); display: grid; place-items: center; font-family: var(--display); font-weight: 600; font-size: 0.95rem; color: rgba(244, 236, 221, 0.7); }
-  .lift li.on span { background: var(--gold-light); border-color: var(--gold-light); color: var(--night); box-shadow: 0 0 0 4px rgba(217, 181, 106, 0.25), 0 0 24px rgba(217, 181, 106, 0.5); }
-  .lift em { position: absolute; inset-inline-end: 40px; white-space: nowrap; font-style: normal; font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold-light); }
-  html[lang='ar'] .lift em { letter-spacing: 0; font-size: 0.85rem; }
-  @media (min-width: 720px) { .lift { display: flex; } }
-  @media (min-width: 960px) { .lift { top: auto; bottom: 120px; } }
+  /* the sticker: a price burst with the floor on it; it takes you to the lift */
+  .hero-badge { position: absolute; inset-inline-end: max(var(--gutter), 3vw); top: calc(var(--header-h) + 18px); width: 132px; aspect-ratio: 1; display: grid; place-items: center; color: var(--ink); text-decoration: none; transform: rotate(9deg); transition: transform 0.4s var(--ease); z-index: 2; filter: drop-shadow(4px 4px 0 var(--ink)); }
+  html[dir='rtl'] .hero-badge { transform: rotate(-9deg); }
+  .hero-badge:hover { transform: rotate(0deg) scale(1.05); }
+  .hero-badge svg { position: absolute; inset: 0; width: 100%; height: 100%; fill: var(--gold-light); stroke: var(--ink); stroke-width: 3; stroke-linejoin: round; }
+  .hero-badge span { position: relative; display: grid; justify-items: center; text-align: center; line-height: 1; width: 70%; }
+  .hero-badge small { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; }
+  .hero-badge b { font-family: var(--poster); font-weight: 400; font-size: 3rem; margin-block: 1px 2px; }
+  .hero-badge em { font-style: normal; font-size: 0.6rem; font-weight: 800; line-height: 1.15; }
+  html[lang='ar'] .hero-badge small { letter-spacing: 0; font-size: 0.8rem; } html[lang='ar'] .hero-badge b { font-family: var(--sans); font-weight: 800; font-size: 2.6rem; } html[lang='ar'] .hero-badge em { font-size: 0.68rem; }
+  @media (max-width: 559px) { .hero-badge { width: 104px; } .hero-badge b { font-size: 2.2rem; } .hero-badge em { font-size: 0.52rem; } html[lang='ar'] .hero-badge b { font-size: 2rem; } html[lang='ar'] .hero-badge em { font-size: 0.58rem; } }
+  @media (min-width: 960px) { .hero-badge { width: 190px; top: auto; bottom: 150px; } .hero-badge b { font-size: 4.6rem; } .hero-badge small { font-size: 0.8rem; } .hero-badge em { font-size: 0.78rem; } html[lang='ar'] .hero-badge b { font-size: 4rem; } html[lang='ar'] .hero-badge em { font-size: 0.9rem; } html[lang='ar'] .hero-badge small { font-size: 1rem; } }
+
+  /* the ticker: a shop-front sign that runs */
+  .ticker { margin-top: 36px; background: var(--gold-light); color: var(--ink); border-block: 2px solid var(--ink); overflow: hidden; direction: ltr; }
+  .ticker-run { display: flex; width: max-content; animation: tick 44s linear infinite; }
+  .ticker ul { list-style: none; margin: 0; padding: 0; display: flex; flex: none; }
+  .ticker li { padding: 11px 0; font-weight: 800; font-size: 0.95rem; white-space: nowrap; display: flex; align-items: center; }
+  .ticker li::after { content: ''; width: 12px; height: 12px; margin-inline: 22px; background: var(--red); border: 2px solid var(--ink); transform: rotate(45deg); flex: none; }
+  html[lang='ar'] .ticker li { direction: rtl; font-size: 1.05rem; }
+  @keyframes tick { to { transform: translateX(-50%); } }
+  .ticker:hover .ticker-run { animation-play-state: paused; }
+  @media (prefers-reduced-motion: reduce) { .ticker-run { animation: none; width: auto; flex-wrap: wrap; } .ticker ul + ul { display: none; } .ticker ul { flex-wrap: wrap; padding-inline: var(--gutter); } }
 
   .viewsec { background: var(--cream); }
   .view-photos { display: grid; gap: 28px; margin-top: 40px; }
@@ -220,7 +246,7 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
   .pract { background: var(--paper); }
   .pract-in { display: grid; gap: 24px; }
   .pract-list { margin: 0; display: grid; gap: 18px 32px; }
-  .pract-list div { border-top: 1px solid var(--line); padding-top: 12px; }
+  .pract-list div { border-top: 2px solid var(--ink); padding-top: 12px; }
   .pract-list dt { font-family: var(--display); font-size: 1.3rem; font-weight: 600; color: var(--ink); }
   html[lang='ar'] .pract-list dt { font-family: var(--sans); font-size: 1.1rem; }
   .pract-list dd { margin: 4px 0 0; color: var(--body); }
@@ -241,8 +267,6 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
   .reno-a { width: 70%; }
   .reno-b { width: 88%; margin-inline-start: auto; }
   .reno-text { display: grid; gap: 12px; max-width: 34em; }
-  .reno-text .num { display: flex; align-items: center; gap: 12px; }
-  .reno-text .num::after { content: ''; height: 1px; width: 48px; background: var(--gold); opacity: 0.7; }
   .reno-text :global(svg) { margin-top: 4px; }
   @media (min-width: 640px) and (max-width: 959px) {
     .reno-in { grid-template-columns: 5fr 6fr; gap: 32px 40px; align-items: center; }
@@ -256,12 +280,11 @@ const teaser = ['pyramids', 'sphinx', 'gem', 'saqqara'].map((id) => PLACES.find(
     .reno-b { grid-column: 9 / 13; width: 100%; margin-top: 120px; }
   }
 
-  .endcta { background: var(--night); color: var(--cream); }
+  .endcta { background: var(--gold-light); color: var(--ink); border-top: 2px solid var(--ink); }
   .endcta-in { display: grid; gap: 14px; justify-items: start; }
   .endcta-in > * { max-width: 40rem; }
-  .endcta h2 { color: var(--cream); }
-  .endcta .lead { color: rgba(244, 236, 221, 0.85); }
+  .endcta h2 { color: var(--ink); font-size: clamp(2.2rem, 7vw, 4.4rem); }
+  .endcta .lead { color: var(--ink); font-weight: 500; }
   .endcta p:last-child { display: flex; flex-wrap: wrap; gap: 12px 28px; align-items: center; margin: 8px 0 0; }
-  .endcta .btn:not(.btn-ghost) { background: var(--gold-light); border-color: var(--gold-light); color: var(--night); }
-  .endcta .btn-ghost { color: var(--cream); padding-inline: 0; text-decoration-color: var(--gold-light); }
+  .endcta .btn-ghost { color: var(--ink); padding-inline: 0; text-decoration-color: var(--ink); }
 </style>

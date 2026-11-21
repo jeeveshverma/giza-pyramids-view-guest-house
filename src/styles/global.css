@@ -1,38 +1,48 @@
 /* Giza Pyramids View Guest House — design tokens and base styles. Mobile first; desktop widens from here.
-   Limestone and papyrus for the page, the sunset's ochre gold for the line, desert night (a blue-black) for the dark bands. */
+   Version 2, "the poster": Cairo is loud and hand-painted, so the page is too. Sun-baked limestone for
+   the ground, saffron for the sun, the teal of Cairo's shutters and the hibiscus red of the tentmakers'
+   cloth as accents, kohl black for every outline. Headlines are set in a slab serif (printers have
+   called that style "Egyptian" for two centuries) and, in Arabic, in Rakkas, drawn from the lettering
+   of old Cairo film posters. Boxes have a black outline and a hard shadow, like a painted sign. */
 :root {
-  --cream: #f4ecdd;
-  --paper: #faf6ec;
-  --cream-deep: #e7dcc4;
-  --gold: #b8862e;
-  --gold-light: #d9b56a;
-  --gold-pale: #efe1bd;
-  --gold-text: #7d5a14;
-  --ink: #1f1a14;
-  --body: #41392f;
-  --muted: #6b6157;
-  --line: #ddd0b3;
+  --cream: #f6e8c9;
+  --paper: #fcf4df;
+  --cream-deep: #ecd6a4;
+  --gold: #e3961a;
+  --gold-light: #f7b733;
+  --gold-pale: #fbe2a2;
+  --gold-text: #8c4a06;
+  --ink: #17120d;
+  --body: #3a3027;
+  --muted: #695b4c;
+  --line: #d6bf88;
   --taupe: #a28f6e;
-  --night: #141a26;
-  --night-2: #1f2635;
+  --night: #111a3c;
+  --night-2: #1d2a5c;
+  --teal: #0d7a78;
+  --teal-pale: #cfe9e4;
+  --red: #c63d2c;
   --wa: #1f7a4d;
   --wa-dark: #176038;
   --danger: #a4322a;
-  --white: #fff;
+  --white: #fffdf7;
 
-  --display: 'Cormorant Garamond', 'Times New Roman', Georgia, serif;
+  --display: 'Zilla Slab', 'Rockwell', 'Roboto Slab', Georgia, serif;
+  --poster: 'Alfa Slab One', 'Zilla Slab', 'Rockwell', Georgia, serif;
   --sans: 'Manrope Variable', 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
   --gutter: 16px;
   --container: 1240px;
   --header-h: 64px;
-  --radius: 3px;
+  --radius: 10px;
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
-  --shadow: 0 24px 60px -30px rgba(43, 33, 20, 0.45), 0 2px 6px rgba(43, 33, 20, 0.06);
+  --hard: 5px 5px 0 var(--ink);
+  --shadow: 6px 6px 0 var(--ink);
 }
 html[lang='en'] [lang='ar'] { font-family: 'Tajawal', 'Noto Sans Arabic', system-ui, sans-serif; }
 html[lang='ar'] {
   --display: 'Reem Kufi', 'Noto Naskh Arabic', 'Times New Roman', serif;
+  --poster: 'Rakkas', 'Reem Kufi', 'Noto Naskh Arabic', serif;
   --sans: 'Tajawal', 'Noto Sans Arabic', system-ui, 'Segoe UI', Tahoma, sans-serif;
 }
 @media (min-width: 640px) { :root { --gutter: 24px; } }
@@ -67,48 +77,53 @@ button { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 ::selection { background: var(--gold-pale); color: var(--ink); }
 
-h1, h2, h3, .display { font-family: var(--display); font-weight: 600; color: var(--ink); line-height: 1.08; letter-spacing: -0.01em; margin: 0; }
+h1, h2, h3, .display { font-family: var(--display); font-weight: 700; color: var(--ink); line-height: 1.08; letter-spacing: -0.01em; margin: 0; }
+h1, h2 { font-family: var(--poster); font-weight: 400; line-height: 1.02; letter-spacing: 0; text-wrap: balance; }
 html[lang='ar'] h1, html[lang='ar'] h2, html[lang='ar'] h3, html[lang='ar'] .display { font-weight: 500; letter-spacing: 0; line-height: 1.35; }
+html[lang='ar'] h1, html[lang='ar'] h2 { font-weight: 400; line-height: 1.25; }
 h1 { font-size: clamp(2.6rem, 9.5vw, 6rem); }
-h2 { font-size: clamp(2rem, 6vw, 3.6rem); }
+h2 { font-size: clamp(1.9rem, 5.4vw, 3.3rem); }
 h3 { font-size: clamp(1.4rem, 3.2vw, 1.9rem); }
 p { margin: 0 0 1em; }
 .lead { font-size: 1.12em; color: var(--body); max-width: 36em; }
 .muted { color: var(--muted); }
 .small { font-size: 0.9em; }
-.caption { font-family: var(--display); font-style: italic; font-size: 1.12em; color: var(--muted); }
+.caption { font-family: var(--display); font-style: italic; font-weight: 500; font-size: 1.08em; color: var(--body); }
 html[lang='ar'] .caption { font-style: normal; }
-.eyebrow { font-family: var(--sans); font-size: 0.78rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold-text); font-weight: 600; }
+.eyebrow { font-family: var(--sans); font-size: 0.78rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--red); font-weight: 800; }
 html[lang='ar'] .eyebrow { letter-spacing: 0; font-size: 0.95rem; }
-.num { font-family: var(--display); color: var(--gold-text); font-size: 1rem; letter-spacing: 0.1em; font-variant-numeric: lining-nums; }
+/* section numbers are lift buttons: press 01 for the view, 02 for why you can see it… */
+.num { font-family: var(--poster); color: var(--ink); font-size: 1rem; font-variant-numeric: lining-nums; display: inline-grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; background: var(--gold-light); border: 2px solid var(--ink); box-shadow: 3px 3px 0 var(--ink), inset 0 0 0 3px var(--gold-light), inset 0 0 0 4px rgba(23, 18, 13, 0.35); }
+html[lang='ar'] .num { font-family: var(--sans); font-weight: 800; }
 
 .wrap { width: 100%; max-width: var(--container); margin-inline: auto; padding-inline: var(--gutter); }
 .section { padding-block: clamp(56px, 10vw, 128px); position: relative; }
 .section-head { display: grid; gap: 10px; margin-bottom: clamp(28px, 5vw, 56px); max-width: 44em; }
-.section-head .num { display: flex; align-items: center; gap: 12px; }
-.section-head .num::after { content: ''; height: 1px; width: 48px; background: var(--gold); opacity: 0.7; }
+.section-head .num { margin-bottom: 6px; }
 
 /* gold hairline */
 .rule { height: 1px; background: linear-gradient(90deg, transparent, var(--gold) 20%, var(--gold) 80%, transparent); opacity: 0.8; border: 0; margin: 0; }
 
-/* buttons */
+/* buttons: painted signs. A black outline, a hard shadow, and they press down when pushed */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-  min-height: 52px; padding: 0 22px; border-radius: 2px; border: 1px solid var(--ink);
-  background: var(--ink); color: var(--cream); font-weight: 600; font-size: 1rem; text-decoration: none;
-  cursor: pointer; transition: background 0.25s var(--ease), border-color 0.25s var(--ease), transform 0.25s var(--ease);
+  min-height: 52px; padding: 0 22px; border-radius: 10px; border: 2px solid var(--ink);
+  background: var(--ink); color: var(--cream); font-weight: 800; font-size: 1rem; text-decoration: none;
+  cursor: pointer; box-shadow: 3px 3px 0 var(--ink); transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease), background 0.2s var(--ease);
 }
-.btn:hover { background: var(--night-2); }
-.btn:active { transform: translateY(1px); }
-.btn-gold { background: transparent; color: var(--ink); border-color: var(--gold); }
+.btn:hover { background: var(--night-2); transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+.btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.btn-gold { background: var(--gold-light); color: var(--ink); }
 .btn-gold:hover { background: var(--gold-pale); }
-.btn-wa { background: var(--wa); border-color: var(--wa); color: #fff; }
+.btn-wa { background: var(--wa); color: #fff; }
 .btn-wa:hover { background: var(--wa-dark); }
-.btn-ghost { background: transparent; border-color: transparent; color: var(--ink); padding-inline: 8px; text-decoration: underline; text-underline-offset: 5px; text-decoration-color: var(--gold); }
+.btn-ghost { background: transparent; border-color: transparent; box-shadow: none; color: var(--ink); padding-inline: 8px; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 5px; text-decoration-color: var(--gold); }
+.btn-ghost:hover, .btn-ghost:active { background: transparent; box-shadow: none; transform: none; text-decoration-color: var(--red); }
 .btn svg { width: 20px; height: 20px; flex: none; }
 .btn-lg { min-height: 58px; padding-inline: 28px; font-size: 1.05rem; }
 /* Tajawal sits high in its line box: nudge Arabic labels down to the optical centre of the button */
 .btn:lang(ar) { padding-top: 0.22em; }
+@media (prefers-reduced-motion: reduce) { .btn { transition: none; } }
 
 /* reveal on scroll */
 .rv { opacity: 0; transform: translateY(18px); transition: opacity 0.9s var(--ease), transform 0.9s var(--ease); }
@@ -123,26 +138,28 @@ html[dir='rtl'] .rtl-flip { transform: scaleX(-1); }
 .skip { position: absolute; inset-inline-start: 8px; top: -60px; z-index: 100; background: var(--ink); color: var(--cream); padding: 10px 14px; }
 .skip:focus { top: 8px; }
 
-/* photo frame: thin gold line a few px outside the image, like the designs */
+/* photo frame: a print pinned up, black edge and a block of colour behind it */
 .frame { position: relative; }
-.frame::after { content: ''; position: absolute; inset: -7px; border: 1px solid var(--gold); opacity: 0.55; pointer-events: none; }
+.frame .photo { border: 2px solid var(--ink); box-shadow: 8px 8px 0 var(--gold); }
+.rv-d2 .frame .photo, .frame.alt .photo { box-shadow: 8px 8px 0 var(--teal); }
 .photo { background: var(--cream-deep); overflow: hidden; border-radius: var(--radius); }
 .photo img { width: 100%; height: 100%; object-fit: cover; }
 
-/* lotus frieze divider */
-.lattice { display: flex; justify-content: center; padding-block: 8px; color: var(--gold); opacity: 0.85; }
-.lattice svg { width: min(320px, 70vw); height: 28px; }
+/* the divider: a strip of khayamiya, the appliqué cloth of Cairo's tentmakers' street */
+.lattice { height: 44px; border-block: 2px solid var(--ink); background-color: var(--red); background-size: 88px 44px; background-repeat: repeat-x; background-position: center;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='88' height='44' viewBox='0 0 88 44'%3E%3Crect width='88' height='44' fill='%23c63d2c'/%3E%3Cpath d='M22 2l20 20-20 20L2 22z' fill='%23111a3c'/%3E%3Cpath d='M22 9l13 13-13 13L9 22z' fill='%23fcf4df'/%3E%3Cpath d='M22 15l7 7-7 7-7-7z' fill='%23f7b733'/%3E%3Cpath d='M66 2l20 20-20 20-20-20z' fill='%230d7a78'/%3E%3Cpath d='M66 8l4.2 9.8L80 22l-9.8 4.2L66 36l-4.2-9.8L52 22l9.800-4.200z' fill='%23fcf4df'/%3E%3Ccircle cx='66' cy='22' r='4' fill='%23c63d2c'/%3E%3Cpath d='M44 0l5 5-5 5-5-5zM44 34l5 5-5 5-5-5zM0 17l5 5-5 5zM88 17l-5 5 5 5z' fill='%23f7b733'/%3E%3C/svg%3E"); }
 
 /* sticky mobile bar */
 .stick { position: fixed; inset-inline: 0; bottom: 0; z-index: 60; display: grid; grid-template-columns: 1fr auto auto; gap: 8px;
-  padding: 10px var(--gutter) calc(10px + env(safe-area-inset-bottom)); background: rgba(251, 248, 243, 0.92); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  border-top: 1px solid var(--line); transform: translateY(110%); transition: transform 0.4s var(--ease); }
+  padding: 10px var(--gutter) calc(10px + env(safe-area-inset-bottom)); background: var(--paper);
+  border-top: 2px solid var(--ink); transform: translateY(110%); transition: transform 0.4s var(--ease); }
 .stick.show { transform: none; }
 body.sb-pop-open .stick { transform: translateY(110%); }
 .stick .btn { min-height: 48px; white-space: nowrap; }
-.stick .ic { width: 48px; padding: 0; background: var(--paper); border-color: var(--line); color: var(--ink); }
-.stick .ic-wa { background: var(--wa); border-color: var(--wa); color: #fff; }
-.stick-go { background: var(--ink); }
+.stick .ic { width: 48px; padding: 0; background: var(--white); color: var(--ink); }
+.stick .ic-wa { background: var(--wa); color: #fff; }
+.stick-go { background: var(--gold-light); color: var(--ink); }
+.stick-go:hover { background: var(--gold-pale); }
 @media (max-width: 340px) { .stick { gap: 6px; } .stick .btn { padding-inline: 12px; font-size: 0.95rem; } .stick-go svg { display: none; } }
 @media (min-width: 960px) { .stick { display: none; } }
 body.has-stick { padding-bottom: 76px; }

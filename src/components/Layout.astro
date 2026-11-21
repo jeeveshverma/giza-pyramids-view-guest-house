@@ -1,7 +1,9 @@
 ---
-import '@fontsource/cormorant-garamond/500.css';
-import '@fontsource/cormorant-garamond/600.css';
-import '@fontsource/cormorant-garamond/500-italic.css';
+import '@fontsource/zilla-slab/500.css';
+import '@fontsource/zilla-slab/700.css';
+import '@fontsource/zilla-slab/500-italic.css';
+import '@fontsource/alfa-slab-one/latin-400.css';
+import '@fontsource/rakkas/arabic-400.css';
 import '@fontsource-variable/manrope';
 import '@fontsource/tajawal/400.css';
 import '@fontsource/tajawal/500.css';
@@ -200,7 +202,7 @@ const hotel = {
   html[dir='rtl'] .progress i { transform-origin: 100% 50%; }
 
   .hdr { position: fixed; top: 0; inset-inline: 0; z-index: 70; height: var(--header-h); transition: background 0.4s var(--ease), box-shadow 0.4s var(--ease), color 0.3s; color: var(--ink); }
-  .hdr.scrolled { background: rgba(244, 236, 221, 0.97); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 1px 0 var(--line); }
+  .hdr.scrolled { background: var(--paper); box-shadow: 0 2px 0 var(--ink); }
   .hdr-over { color: var(--cream); }
   .hdr-over .logo-name, .hdr-over .logo-sub { color: var(--cream); }
   .hdr-over .logo-mark { color: var(--gold-light); }
@@ -214,8 +216,10 @@ const hotel = {
   /* 340px and under (iPhone SE, Galaxy S9+): the mark alone, so the language link, WhatsApp and the menu fit */
   @media (max-width: 340px) { .hdr-logo .logo-words { display: none; } .hdr-logo { min-width: 44px; min-height: 44px; align-items: center; } }
   @media (max-width: 379px) { .hdr-in { gap: 8px; } .hdr-actions { gap: 4px; } .hdr-logo .logo-name { font-size: 0.86rem !important; letter-spacing: 0.06em; } .hdr-logo .logo-mark { width: 30px; height: 30px; } .hdr-lang { padding: 8px 4px; font-size: 0.9rem; } .hdr-burger { width: 40px; } }
-  .hdr-wa { min-height: 42px; padding-inline: 14px; font-size: 0.92rem; }
+  .hdr-wa { min-height: 42px; padding-inline: 11px; font-size: 0.92rem; box-shadow: 2px 2px 0 var(--ink); }
+  .hdr-wa:hover { box-shadow: 2px 2px 0 var(--ink); transform: none; }
   .hdr-wa span { display: none; }
+  @media (max-width: 479px) { .hdr-actions { gap: 4px; } .hdr-burger { width: 40px; } }
   @media (min-width: 560px) { .hdr-wa span { display: inline; } }
   /* phones: the lockup drops its second line so the language link, WhatsApp and the menu button all fit */
   @media (max-width: 479px) { .hdr-logo .logo-sub { display: none; } .hdr-logo .logo-name { font-size: 1rem; } html[lang='ar'] .hdr-logo .logo-name { font-size: 1.15rem; } .hdr-lang { padding: 8px 6px; } .hdr-wa { min-height: 40px; padding-inline: 11px; } }
@@ -232,7 +236,7 @@ const hotel = {
   .hdr-nav li a[aria-current='page'] { color: var(--gold-text); }
   .nav-foot { display: grid; gap: 10px; margin-top: 24px; }
   html.menu-open, body.menu-open { overflow: hidden; overscroll-behavior: none; }
-  body.menu-open .hdr { background: var(--cream); color: var(--ink); box-shadow: 0 1px 0 var(--line); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  body.menu-open .hdr { background: var(--cream); color: var(--ink); box-shadow: 0 2px 0 var(--ink); backdrop-filter: none; -webkit-backdrop-filter: none; }
   body.menu-open .hdr .logo-name { color: var(--ink); }
   body.menu-open .hdr .logo-sub { color: var(--gold-text); }
   body.menu-open .hdr .logo-mark { color: var(--gold); }
