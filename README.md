@@ -1,7 +1,7 @@
 # Giza Pyramids View Guest House — website
 
 Bilingual (English / العربية) static site for **Giza Pyramids View Guest House** (بيت ضيافة إطلالة
-أهرامات الجيزة), a family-run guest house on the 11th floor of 4 Abd Al Aziz Al Basel Street, Al Haram,
+أهرامات الجيزة), a family-run guest house on the 12th floor of 4 Abd Al Aziz Al Basel Street, Al Haram,
 Giza, with the three pyramids in the window. Built with Astro 5, hosted on GitHub Pages. Bookings are real: a small backend on Cloudflare
 (`worker/`, a Worker with a D1 database) holds the rooms and gives a booking number.
 
@@ -15,7 +15,7 @@ Trip.com (8.6 from 66, the four room types, check-in 14:00 / check-out 11:00, br
 languages, amenities), Booking.com and Expedia (sun terrace, airport shuttle, free Wi‑Fi).
 No prices unless the owner sets them in the dashboard. Distances and bearings are computed from coordinates, never typed.
 
-**The idea the site is built on:** the house is on the eleventh floor, which puts it level with the
+**The idea the site is built on:** the house is on the twelfth floor, which puts it level with the
 base of the Great Pyramid, above the rooftops of Al Haram. Everything drawn serves that.
 
 **Drawn for this site:** the pyramids-and-sun mark; the lift panel in the hero; the self-drawing

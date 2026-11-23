@@ -14,9 +14,9 @@ export const SITE = {
   city: { en: 'Giza', ar: 'الجيزة' },
   region: { en: 'Giza Governorate', ar: 'محافظة الجيزة' },
   country: { en: 'Egypt', ar: 'مصر' },
-  /** The listings' address: building 4 on Abd Al Aziz Al Basel Street, off Mohamed Afify Street, Al Haram; the guest house takes the 11th floor. */
-  street: { en: '4 Abd Al Aziz Al Basel St, 11th floor, Al Haram', ar: '٤ شارع عبد العزيز الباسل، الدور ١١، الهرم' },
-  floor: 11,
+  /** The listings' address: building 4 on Abd Al Aziz Al Basel Street, off Mohamed Afify Street, Al Haram; the guest house takes the 12th floor. */
+  street: { en: '4 Abd Al Aziz Al Basel St, 12th floor, Al Haram', ar: '٤ شارع عبد العزيز الباسل، الدور ١٢، الهرم' },
+  floor: 12,
   postal: '12511',
   /** The pin on the Google listing (via Wanderlog's map centre). */
   geo: { lat: 29.97496, lng: 31.151992 },

@@ -2,11 +2,11 @@
   "meta": {
     "home": {
       "title": "Giza Pyramids View Guest House — all three pyramids from your balcony",
-      "desc": "A family-run guest house on the 11th floor in Al Haram, Giza, with the three pyramids in the window, a roof terrace for breakfast and the Sphinx entrance a few minutes away. Enquire on WhatsApp."
+      "desc": "A family-run guest house on the 12th floor in Al Haram, Giza, with the three pyramids in the window, a roof terrace for breakfast and the Sphinx entrance a few minutes away. Enquire on WhatsApp."
     },
     "rooms": {
       "title": "Rooms and availability — Giza Pyramids View Guest House",
-      "desc": "Five kinds of room on the eleventh floor in Al Haram, Giza: twin rooms with the pyramids in the window, a deluxe studio with a kitchenette, triple, twin and double rooms. Breakfast included. See what is free for your dates and book; you pay at the house."
+      "desc": "Five kinds of room on the twelfth floor in Al Haram, Giza: twin rooms with the pyramids in the window, a deluxe studio with a kitchenette, triple, twin and double rooms. Breakfast included. See what is free for your dates and book; you pay at the house."
     },
     "gallery": {
       "title": "Photos — Giza Pyramids View Guest House",
@@ -46,7 +46,7 @@
     "booking": "My booking"
   },
   "hero": {
-    "eyebrow": "Al Haram · Giza · the eleventh floor",
+    "eyebrow": "Al Haram · Giza · the twelfth floor",
     "title": "Three pyramids, {km} km from your pillow",
     "lead": "A guest house on the top floor of an ordinary Giza apartment block, which is the whole point: at this height you stand level with the base of the Great Pyramid, and the rooftops of Al Haram fall away below Khufu, Khafre and Menkaure.",
     "cta": "Enquire on WhatsApp",
@@ -54,7 +54,7 @@
     "photoCaption": "The balcony, today's sunset",
     "lift": "You are here",
     "liftG": "G",
-    "sub": "Cairo never stops honking. Take the lift to the eleventh floor and the street drops away: Khufu, Khafre and Menkaure fill the window, and breakfast is on the roof.",
+    "sub": "Cairo never stops honking. Take the lift to the twelfth floor and the street drops away: Khufu, Khafre and Menkaure fill the window, and breakfast is on the roof.",
     "badgeTop": "Floor",
     "badgeBottom": "level with the Great Pyramid’s base"
   },
@@ -74,11 +74,11 @@
     "map": "Where we are",
     "enquire": "Enquire",
     "elev": "Why you can see them",
-    "day": "A day on the eleventh floor",
+    "day": "A day on the twelfth floor",
     "practical": "The practical part"
   },
   "rooms": {
-    "intro": "Twelve rooms on the eleventh floor, in five kinds. Every one has air conditioning, its own bathroom and free Wi‑Fi, and breakfast on the roof is included. The twin rooms on the west side have the pyramids in the window.",
+    "intro": "Twelve rooms on the twelfth floor, in five kinds. Every one has air conditioning, its own bathroom and free Wi‑Fi, and breakfast on the roof is included. The twin rooms on the west side have the pyramids in the window.",
     "all": "All rooms",
     "enquireFor": "Enquire about the {room}",
     "stay": "By the night, for a few days or a longer stay: ask us",
@@ -186,7 +186,7 @@
   "enquire": {
     "title": "Tell us your dates",
     "text": "Send the details below to the guest house on WhatsApp. Replies come in English or Arabic.",
-    "note": "We are on the eleventh floor, building 4 on Abd Al Aziz Al Basel Street, off Pyramids Road. Write with your dates and how many of you there are, and we'll come back to you on WhatsApp with what's free. Tell us your flight if you'd like to be picked up.",
+    "note": "We are on the twelfth floor, building 4 on Abd Al Aziz Al Basel Street, off Pyramids Road. Write with your dates and how many of you there are, and we'll come back to you on WhatsApp with what's free. Tell us your flight if you'd like to be picked up.",
     "noteSign": "Giza Pyramids View Guest House",
     "stayType": "Stay",
     "daily": "Nights",
@@ -234,7 +234,7 @@
     "waFrom": "Sent from the website"
   },
   "footer": {
-    "address": "4 Abd Al Aziz Al Basel Street, 11th floor, Al Haram, Giza 12511, Egypt",
+    "address": "4 Abd Al Aziz Al Basel Street, 12th floor, Al Haram, Giza 12511, Egypt",
     "rights": "Giza Pyramids View Guest House",
     "made": "Website by Jeevesh",
     "maps": "Google Maps",
@@ -262,11 +262,11 @@
     "nile": "the Nile, 6 km east",
     "here": "the house",
     "note": "Heights are approximate; the vertical scale is stretched 2.5 times.",
-    "caption": "The eleventh floor stands at roughly {floor} m above the sea, the base of the Great Pyramid at {base}: the whole pyramid rises above the rooftops in front of you.",
-    "text": "Al Haram is flat and low. The plateau to the west rises about forty metres above it, and the pyramids stand on top of that rise. From a ground-floor window you would see apartment blocks. From the eleventh floor the line of sight clears the roofs, and all three pyramids stand against the sky, base to apex."
+    "caption": "The twelfth floor stands at roughly {floor} m above the sea, the base of the Great Pyramid at {base}: the whole pyramid rises above the rooftops in front of you.",
+    "text": "Al Haram is flat and low. The plateau to the west rises about forty metres above it, and the pyramids stand on top of that rise. From a ground-floor window you would see apartment blocks. From the twelfth floor the line of sight clears the roofs, and all three pyramids stand against the sky, base to apex."
   },
   "day": {
-    "title": "A day on the eleventh floor",
+    "title": "A day on the twelfth floor",
     "hint": "Drag the sun round the ring, or tap a moment.",
     "now": "now in Giza",
     "sunriseAt": "Sunrise today {time}",
@@ -313,7 +313,7 @@
     "items": [
       [
         "Rooms",
-        "Air conditioning, a private bathroom and a fridge in every room; Wi‑Fi throughout; a lift to the eleventh floor."
+        "Air conditioning, a private bathroom and a fridge in every room; Wi‑Fi throughout; a lift to the twelfth floor."
       ],
       [
         "Times",
@@ -463,7 +463,7 @@
       "view": "The pyramids from your room and from the roof",
       "breakfast": "Egyptian breakfast included, served on the roof",
       "walk": "{km} km to the Great Pyramid",
-      "desk": "Reception open 24 hours, lift to the 11th floor",
+      "desk": "Reception open 24 hours, lift to the 12th floor",
       "pickup": "Airport pickup on request"
     },
     "fac": {
@@ -553,10 +553,10 @@
     "again": "Book another stay"
   },
   "ride": {
-    "eyebrow": "The lift, ground to eleven",
+    "eyebrow": "The lift, ground to twelve",
     "title": "Cairo is loud. The lift takes forty seconds.",
     "floor": "Floor",
-    "ding": "Floor 11. The roof terrace.",
+    "ding": "Floor 12. The roof terrace.",
     "g": {
       "t": "Street level",
       "p": "Al Haram at full volume. Microbuses stopping wherever a hand goes up, horns in three keys, tea glasses on a tin tray, a man who would like to sell you a camel ride. This is the Cairo of twenty million people, and it is a good part of why you came."
@@ -569,7 +569,7 @@
       "t": "Rooftop Cairo",
       "p": "Water tanks, pigeon lofts on stilts, somebody’s chairs set out for the evening. The city has a second ground floor up here that you never see from a taxi."
     },
-    "f11": {
+    "f12": {
       "t": "The doors open",
       "p": "Nothing between you and the plateau is taller than you are. Khufu, Khafre and Menkaure stand in the window base to tip, the kettle is on, and the loudest thing on the terrace is a spoon in a glass."
     }

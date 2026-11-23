@@ -15,14 +15,14 @@ export interface Photo { id: string; group: Group; alt: { en: string; ar: string
 
 export const PHOTOS: Photo[] = [
   // the view
-  { id: 'view-sunset', group: 'view', alt: { en: 'The three pyramids of Giza at sunset, the sun low on the left, the rooftops of Al Haram in the foreground', ar: 'أهرامات الجيزة الثلاثة عند الغروب، والشمس منخفضة على اليسار، وأسطح الهرم في المقدمة' }, caption: { en: 'Sunset from the eleventh floor', ar: 'الغروب من الدور الحادي عشر' } },
+  { id: 'view-sunset', group: 'view', alt: { en: 'The three pyramids of Giza at sunset, the sun low on the left, the rooftops of Al Haram in the foreground', ar: 'أهرامات الجيزة الثلاثة عند الغروب، والشمس منخفضة على اليسار، وأسطح الهرم في المقدمة' }, caption: { en: 'Sunset from the twelfth floor', ar: 'الغروب من الدور الثاني عشر' } },
   { id: 'view-day', group: 'view', alt: { en: 'Khufu, Khafre and Menkaure in clear daylight above the city', ar: 'خوفو وخفرع ومنكاورع في ضوء نهار صافٍ فوق المدينة' }, caption: { en: 'Midday, all three', ar: 'الظهيرة والأهرامات الثلاثة' } },
   { id: 'view-show', group: 'view', alt: { en: 'The sound and light show: searchlights fanning up from the plateau behind the lit pyramids, the city dark below', ar: 'عرض الصوت والضوء: أشعة كشافات تتفرع من الهضبة خلف الأهرامات المضاءة، والمدينة مظلمة تحتها' }, caption: { en: 'The sound and light show, from the roof', ar: 'عرض الصوت والضوء من السطح' } },
   { id: 'view-night', group: 'view', alt: { en: 'The pyramids lit at night, a full moon above', ar: 'الأهرامات مضاءة ليلاً، وبدر فوقها' }, caption: { en: 'Moonrise over the plateau', ar: 'القمر فوق الهضبة' } },
   { id: 'view-dusk', group: 'view', alt: { en: 'The pyramids as silhouettes against a pink and violet dusk, the lights of Giza coming on', ar: 'الأهرامات ظلالاً على غسق وردي وبنفسجي، وأضواء الجيزة تُضاء' }, caption: { en: 'Dusk', ar: 'الغسق' } },
   { id: 'view-sunrise', group: 'view', alt: { en: 'An orange sun setting between Khafre and Khufu, seen from the guest house', ar: 'شمس برتقالية تغرب بين خفرع وخوفو، من بيت الضيافة' }, caption: { en: 'The sun between two pyramids', ar: 'الشمس بين هرمين' } },
   { id: 'view-sun', group: 'view', alt: { en: 'A wide sky at sunset with the three pyramids small on the horizon', ar: 'سماء واسعة عند الغروب والأهرامات الثلاثة صغيرة على الأفق' }, caption: { en: 'Big sky', ar: 'سماء واسعة' } },
-  { id: 'view-panorama', group: 'view', alt: { en: 'Panorama of Giza from the eleventh floor: the plateau and the three pyramids beyond the rooftops', ar: 'بانوراما الجيزة من الدور الحادي عشر: الهضبة والأهرامات الثلاثة خلف الأسطح' }, caption: { en: 'The plateau, from the eleventh floor', ar: 'الهضبة من الدور الحادي عشر' } },
+  { id: 'view-panorama', group: 'view', alt: { en: 'Panorama of Giza from the twelfth floor: the plateau and the three pyramids beyond the rooftops', ar: 'بانوراما الجيزة من الدور الثاني عشر: الهضبة والأهرامات الثلاثة خلف الأسطح' }, caption: { en: 'The plateau, from the twelfth floor', ar: 'الهضبة من الدور الثاني عشر' } },
 
   // deluxe studio
   { id: 'studio-bed', group: 'room', alt: { en: 'Deluxe studio: a double bed against a wood-panelled wall, towel swans, white floor tiles and lines of light in the ceiling', ar: 'استوديو ديلوكس: سرير مزدوج أمام جدار بألواح خشبية وبجعات من المناشف وبلاط أبيض وخطوط إضاءة في السقف' }, caption: { en: 'The studio, wood-panelled bed wall', ar: 'الاستوديو وجدار السرير الخشبي' } },
@@ -74,7 +74,7 @@ export const PHOTOS: Photo[] = [
   { id: 'terrace-tables', group: 'terrace', alt: { en: 'Rattan chairs and tables on the terrace, the low sun catching the pyramids', ar: 'كراسي وطاولات خيزران على السطح، وشمس منخفضة تضيء الأهرامات' }, caption: { en: 'Golden hour', ar: 'الساعة الذهبية' } },
   { id: 'terrace-tall', group: 'terrace', alt: { en: 'The open-sided terrace in daylight, a fan on the wall and the plateau beyond', ar: 'السطح المفتوح الجوانب في النهار، ومروحة على الجدار والهضبة في البعيد' }, caption: { en: 'Open on three sides', ar: 'مفتوح من ثلاث جهات' } },
   { id: 'reception', group: 'house', alt: { en: 'The reception: a wooden desk, a leather sofa and a framed print of the pyramids', ar: 'الاستقبال: مكتب خشبي وكنبة جلدية ولوحة للأهرامات' }, caption: { en: 'Reception, open all night', ar: 'الاستقبال مفتوح طوال الليل' } },
-  { id: 'corridor', group: 'house', alt: { en: 'The corridor on the eleventh floor: marble floor, white walls and strip lights to the wooden doors', ar: 'ممر الدور الحادي عشر: أرضية رخام وجدران بيضاء وإضاءة شريطية حتى الأبواب الخشبية' }, caption: { en: 'The eleventh-floor corridor', ar: 'ممر الدور الحادي عشر' } },
+  { id: 'corridor', group: 'house', alt: { en: 'The corridor on the twelfth floor: marble floor, white walls and strip lights to the wooden doors', ar: 'ممر الدور الثاني عشر: أرضية رخام وجدران بيضاء وإضاءة شريطية حتى الأبواب الخشبية' }, caption: { en: 'The twelfth-floor corridor', ar: 'ممر الدور الثاني عشر' } },
 ];
 
 export const photo = (id: string): Photo => {

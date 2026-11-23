@@ -2,7 +2,7 @@
 /**
  * "Why you can see them": a profile along the line of sight, west from the house to the
  * plateau, with approximate heights above sea level. The building is drawn floor by floor with
- * the eleventh lit, the rooftops of Al Haram in front of it, and the sight line from the
+ * the twelfth lit, the rooftops of Al Haram in front of it, and the sight line from the
  * balcony to the apex of Khufu. Vertical scale is exaggerated (x2.5), and says so.
  */
 import { useT, digits, type Lang } from '../i18n';
@@ -16,12 +16,12 @@ const HX = 640; // the house
 const x = (kmWest: number) => HX - kmWest * KM;
 const y = (mASL: number) => GROUND - mASL * M;
 // approximate elevations, metres above sea level
-const E = { street: 25, roofs: 45, floor11: 58, roof: 64, sphinx: 35, khufuBase: 60, khafreBase: 70, menkaureBase: 68, nile: 17 };
+const E = { street: 25, roofs: 45, floor12: 61, roof: 67, sphinx: 35, khufuBase: 60, khafreBase: 70, menkaureBase: 68, nile: 17 };
 const kh = PYRAMIDS.map((p) => ({ ...p, km: distanceKm(SITE.geo, p.at) }));
 const khufu = kh.find((p) => p.id === 'khufu')!, khafre = kh.find((p) => p.id === 'khafre')!, menk = kh.find((p) => p.id === 'menkaure')!;
 const pyr = (p: typeof khufu, base: number, halfBaseM: number) => `M${x(p.km) - halfBaseM / 1000 * KM} ${y(base)} L${x(p.km)} ${y(base + p.height)} L${x(p.km) + halfBaseM / 1000 * KM} ${y(base)} Z`;
-const floors = 11, floorH = (E.floor11 - E.street) / (floors - 1);
-const sight = { x1: HX, y1: y(E.floor11 + 1.5), x2: x(khufu.km), y2: y(E.khufuBase + khufu.height) };
+const floors = 12, floorH = (E.floor12 - E.street) / (floors - 1);
+const sight = { x1: HX, y1: y(E.floor12 + 1.5), x2: x(khufu.km), y2: y(E.khufuBase + khufu.height) };
 const d = (n: number) => digits(String(Math.round(n)), lang);
 const km = (n: number) => digits(n.toFixed(1), lang);
 const kmUnit = lang === 'ar' ? 'كم' : 'km';
@@ -48,14 +48,14 @@ const anchor = (a: 'start' | 'end' | 'middle') => (!rtl || a === 'middle' ? a : 
     <g class="roofs">
       {Array.from({ length: 9 }, (_, i) => { const kx = 0.12 + i * 0.13, h = 32 + ((i * 7) % 4) * 5; return <rect x={x(kx) - 9} y={y(E.street + h)} width="18" height={h * M} />; })}
     </g>
-    <!-- the house: eleven floors and the roof terrace -->
+    <!-- the house: twelve floors and the roof terrace -->
     <g class="house">
       <rect x={HX - 14} y={y(E.roof)} width="28" height={(E.roof - E.street) * M} />
       {Array.from({ length: floors }, (_, i) => <line x1={HX - 14} x2={HX + 14} y1={y(E.street + i * floorH)} y2={y(E.street + i * floorH)} />)}
-      <rect class="floor11" x={HX - 14} y={y(E.floor11 + floorH * 0.9)} width="28" height={floorH * 0.9 * M} />
+      <rect class="floor12" x={HX - 14} y={y(E.floor12 + floorH * 0.9)} width="28" height={floorH * 0.9 * M} />
       <path class="terrace" d={`M${HX - 18} ${y(E.roof)} h36`} />
-      <text class="lbl-floor" x={HX + 22} y={y(E.floor11) + 4} text-anchor={anchor('start')}>{t('elev.floor', { n: digits('11', lang) })}</text>
-      <text class="lbl-small" x={HX + 22} y={y(E.floor11) + 18} text-anchor={anchor('start')}>{t('elev.asl', { m: d(E.floor11) })}</text>
+      <text class="lbl-floor" x={HX + 22} y={y(E.floor12) + 4} text-anchor={anchor('start')}>{t('elev.floor', { n: digits('12', lang) })}</text>
+      <text class="lbl-small" x={HX + 22} y={y(E.floor12) + 18} text-anchor={anchor('start')}>{t('elev.asl', { m: d(E.floor12) })}</text>
     </g>
     <!-- the sight line -->
     <line class="sight draw" x1={sight.x1} y1={sight.y1} x2={sight.x2} y2={sight.y2} />
@@ -74,7 +74,7 @@ const anchor = (a: 'start' | 'end' | 'middle') => (!rtl || a === 'middle' ? a : 
     <text class="lbl-note" x={12} y={H - 8} text-anchor={anchor('start')}>{t('elev.note')}</text>
   </svg></div>
   <p class="elev-hint" aria-hidden="true">⟵ ⟶</p>
-  <figcaption>{t('elev.caption', { floor: d(E.floor11), base: d(E.khufuBase) })}</figcaption>
+  <figcaption>{t('elev.caption', { floor: d(E.floor12), base: d(E.khufuBase) })}</figcaption>
 </figure>
 <script>
   document.querySelectorAll<HTMLElement>('.elev').forEach((el) => { const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { el.classList.add('go'); io.disconnect(); } }), { threshold: 0.3 }); io.observe(el); });
@@ -96,7 +96,7 @@ const anchor = (a: 'start' | 'end' | 'middle') => (!rtl || a === 'middle' ? a : 
   .roofs rect { fill: var(--cream-deep); stroke: var(--taupe); stroke-width: 0.8; }
   .house rect { fill: var(--paper); stroke: var(--ink); stroke-width: 1.1; }
   .house line { stroke: var(--ink); stroke-width: 0.5; opacity: 0.5; }
-  .house .floor11 { fill: var(--gold); stroke: none; opacity: 0.9; }
+  .house .floor12 { fill: var(--gold); stroke: none; opacity: 0.9; }
   .house .terrace { stroke: var(--ink); stroke-width: 1.4; }
   .sight { stroke: var(--gold-text); stroke-width: 1.2; stroke-dasharray: 5 4; }
   .sight-wedge { fill: var(--gold); opacity: 0; transition: opacity 1s var(--ease) 1.2s; }

@@ -1,7 +1,7 @@
 ---
 /**
  * The ride up. Why anyone stays here, told as the lift journey: Cairo at street level is noise and
- * traffic; each few floors it thins out; at eleven the doors open on the pyramids. A brass floor
+ * traffic; each few floors it thins out; at twelve the doors open on the pyramids. A brass floor
  * indicator (the half-moon dial of an old Cairo lift) and a big numeral follow the story as it
  * scrolls; the last stop is a pair of lift doors that slide apart on the terrace photo.
  * Without JavaScript or with reduced motion everything is simply shown, doors open.
@@ -15,12 +15,12 @@ const stops = [
   { f: 0, label: t('hero.liftG'), k: 'g' },
   { f: 4, label: digits(4, lang), k: 'f4' },
   { f: 8, label: digits(8, lang), k: 'f8' },
-  { f: 11, label: digits(11, lang), k: 'f11' },
+  { f: 12, label: digits(12, lang), k: 'f12' },
 ];
-// the dial: a half circle from G (left) to 11 (right), twelve ticks
+// the dial: a half circle from G (left) to 12 (right), thirteen ticks
 const R = 84, CX = 100, CY = 100;
-const at = (f: number, r: number) => { const a = Math.PI * (1 - f / 11); return [CX + r * Math.cos(a), CY - r * Math.sin(a)]; };
-const ticks = Array.from({ length: 12 }, (_, f) => ({ f, a: at(f, R - 4), b: at(f, R - (f % 4 === 0 || f === 11 ? 18 : 11)), l: at(f, R - 30) }));
+const at = (f: number, r: number) => { const a = Math.PI * (1 - f / 12); return [CX + r * Math.cos(a), CY - r * Math.sin(a)]; };
+const ticks = Array.from({ length: 13 }, (_, f) => ({ f, a: at(f, R - 4), b: at(f, R - (f % 4 === 0 || f === 12 ? 18 : 11)), l: at(f, R - 30) }));
 ---
 <section class="ride" id="ride" data-ride>
   <div class="wrap ride-in">
@@ -28,8 +28,8 @@ const ticks = Array.from({ length: 12 }, (_, f) => ({ f, a: at(f, R - 4), b: at(
       <div class="ride-plate">
         <svg class="ride-dial" viewBox="0 0 200 118" role="presentation">
           <path d={`M ${CX - R} ${CY} A ${R} ${R} 0 0 1 ${CX + R} ${CY}`} fill="none" stroke="currentColor" stroke-width="3" />
-          {ticks.map((k) => <line x1={k.a[0]} y1={k.a[1]} x2={k.b[0]} y2={k.b[1]} stroke="currentColor" stroke-width={k.f % 4 === 0 || k.f === 11 ? 3 : 1.5} />)}
-          {ticks.filter((k) => [0, 4, 8, 11].includes(k.f)).map((k) => <text x={k.l[0]} y={k.l[1] + 5} text-anchor="middle" class="ride-tick">{k.f === 0 ? 'G' : k.f}</text>)}
+          {ticks.map((k) => <line x1={k.a[0]} y1={k.a[1]} x2={k.b[0]} y2={k.b[1]} stroke="currentColor" stroke-width={k.f % 4 === 0 || k.f === 12 ? 3 : 1.5} />)}
+          {ticks.filter((k) => [0, 4, 8, 12].includes(k.f)).map((k) => <text x={k.l[0]} y={k.l[1] + 5} text-anchor="middle" class="ride-tick">{k.f === 0 ? 'G' : k.f}</text>)}
           <g class="ride-needle" data-needle><path d={`M ${CX} ${CY} L ${CX - R + 14} ${CY}`} stroke="var(--red)" stroke-width="4" stroke-linecap="round" /><path d={`M ${CX - R + 8} ${CY} l 14 -6 v 12 z`} fill="var(--red)" /></g>
           <circle cx={CX} cy={CY} r="9" fill="currentColor" /><circle cx={CX} cy={CY} r="3.5" fill="var(--gold-light)" />
         </svg>
@@ -49,7 +49,7 @@ const ticks = Array.from({ length: 12 }, (_, f) => ({ f, a: at(f, R - 4), b: at(
             <div>
               <h3>{t(`ride.${s.k}.t`)}</h3>
               <p>{t(`ride.${s.k}.p`)}</p>
-              {s.f === 11 && (
+              {s.f === 12 && (
                 <div class="ride-doors" data-doors>
                   <Img id="terrace-sunset" lang={lang} ratio="16 / 10" sizes="(min-width: 960px) 620px, 100vw" widths={[480, 720, 1080, 1280]} />
                   <span class="ride-door ride-door-a"></span><span class="ride-door ride-door-b"></span>
@@ -70,7 +70,7 @@ const ticks = Array.from({ length: 12 }, (_, f) => ({ f, a: at(f, R - 4), b: at(
     const stops = [...root.querySelectorAll<HTMLElement>('[data-stop]')];
     const set = (el: HTMLElement) => {
       const f = Number(el.dataset.stop);
-      needle.style.transform = `rotate(${(f / 11) * 180}deg)`;
+      needle.style.transform = `rotate(${(f / 12) * 180}deg)`;
       floor.textContent = el.dataset.label!;
       stops.forEach((s) => s.classList.toggle('here', s === el));
     };
@@ -117,7 +117,7 @@ const ticks = Array.from({ length: 12 }, (_, f) => ({ f, a: at(f, R - 4), b: at(
   .ride.live .ride-stop > div { opacity: 0.45; transition: opacity 0.4s; }
   .ride.live .ride-stop.here > div { opacity: 1; }
 
-  /* floor eleven: the doors */
+  /* floor twelve: the doors */
   .ride-doors { position: relative; margin-top: 20px; border: 2px solid var(--ink); border-radius: 12px; overflow: hidden; box-shadow: 8px 8px 0 var(--gold-light); max-width: 620px; }
   .ride-doors :global(.photo) { border-radius: 0; }
   .ride-door { position: absolute; inset-block: 0; width: 50.5%; background: repeating-linear-gradient(90deg, #c98f1c 0 18px, #dba42a 18px 20px, #efbf4a 20px 38px, #dba42a 38px 40px); border: 0 solid var(--ink); transition: transform 1.5s cubic-bezier(0.6, 0, 0.2, 1) 0.25s; }

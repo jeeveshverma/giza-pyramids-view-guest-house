@@ -15,7 +15,7 @@ const overlay = `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/s
   <rect x="28" y="28" width="${W - 56}" height="${H - 56}" fill="none" stroke="#d9b56a" stroke-opacity=".7"/>
   <g transform="translate(76 300) scale(1.3)">${mark('#d9b56a')}</g>
   <text x="230" y="392" font-family="'Cormorant Garamond', Georgia, serif" font-weight="600" font-size="74" letter-spacing="6" fill="#f4ecdd">PYRAMIDS VIEW</text>
-  <text x="234" y="436" font-family="Helvetica, Arial, sans-serif" font-size="22" letter-spacing="10" fill="#d9b56a">GUEST HOUSE · GIZA · 11TH FLOOR</text>
+  <text x="234" y="436" font-family="Helvetica, Arial, sans-serif" font-size="22" letter-spacing="10" fill="#d9b56a">GUEST HOUSE · GIZA · 12TH FLOOR</text>
   <text x="${W - 80}" y="420" font-family="'Reem Kufi', 'Geeza Pro', 'Noto Kufi Arabic', sans-serif" font-size="50" fill="#f4ecdd" text-anchor="end">إطلالة الأهرامات</text>
   <text x="234" y="540" font-family="Helvetica, Arial, sans-serif" font-size="24" fill="#f4ecdd" fill-opacity=".9">All three pyramids from your balcony · breakfast on the roof · enquire on WhatsApp</text>
 </svg>`;
